@@ -1,0 +1,102 @@
+-*- mode: org; coding: utf-8; -*-
+
+#+TITLE: Installing GNU Guix
+
+* Introduction
+
+Software packaging is part of the programmer's toolbox. First and foremost,
+for development you need a dependable and reproducable environment. Second,
+to deploy software and test it you want dependable and reproducable environments.
+Few existing software package management systems can guarantee that.
+
+GNU Guix is a next generation software package installer with a range of
+features, including sane dependency handling, transactional and reproducable
+installs which can be rolled back. In short, GNU Guix has resolved the
+fundamental problems of software deployment and management.
+
+* Pjotr's installation
+
+As usual there is always a fly in the soup or a snake in the grass. Until this
+point I have not been successful in creating a GNU Guix package, in fact, to get
+GNU Guix running on Debian proved surprisingly hard. But with Guix 0.7 I got a
+working installation on Debian.
+
+With the latest I have guix 0.7 running
+
+  which guix
+
+    /usr/local/bin/guix
+
+  guix --version
+
+    guix (GNU Guix) 0.7
+
+First we need to get the daemon running (folloing the installation instructions in the Guix
+manual)
+
+  sudo guix-daemon --build-users-group=guix-builder
+
+and
+
+  guix package -i hello
+
+    The following package will be installed:      
+      hello-2.9    out     /gnu/store/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9
+    The following file will be downloaded:
+      /gnu/store/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9
+    found valid signature for '/gnu/store/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9', from 'http://hydra.gnu.org/nar/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9'
+    downloading `/gnu/store/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9' from `http://hydra.gnu.org/nar/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9' (0.2 MiB installed)...
+    http://hydra.gnu.org/nar/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9       43.0 KiB transferred2 packages in profile
+
+did a binary install of the hello package. A symlink was created in ~/.guix-profile/bin/ pointing to
+/gnu/store/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9/bin/hello. After adding to the path
+
+  export PATH=$HOME/.guix-profile/bin:$PATH
+
+we can run 
+
+  hello
+
+    Hello, world!
+
+Since GNU Guix development revolves around guile (the Scheme programming language) and emacs, let us 
+install
+
+  guix package -i guile
+  guix package -i emacs
+
+in both cases I got a successful install for guile and emacs.
+  
+To build a package from source
+
+  ./pre-inst-env guix build hello
+
+downloaded a few more packages for building and compiled a new hello. This time with a different
+path, presumably because these are different dependencies. This we can check:
+
+  guix gc --references $(guix build hello)
+
+    /gnu/store/1qf4rsznfhvdis39jzdmx0dfjy2jwzgz-gcc-4.8.3-lib
+    /gnu/store/scmy8hnpccld0jszbgdw5csdc9z8f9jf-glibc-2.19
+    /gnu/store/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9
+
+To get the other one
+
+  guix gc --references /gnu/store/77dzhv9yx5x2rq370swp8scsps961pj6-hello-2.9  
+
+    /gnu/store/3h38sfay2f02rk4i768ci8xabl706rf9-glibc-2.20
+    /gnu/store/px5ks6hyjszqp269l9b91354zjclv6c2-gcc-4.8.3-lib
+    /gnu/store/77dzhv9yx5x2rq370swp8scsps961pj6-hello-2.9
+
+And you can tell that the dependencies are not the same. It gets better. You can list the 
+build depencies too
+
+  guix gc --requisites /gnu/store/77dzhv9yx5x2rq370swp8scsps961pj6-hello-2.9
+
+    /gnu/store/2sflarfdfpcjkywy4hwknwrwxmx4rrhi-glibc-2.20-locales
+    /gnu/store/px5ks6hyjszqp269l9b91354zjclv6c2-gcc-4.8.3-lib
+    /gnu/store/3h38sfay2f02rk4i768ci8xabl706rf9-glibc-2.20
+    /gnu/store/77dzhv9yx5x2rq370swp8scsps961pj6-hello-2.9
+
+How many package managers can achieve that?
+
