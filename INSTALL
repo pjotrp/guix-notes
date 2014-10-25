@@ -4,22 +4,25 @@
 
 * Introduction
 
-Software packaging is part of the programmer's toolbox. First and foremost,
-for development you need a dependable and reproducable environment. Second,
-to deploy software and test it you want dependable and reproducable environments.
-Few existing software package management systems can guarantee that.
+Software packaging is part of the programmer's toolbox. First and
+foremost, for development you need a dependable and reproducable
+environment. Second, to deploy software and test it you want
+dependable and reproducable environments.  Few existing software
+package management systems can guarantee that.
 
-GNU Guix is a next generation software package installer with a range of
-features, including sane dependency handling, transactional and reproducable
-installs which can be rolled back. In short, GNU Guix has resolved the
-fundamental problems of software deployment and management.
+GNU Guix is a next generation software package installer with a range
+of features, including sane dependency handling, transactional and
+reproducable installs which can be rolled back. In short, GNU Guix has
+resolved the fundamental problems of software deployment and
+management.
 
 * Pjotr's installation
 
-As usual there is always a fly in the soup or a snake in the grass. Until this
-point I have not been successful in creating a GNU Guix package, in fact, to get
-GNU Guix running on Debian proved surprisingly hard. But with Guix 0.7 I got a
-working installation on Debian.
+There is always a fly in the soup. Before autumn 2014, I have not been
+successful in creating a GNU Guix package, in fact, to get GNU Guix
+running on Debian proved surprisingly hard. But with Guix 0.7 I got a
+working installation on Debian and David and I created the first Ruby
+package in September 2014.
 
 With the latest I have guix 0.7 running
 
@@ -31,8 +34,8 @@ With the latest I have guix 0.7 running
 
     guix (GNU Guix) 0.7
 
-First we need to get the daemon running (folloing the installation instructions in the Guix
-manual)
+First we need to get the daemon running (try following the
+installation instructions in the Guix manual)
 
   sudo guix-daemon --build-users-group=guix-builder
 
@@ -67,7 +70,7 @@ install
 
 in both cases I got a successful install for guile and emacs.
   
-To build a package from source
+To build a package from source, checkout the repository with git and run
 
   ./pre-inst-env guix build hello
 
