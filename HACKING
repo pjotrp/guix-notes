@@ -11,6 +11,9 @@ LISP in the GNU Ubiquitous Intelligent Language for Extensions
 implementation, also known as Guile. You are encouraged to dive in to
 LISP, a language that is so good it simply refuses to go away.
 
+GNU Guix stands out as the 'hackable' package manager. Mostly because
+it uses a powerful high-level programming language.
+
 This document should get you started with Guile and GNU Guix. Just pick
 any package description in the ./gnu directory and work from there. The
 examples here are pulled from the ruby.scm package.
@@ -20,10 +23,19 @@ compile a package from a recent git checkout of the sources. Check out
 the source tree following the instructions in the manual. Here we
 start from a checked out GNU Guix git repository.
 
+First a note of caution. Try to work one step at a time. GNU Guix is not
+a simple system, so you are bound to get frustrated. But it is hackable,
+that means you can solve any problem! And the reward is sane software
+deployment. Guix will pay back your investment.
+
 * Guile, the language
 
 Guile is a LISP. Here we list some Scheme specific material that is used
 by GNU Guix.
+
+** Boolean #f, #t notation
+
+Guess what, #f signifies false, #t signifies true.
 
 ** Hash colon (#:) notation
 
@@ -43,8 +55,15 @@ GNU Guix uses key-value pairs extensively. With
     (description "The standard Ruby build system")
     (lower lower)))
 
-the Guix build-system method is called with the keys name, decscription and lower, 
-where the last is a function with the same name. Also literal keywoard syntax
+the Guix build-system method is called with the functions name, decscription and lower, 
+where the last is a function with the same name. The functions expand to whatever
+data structure is required underneath by the package build system. These 
+definitions are actually resolved as Guile records can be found in ./guix/packages.scm.
+Look up 'define-record-type' to see how that works. In GNU Guix data is availabel
+as build-system-name, build-system-description etc. Same for the package record which
+delivers package-name, package-version, etc.
+
+Also literal keywoard syntax
 is used, e.g.,
 
   (build-expression->derivation store name builder
@@ -146,6 +165,17 @@ Recently GNU Guix introduced bags as an intermediate form between packages
 and derivations. A bag includes all the implicit inputs which is useful 
 for processing.
 
+** Renaming and moving files
+
+                 (alist-replace
+                  'install
+                  (lambda* (#:key outputs #:allow-other-keys)
+                    (let* ((out (assoc-ref outputs "out"))
+                           (bin (string-append out "/bin")))
+                      (mkdir-p bin)
+                      (copy-file (string-append bin "/mpc123") (string-append bin "/mpc123"))))
+
+
 * Testing the package
 
 > Do we have a HOWTO on how to run expressions in the Guile debugger?
@@ -164,12 +194,12 @@ This program is free software, and you are welcome to redistribute it
 under certain conditions; type `,show c' for details.
 
 Enter `,help' for help.
-scheme@(guile-user)> ,use (gnu packages python)
+scheme@(guile-user)> ,use (gnu packages ruby)
 scheme@(guile-user)> ,use (guix)
 scheme@(guile-user)> (define s (open-connection))
-scheme@(guile-user)> python
+scheme@(guile-user)> ruby
 $1 = #<package python-3.3.5 gnu/packages/python.scm:46 2946840>
-scheme@(guile-user)> (package-derivation s python)
+scheme@(guile-user)> (package-derivation s ruby)
 $2 = #<derivation /gnu/store/k0lvsy8jwcw0amv1rsmii2cvwfnmn2gz-python-3.3.5.drv 
 => /gnu/store/ij8xgynicdmnzb7pzmyb6bqi17s0ll3y-python-3.3.5 3f4fdc0>
 scheme@(guile-user)> (build-derivations s (list $2))
@@ -268,8 +298,6 @@ so it downloads the tar ball. The build system looks like
 
 which creates an expression using the standard build-system and the 
 local lower function.
-
-
 
 When you install it says
 
