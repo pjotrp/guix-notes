@@ -176,6 +176,12 @@ for processing.
                       (copy-file (string-append bin "/mpc123") (string-append bin "/mpc123"))))
 
 
+* Starting the daemon
+
+Do not forget to start the daemon
+
+  guix-daemon --build-users-group=guix-builder
+
 * Testing the package
 
 > Do we have a HOWTO on how to run expressions in the Guile debugger?
@@ -252,14 +258,17 @@ or
 
 * Making a patch
 
-A patch can be sent to the mailing list. Use git rebase --interactive to
-merge patches. Next use the GNU ChangeLog format which is a header
-with a filewise change description:
+A patch can be sent to the mailing list. Use git rebase --interactive
+to merge and squash patches into one. Next use the GNU ChangeLog
+format which is a header with a filewise change description:
 
   gnu: Add Ruby.
     
   * gnu/packages/ruby.scm (Ruby): New file.
   * guix/licenses.scm: Add Ruby license information.
+
+Use git format-patch to send a patch to the mailing list.  See also
+the HACKING document in the Guix git repo.
 
 * Hints
 
