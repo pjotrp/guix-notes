@@ -51,7 +51,7 @@ of Ruby (gem) software management and how we put it together. Feel free
 to ask questions and contribute ideas. There are multiple possible 
 tactics for sane dependency handling that GNU Guix could support.
 
-* GNU Guix installation
+* TODO GNU Guix installation
 
 The achilles heel of introducing GNU Guix at this point (autumn 2014)
 is that it is not standard in Linux distributions. That support will
@@ -60,7 +60,7 @@ project and is orthogonal to existing software packaging systems (everything
 is installed in /gnu). It will happen.
 
 At this point there are two ways of installing GNU Guix. See the 
-INSTALL document in this repository. Soon we'll add a binary installation,
+INSTALL document in this repository. Soon we'll add a binary installer,
 which should make things easier.
 
 * Ruby
@@ -76,25 +76,27 @@ HASH, for example I have Ruby 2.1.2 and 2.1.3 on my system sitting under
   /gnu/store/yb9z2y7ndzra9r3x7l3020zjpds43yyc-ruby-2.1.2:
   bin  include  lib  share
 
-and, for example, another ruby 1.8.7
+and, for example, another ruby 1.8.7 under
 
   /gnu/store/2sd245py3i04y4yapvnp8cdpsykijllh-ruby-1.8.7:
   bin  lib  share
 
-You can see they are cleanly separated. Now if I were to change the configure 
-for 2.1.3, for example a build without openssl, it would simply become another
-directory. 
+They are cleanly separated. Now if I were to change the configure for
+2.1.3, for example a build without openssl, it would simply become
+another HASH and therefore directory.
 
-It gets better, the HASH value is also calculated over the dependencies. So,
-if you are running two different glibc's on your system (each under its own 
-HASH directory), or openssl's, the ruby interpreter gets build against one
-of each and calculates a unique HASH. So you can have four Ruby 2.1.3 installations,
-compiled against any combination of two glibc's and two openssl's. The point is
-that you have full control over the dependency graph!
+It gets even better, the HASH value is also calculated over the
+dependencies. So, if you are running two different glibc's on your
+system (each under its own HASH directory), or openssl's, the ruby
+interpreter gets build against one of each and calculates a unique
+HASH. So you can theoretically have four concurrent Ruby 2.1.3
+installations, compiled against any combination of two glibc's and two
+openssl's. The point is that you have full control over the dependency
+graph!
 
-To make a Ruby visible to a user GNU Guix uses symlinks. Installing a particular
-Ruby will symlink a so-called profile in ~/.guix-profile/bin. To run Ruby, simply
-run it as 
+To make a Ruby visible to a user, GNU Guix uses symlinks. Installing a
+particular Ruby will symlink a so-called profile in
+~/.guix-profile/bin. To run Ruby, simply run it as
 
   ~/.guix-profile/bin/ruby -v
   ruby 2.1.3p242 (2014-09-19 revision 47630) [x86_64-linux]
@@ -111,7 +113,7 @@ This means that you can access Ruby libraries shipped with a
 particular Ruby version, but that you can not write new files into
 that directory! The Ruby installation is carved in stone.
 
-* Adding Gems in user land
+* TODO Adding Gems in user land
 
 Ruby comes with gem support out of the box. The gem tool also is symlinked
 in ~/.guix-profile/bin. When we run `gem env' it says
@@ -125,26 +127,30 @@ in ~/.guix-profile/bin. When we run `gem env' it says
   - INSTALLATION DIRECTORY: /gnu/store/ziy7a6zib846426kprc7fgimggh8bz97-ruby-2.1.3/lib/ruby/gems/2.1.0
   - RUBY EXECUTABLE: /gnu/store/ziy7a6zib846426kprc7fgimggh8bz97-ruby-2.1.3/bin/ruby
   - EXECUTABLE DIRECTORY: /gnu/store/ziy7a6zib846426kprc7fgimggh8bz97-ruby-2.1.3/bin
-  - SPEC CACHE DIRECTORY: /home/wrk/.gem/specs
+  - SPEC CACHE DIRECTORY: /home/user/.gem/ziy7a6zib846426kprc7fgimggh8bz97-ruby-2.1.3/specs
   - RUBYGEMS PLATFORMS:
     - ruby
     - x86_64-linux
   - GEM PATHS:
      - /gnu/store/ziy7a6zib846426kprc7fgimggh8bz97-ruby-2.1.3/lib/ruby/gems/2.1.0
-     - /home/wrk/.gem/ruby/2.1.0
+     - /home/user/.gem/ziy7a6zib846426kprc7fgimggh8bz97-ruby-2.1.3/2.1.0
 
-(FIXME: the INSTALLATION directory should install in $HOME, the $HOME dir paths should also include the HASH)
+(FIXME: the INSTALLATION directory should install in $HOME, the $HOME
+dir paths should also include the HASH)
 
-The general idea is that we allow users to install their own gems, but cleanly
-separated against the HASH dir that comes with the Ruby installation. This way
-there is clear isolation between different installed versions of Ruby. NO SHARING!
+The general idea is that we allow users to install their own gems, but
+cleanly separated against the HASH dir that comes with the Ruby
+installation. This way there is clear isolation between different
+installed versions of Ruby. Unlike RVM and rbenv, there is NO
+(accidental) sharing between different Ruby installations!
 
 (FIXME: You should be able to use bundler too)
 
 To achieve clean separation we can patch Ruby and gem to make use of the new
-GEM_PATHs, or we can create a wrapper script which presets the PATH. 
+GEM_PATHs, or we can create a wrapper script which presets the PATH. At this
+point I favour the patching because Ruby gem has these paths built-in.
 
-* Adding system shared gems
+* TODO Adding system shared gems
 
 System shared gems are GNU Guix packages (unless you start explicitely overriding above 
 GEM_PATHs). The advantage of using GNU Guix is that the dependency graph is explicit
@@ -155,3 +161,10 @@ its own HASH dir, e.g.
 
 This means (again) you can support multiple versions of gems. Under GNU Guix gems become
 first-rate citizens in a software stack.
+
+* TODO Generating GNU Guix Gem packages
+
+The Gem specification is pretty straightforward. The great problem with rubygems is
+that they are not designed for clear isolation of installations. With GNU Guix it
+should be possible to generate installation packages from Gem definitions.
+
