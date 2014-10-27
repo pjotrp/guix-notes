@@ -190,7 +190,6 @@ Do not forget to start the daemon
 
 Basically there are two approaches.  From the command line, like this:
 
---8<---------------cut here---------------start------------->8---
 $ ./pre-inst-env guile
 GNU Guile 2.0.11.20-4338f
 Copyright (C) 1995-2014 Free Software Foundation, Inc.
@@ -204,13 +203,19 @@ scheme@(guile-user)> ,use (gnu packages ruby)
 scheme@(guile-user)> ,use (guix)
 scheme@(guile-user)> (define s (open-connection))
 scheme@(guile-user)> ruby
-$1 = #<package python-3.3.5 gnu/packages/python.scm:46 2946840>
+$1 = #<package ruby-2.1.3 gnu/packages/ruby.scm:36 47d4dc0>
 scheme@(guile-user)> (package-derivation s ruby)
-$2 = #<derivation /gnu/store/k0lvsy8jwcw0amv1rsmii2cvwfnmn2gz-python-3.3.5.drv 
-=> /gnu/store/ij8xgynicdmnzb7pzmyb6bqi17s0ll3y-python-3.3.5 3f4fdc0>
-scheme@(guile-user)> (build-derivations s (list $2))
-$3 = #t
---8<---------------cut here---------------end--------------->8---
+ERROR: Unbound variable: sha256
+
+# $2 = #<derivation /gnu/store/k0lvsy8jwcw0amv1rsmii2cvwfnmn2gz-python-3.3.5.drv 
+# => /gnu/store/ij8xgynicdmnzb7pzmyb6bqi17s0ll3y-python-3.3.5 3f4fdc0>
+# scheme@(guile-user)> (build-derivations s (list $2))
+# $3 = #t
+
+You may also want readline support:
+
+  (use-modules (ice-9 readline))
+  (activate-readline)
 
 But the best thing, if you use Emacs, is to use Geiser, as noted in
 ‘HACKING’.  In addition to a REPL, it brings stuff like autodoc,
@@ -223,6 +228,14 @@ Install Geiser and add the guile path to ~/.emacs with
 Start geiser and you should be able to replicate above commands.
 
 * Building the package
+
+Usually I start with
+
+  ./pre-inst-env guix package -A ruby
+    ruby    2.1.3   out     gnu/packages/ruby.scm:37:2
+    ruby    1.8.7-p374      out     gnu/packages/ruby.scm:37:2
+
+to see if the package compiles. Next
 
   ./pre-inst-env guix build -K -e '(@ (gnu packages ruby) ruby)' 
 
@@ -245,7 +258,8 @@ Once the build works you can use standard guix to install the package
 
   ./pre-inst-env guix package -i ruby
 
-or
+This will also build from the source tree and blindly merges that
+directory into your profile, but lacks information for updates etc:
   
   ./pre-inst-env guix package -e '(@ (gnu packages ruby) ruby)'
 
