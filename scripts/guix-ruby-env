@@ -4,8 +4,14 @@
 #
 #   . guix-ruby-env
 #
-# This also works with Nix, provided .nix-profile is in the path and a ruby
-# is installed.
+# Basically the search PATH is used to pick up the ruby binary. Next
+# the Guix HASH part is fetched from that. Finally Rubygems is
+# 'reprogrammed' to use local directories using that same HASH. All in
+# all, you get perfect isolation of gems that come with a specific
+# Ruby install. Without the pain of RVM and all that.
+#
+# This script also works with Nix packages, provided
+# $HOME/.nix-profile/bin is in the path and a ruby is installed.
 
 RUBYBIN=$(readlink -f `which ruby`)
 echo $RUBYBIN|grep 'ruby-'
