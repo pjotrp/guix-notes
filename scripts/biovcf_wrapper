@@ -1,0 +1,12 @@
+#! /bin/bash
+# 
+# wrapper to the checked out git repository
+
+unset a
+for arg; do
+  temp=$arg
+  a+=("$temp")
+done
+
+exec /hpc/local/CentOS6/cog_bioinf/bin/ruby /hpc/local/CentOS6/cog_bioinf/CuppenResearch/bioruby-vcf/bin/bio-vcf "${a[@]}"
+
