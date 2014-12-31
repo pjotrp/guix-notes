@@ -1,0 +1,35 @@
+#! /bin/bash
+#
+# Set up a Ruby environment for Guix. Run as
+#
+#   . guix-ruby-env
+#
+# This also works with Nix, provided .nix-profile is in the path and a ruby
+# is installed.
+
+RUBYBIN=$(readlink -f `which ruby`)
+echo $RUBYBIN|grep 'ruby-'
+if [ $? == 1 ]; then
+  echo $PATH|grep guix-profile
+  if [ $? == 1 ]; then
+    echo guix missing! Adding it to PATH.
+    export PATH=$HOME/.guix-profile/bin:$PATH
+  fi
+fi
+
+RUBYBIN=$(readlink -f `which ruby`)
+RUBYHASH=$(basename $(dirname $(dirname $RUBYBIN)))
+
+export GEM_PATH=$HOME/.gem/$RUBYHASH/2.1.0
+export GEM_HOME=$GEM_PATH
+export GEM_SPEC_CACHE=$HOME/.gem/$RUBYHASH/specs
+mkdir -p $GEM_PATH
+mkdir -p $GEM_SPEC_CACHE
+GEM_BIN=$HOME/.gem/$RUBYHASH/2.1.0/bin/
+
+echo $PATH|grep $GEM_BIN
+if [ $? == 1 ]; then
+  export PATH=$GEM_BIN:$PATH
+fi
+
+gem env

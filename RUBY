@@ -14,10 +14,10 @@ throwing things at my computer. So when should you look at GNU Guix?
 You should look at Guix when you 
 
 1. are serious about software deployment
-2. need to handle mutiple versions of Ruby
+2. need to handle multiple versions of Ruby
 3. want clear isolation of dependencies
 4. want clean separation of gems
-5. want a reproducable environment
+5. want a reproducible environment
 
 GNU Guix allows you to define a software package once with all its
 dependencies. Every time you install the package it gets reproduced
@@ -40,7 +40,7 @@ by others.
 
 GNU Guix is a next generation software package installer with a range
 of features, including sane dependency handling, transactional and
-reproducable installs which can be rolled back. In short, GNU Guix has
+reproducible installs which can be rolled back. In short, GNU Guix has
 resolved the fundamental problems of software deployment and
 management. GNU Guix also should play well with Docker and VMs.
 
@@ -52,7 +52,7 @@ for sane dependency handling that GNU Guix could support.
 
 * TODO GNU Guix installation
 
-The achilles heel of introducing GNU Guix at this point (autumn 2014)
+The Achilles heel of introducing GNU Guix at this point (autumn 2014)
 is that it is not standard in Linux distributions. That support will
 come because GNU Guix is the official packaging system of the GNU
 project and is orthogonal to existing software packaging systems (everything
@@ -195,11 +195,29 @@ will tell you where the gems are installed. To use bundler you can call
 
   ~/.gem/ziy7a6zib846426kprc7fgimggh8bz97-ruby-2.1.3/2.1.0/bin/bundler
 
-The paths may look a bit long, but that guarantees separation!
+The paths may look a bit long, but that guarantees separation! The PATH should
+be set to
+
+  export PATH=$HOME/.guix-profile/bin:$HOME/.gem/ziy7a6zib846426kprc7fgimggh8bz97-ruby-2.1.3/2.1.0/bin
+
+and run
+
+  bundle
+  bundle exec rake
+
+When there is a problem with your gems, simply clean up
+$HOME/.gem/ziy7a6zib846426kprc7fgimggh8bz97-ruby-2.1.3 and start from
+scratch with a clean Ruby installation. Or, more rigorously, start writing
+system shared gems.
+
+A bash script which does this can be found as ./scripts/guix-ruby-env and 
+can be run as 
+
+  source ./scripts/guix-ruby-env
 
 * TODO Adding system shared gems
 
-System shared gems are GNU Guix packages (unless you start explicitely overriding above 
+System shared gems are GNU Guix packages (unless you start explicitly overriding above 
 GEM_PATHs). The advantage of using GNU Guix is that the dependency graph is explicit
 and people can easily share installations. A gem gets installed with its version under
 its own HASH dir, e.g.
