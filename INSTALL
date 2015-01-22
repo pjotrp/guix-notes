@@ -62,13 +62,13 @@ using Docker for bootstrapping Guix. Until now there is no such Docker download.
 
 * Pjotr's installation
 
-There is always a fly in the soup. Before autumn 2014, I have not been
-successful in creating a GNU Guix package, in fact, to get GNU Guix
+There is always a fly in the soup. Before autumn 2014, I was not
+successful in installing GNU Guix, in fact, to get GNU Guix
 running on Debian proved surprisingly hard. But with Guix 0.7 I got a
 working installation on Debian (building from the source tarball) and
 David and I created the first Ruby package in September 2014.
 
-With guix 0.7 I have built from source on Debian.
+With guix 0.7 and 0.8 I have built from source on Debian.
 
   which guix
 
@@ -76,7 +76,7 @@ With guix 0.7 I have built from source on Debian.
 
   guix --version
 
-    guix (GNU Guix) 0.7
+    guix (GNU Guix) 0.8
 
 * Post-build install
 
