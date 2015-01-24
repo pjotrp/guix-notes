@@ -42,9 +42,10 @@ package, create the build group and permissions.
 
 * Bootstrap from source
 
-Bootstrapping from source, after checking out the Guix source tree, is surprisingly
-tricky because of the build dependencies. Your mileage may vary, but currently
-I recommend against it.
+Bootstrapping from source, after checking out the git Guix source tree
+is surprisingly tricky because of the build dependencies. Your mileage
+may vary, but currently I recommend against it. Beter take on of the
+stable release and install that (see below: Pjotr's installation)
 
 * Bootstrap with Nix
 
@@ -63,10 +64,12 @@ using Docker for bootstrapping Guix. Until now there is no such Docker download.
 * Pjotr's installation
 
 There is always a fly in the soup. Before autumn 2014, I was not
-successful in installing GNU Guix, in fact, to get GNU Guix
+successful in installing GNU Guix from source, in fact, to get GNU Guix
 running on Debian proved surprisingly hard. But with Guix 0.7 I got a
 working installation on Debian (building from the source tarball) and
 David and I created the first Ruby package in September 2014.
+
+You'll need autoconf, automake and a few other packages.
 
 With guix 0.7 and 0.8 I have built from source on Debian.
 
@@ -78,14 +81,14 @@ With guix 0.7 and 0.8 I have built from source on Debian.
 
     guix (GNU Guix) 0.8
 
-* Post-build install
+* Run the guix daemon
 
 First we need to get the daemon running (try following the
 installation instructions in the Guix manual)
 
   sudo guix-daemon --build-users-group=guix-builder
 
-and
+* Install the hello package
 
   guix package -i hello
 
@@ -98,7 +101,11 @@ and
     http://hydra.gnu.org/nar/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9       43.0 KiB transferred2 packages in profile
 
 did a binary install of the hello package. A symlink was created in ~/.guix-profile/bin/ pointing to
-/gnu/store/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9/bin/hello. After adding to the path
+/gnu/store/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9/bin/hello. 
+
+* Add symlinks to the PATH
+
+After adding to the path
 
   export PATH=$HOME/.guix-profile/bin:$PATH
 
