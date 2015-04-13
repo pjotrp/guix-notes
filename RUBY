@@ -58,9 +58,12 @@ come because GNU Guix is the official packaging system of the GNU
 project and is orthogonal to existing software packaging systems (everything
 is installed in /gnu). It will happen.
 
-Currently there are two ways of installing GNU Guix. See the 
-INSTALL document in this repository. Soon we'll add a binary installer,
-which should make things easier.
+Currently there are two ways of installing GNU Guix. See the
+[INSTALL](https://github.com/pjotrp/guix-notes/blob/master/INSTALL)
+document in this repository. Soon we'll add a binary installer, which
+should make things easier. Note that if you have Guix installed and
+running from /guix/store you can just transfer the setup to another
+machine! The only dependency is the Linux kernel.
 
 * Ruby
 

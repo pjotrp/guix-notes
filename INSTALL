@@ -19,74 +19,118 @@ management.
 Here we list the fundamental Guix bootstrap options, and run through
 post-build installation.
 
-* Install with existing package manager
+* Install with an existing package manager
 
-It is to be expected that in 2015/16 the major package managers will 
-install GNU Guix out of the box. Similar to allowing Perl or Python software
-packagers, there should be no exception for the GNU package manager. In fact, 
-the last is less intrusive than the others, since it does not install 
-software in the same directories. Until the package managers decide to 
-include GNU Guix we'll have to use one of the other following options.
+It is to be expected that in 2015/16 the major package managers will
+install GNU Guix out of the box. Similar to allowing Docker, Perl or
+Python software packagers, there should be no exception for the GNU
+package manager. In fact, the GNU Guix is less intrusive than the
+others, since it does not install software in the same directories as
+the underlying package manager (such as apt or rpm). But, until the
+Linux distributions decide to include GNU Guix, we'll have to use one
+of the other following options.
 
 * Binary installation
 
-A binary install should be easy because all properly installed Guix
-packages are independent from the underlying distribution - a package
-can be created which contains a package with all its dependencies. The
-only real dependency is the (Linux) kernel - which should have a
-compatible API. Fortutely the fundamental API does not change that
-often, so a binary distribution can be copied from machine to
-machine. Of course, also the build target archicture has to match.
-With a binary distribution it is possible to simply unpack the
+A binary install is easy because all properly installed Guix packages
+are independent from the underlying distribution - a package can be
+created which contains a software with all its dependencies. The only
+real dependency is the (Linux) kernel. The fundamental Linux API does
+not change that often so a binary distribution can be copied from
+machine to machine. Of course, also the build target archicture has to
+match.  With a binary distribution it is possible to simply unpack the
 package, create the build group and permissions.
 
-* Bootstrap from source
+** The TAR ball
 
-Bootstrapping from source, after checking out the git Guix source tree
-is surprisingly tricky because of the build dependencies. Your mileage
-may vary, but currently I recommend against it. Beter take on of the
-stable release and install that (see below: Pjotr's installation)
+As root user fetch the TAR ball and unpack it in the root directory
 
-* Bootstrap with Nix
+    tar -C / --lzip -xvf guix-tarball-0.8.1.1140.tar.lz 
 
-Bootstrapping with Nix is possible, the package managers are 1st
-cousins and use the same backend. The Guix package contained in Nix,
-however, may be out of date and perhaps uses /gnu/store instead of
-/nix/store. The latter should also work with Guix, but you don't get binary
-downloads.
+(on Debian you may need 'apt-get install lzip' first)
 
-* Bootstrap with Docker
+Add the guix-profile to the path
 
-The store /gnu/store can be mounted inside a Docker image. This not only allows
-sharing packages between docker images, but also gives the perspective of 
-using Docker for bootstrapping Guix. Until now there is no such Docker download.
+    export ~/.guix-profile/bin:$PATH
 
-* Pjotr's installation
+Set the store permissions and start the daemon after creating the
+build users as described below. 
 
-There is always a fly in the soup. Before autumn 2014, I was not
-successful in installing GNU Guix from source, in fact, to get GNU Guix
-running on Debian proved surprisingly hard. But with Guix 0.7 I got a
-working installation on Debian (building from the source tarball) and
-David and I created the first Ruby package in September 2014.
+** From an existing GNU Guix installation
 
-You'll need autoconf, automake and a few other packages.
+I thought I would be able to bootstrap using a USB image and copy
+that to a local hard disk.
 
-With guix 0.7 and 0.8 I have built from source on Debian.
+To bootstrap I have successfully downloaded a GNU Guix tarball 
 
-  which guix
+    wget http://alpha.gnu.org/gnu/guix/gnu-usb-install-0.8.1.x86_64-linux.xz
+    xz -d gnu-usb-install-0.8.x86_64-linux.xz 
 
-    /usr/local/bin/guix
+mount it with kpartx
 
-  guix --version
+    kpartx -v -a gnu-usb-install-0.8.1.x86_64-linux
+    mkdir mnt 
+    mkdir tmp
+    mount /dev/mapper/loop0p1 mnt
+    cp -vau mnt/gnu tmp
+    mv tmp/gnu/ /
 
-    guix (GNU Guix) 0.8
+* Set the store permissions
+
+    chgrp guix-builder -R /gnu/store
+    chmod 1775 /gnu/store
+
+* Create build group and users
+
+Now we have the /gnu/store in place we need to create a group and
+users with build permissions for the Guix daemon. 
+ 
+    groupadd guix-builder
+    for i in `seq 1 10`; do
+        useradd -g guix-builder -G guix-builder       \
+            -d /var/empty -s `which nologin`          \
+            -c "Guix build user $i" --system          \
+            guix-builder$i;
+    done
+
+(set the number of builders to the number of cores).
+
+Also the store comes with meta-data in the form of a sqlite
+database. This sits in /var/guix. Copy also this directory to the new
+system before running guix.
+
+* Start the GNU Guix daemon
+
+Now you should be able to run Guix with
+
+    guix-daemon --build-users-group=guix-builder
+
+    /gnu/store/(...)-guix-0.8(...)/bin/guix --help
 
 * Run the guix daemon
 
-First we need to get the daemon running (try following the
-installation instructions in the Guix manual)
+First we need to get the daemon running (first follow the
+[[https://www.gnu.org/software/guix/manual/html_node/Build-Environment-Setup.html#Build-Environment-Setup][installation instructions for the environment]] in the Guix manual) and then
 
   sudo guix-daemon --build-users-group=guix-builder
+
+** Set the key
+
+To enable binary installs you need to authorize it with a key which can 
+be found with guix
+
+  guix archive --authorize < ~/.guix-profile/share/guix/hydra.gnu.org.pub 
+
+Note that you can also call GNU Guix from its direct path, e.g.
+
+  /gnu/store/8lays(...)-guix-0.8.47739f5/bin/guix archive --authorize < /gnu/store/8lay(...)-guix-0.8.47739f5/share/guix/hydra.gnu.org.pub
+
+** Use guix as a normal user
+
+As a normal user you can now install software (see below install the
+hello package). Guix will ask you to install a dir for the user in
+/var/guix/profiles/per-user/. You can add mkdir
+/var/guix/profiles/per-user/pjotr/guix-profile/bin and link guix from there.
 
 * Install the hello package
 
@@ -102,6 +146,14 @@ installation instructions in the Guix manual)
 
 did a binary install of the hello package. A symlink was created in ~/.guix-profile/bin/ pointing to
 /gnu/store/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9/bin/hello. 
+
+Note that you have the great luxury of interrupting GNU Guix at any
+point during build and installation. That is because it is TRANSACTION
+SAFE!
+
+Another luxury is that you can copy packages from one dir/machine to
+another. It is SAFE because each package is isolated from
+another. Note: you may need to copy the dependencies too.
 
 * Add symlinks to the PATH
 
@@ -156,3 +208,54 @@ build depencies too
 
 How many package managers can achieve that?
 
+* Other installation routes
+** Bootstrap from source
+
+Bootstrapping from source, after checking out the git Guix source tree
+is surprisingly tricky because of the build dependencies. Your mileage
+may vary, but currently I recommend using the tar-ball install
+described above.
+
+** Building GNU Guix from source
+
+There is always a fly in the soup. Before autumn 2014, I was not
+successful in installing GNU Guix from source, in fact, to get GNU Guix
+running on Debian proved surprisingly hard. But with Guix 0.7 I got a
+working installation on Debian (building from the source tarball) and
+David and I created the first Ruby package in September 2014.
+
+You'll need autoconf, automake and a few other packages.
+
+With guix 0.7 and 0.8 I have built from source on Debian.
+
+  which guix
+
+    /usr/local/bin/guix
+
+  guix --version
+
+    guix (GNU Guix) 0.8
+
+NOTE: When upgrading guix through guix (i.e., 'guix package -i guix')
+make sure the same metadata is seen by the new daemon! The old one may
+be using the /usr/local prefix, so the metadata will be in
+/usr/local/var/guix while the new one may expect the data in
+/var/guix. A symlink may solve it.
+
+** Bootstrap with Nix
+
+Bootstrapping with Nix is possible, the package managers are 1st
+cousins and use the same backend. The Guix package contained in Nix,
+however, may be out of date and perhaps uses /gnu/store instead of
+/nix/store. The latter should also work with Guix, but you don't get binary
+downloads.
+
+** Bootstrap with Docker
+
+The store /gnu/store can be mounted inside a Docker image. This not only allows
+sharing packages between docker images, but also gives the perspective of 
+using Docker for bootstrapping Guix. Until now there is no such Docker download.
+
+* Continue with Ruby installation and environment
+
+There is a write-up in the RUBY file in this repository.

@@ -1,0 +1,67 @@
+* Symlinks are pointing wrong
+
+There is a problem currently: right after copying the files to /gnu
+they work fine, e.g. 
+
+    /gnu/store/nx4zd42igyb7ghmv4mxv6ncg8wr7ypa1-bash-4.3.33/bin/bash --version
+    GNU bash, version 4.3.33(1)-release (x86_64-unknown-linux-gnu)
+
+This works too. Nice! 
+
+when I run 
+
+    /gnu/store/wnsbzddp3izv3xr3gqf2rar4fyd4shl7-guix-0.8.1.f1082ec/bin/guix package -i bash
+
+it runs and I get
+
+    The following package will be installed:     
+       bash 4.3.33  /gnu/store/7cc229218glj3kzp6zafzs5mc4241wqk-bash-4.3.33
+    substitute-binary: updating list of substitutes from 'http://hydra.gnu.org'...
+
+    The following derivations will be built:
+    /gnu/store/gkfzdr01ga0m1c2vl8dh6p3cspjik7pp-profile.drv
+    /gnu/store/kw632ijb16nracg8kbd2z3qqarv72b9c-info-dir.drv
+    The following files will be downloaded:
+    /gnu/store/7cc229218glj3kzp6zafzs5mc4241wqk-bash-4.3.33
+    /gnu/store/1j6njwwhcqr04c2m0868400p74pv36k2-module-import-compiled
+    /gnu/store/z2mbq8915vvh0fj6sz3iqiifrdm9k7np-guile-2.0.11
+    (...)
+    substitute error: executing `/gnu/store/wnsbzddp3izv3xr3gqf2rar4fyd4shl7-guix-0.8.1.f1082ec/libexec/guix/substitute-binary': No such file or directory
+    guix package: error: build failed: unexpected EOF reading a line
+
+Looking at
+
+    head -1 /gnu/store/wnsbzddp3izv3xr3gqf2rar4fyd4shl7-guix-0.8.1.f1082ec/libexec/guix/substitute-binary
+#!/gnu/store/nx4zd42igyb7ghmv4mxv6ncg8wr7ypa1-bash-4.3.33/bin/bash
+
+it calls bash and now check
+
+    /gnu/store/nx4zd42igyb7ghmv4mxv6ncg8wr7ypa1-bash-4.3.33/bin/bash
+    bash: /gnu/store/nx4zd42igyb7ghmv4mxv6ncg8wr7ypa1-bash-4.3.33/bin/bash: No such file or directory
+
+while
+
+    ldd /gnu/store/nx4zd42igyb7ghmv4mxv6ncg8wr7ypa1-bash-4.3.33/bin/bash
+        linux-vdso.so.1 =>  (0x00007fff739ec000)
+        libreadline.so.6 => /gnu/store/fznw2a1ig05jkc2yrw8knzcb99akcjx7-readline-6.3/lib/libreadline.so.6 (0x00007f0084bd5000)
+        libhistory.so.6 => /gnu/store/fznw2a1ig05jkc2yrw8knzcb99akcjx7-readline-6.3/lib/libhistory.so.6 (0x00007f00849cc000)
+        libncursesw.so.5 => /gnu/store/ksnhghfy6hkk8mmxd4nacyd8c1smdp6p-ncurses-5.9/lib/libncursesw.so.5 (0x00007f008476a000)
+        libdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f008455b000)
+        libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f008419b000)
+        /gnu/store/q2mm1wv4a3g0b29yv0rjybfjh8kr07qi-glibc-2.20/lib/ld-linux-x86-64.so.2 => /lib64/ld-linux-x86-64.so.2 (0x00007f0084e1d000)
+
+Oooops. Where does libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 come from? 
+
+Also the other bash stopped working
+
+    /gnu/store/nx4zd42igyb7ghmv4mxv6ncg8wr7ypa1-bash-4.3.33/bin/bash --version
+
+and ldd shows links outside /gnu (when it worked they are all linked inside /gnu).
+
+Also the guix binary stopped working. Same issue.
+
+Can anyone explain this? I tried multiple USB images and it is all the same.
+
+The explanation is that GNU Guix has metadata in the sqlite data base
+under /var/guix. You need to copy that with the store.
+
