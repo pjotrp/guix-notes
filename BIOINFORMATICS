@@ -1,0 +1,13 @@
+-*- mode: org; coding: utf-8; -*-
+
+#+TITLE: GNU Guix and Bioinformatics
+
+* Introduction
+
+Bioinformatics needs GNU Guix because:
+
+1. Software gets installed and deployed often
+2. There are many dependencies between software packages
+3. Often multiple versions of software are run at the same time
+4. Reproducible installs is a requirement in Science
+5. Sane 1-click installs are the future

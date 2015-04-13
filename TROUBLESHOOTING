@@ -1,14 +1,16 @@
-* Symlinks are pointing wrong
+-*- mode: org; coding: utf-8; -*-
 
-There is a problem currently: right after copying the files to /gnu
+#+TITLE: Troubleshooting GNU Guix
+
+* Libraries links (seen with ldd) are pointing outside /gnu/store
+
+When copying the files from one /gnu to another /gnu store
 they work fine, e.g. 
 
     /gnu/store/nx4zd42igyb7ghmv4mxv6ncg8wr7ypa1-bash-4.3.33/bin/bash --version
     GNU bash, version 4.3.33(1)-release (x86_64-unknown-linux-gnu)
 
-This works too. Nice! 
-
-when I run 
+but when I run 
 
     /gnu/store/wnsbzddp3izv3xr3gqf2rar4fyd4shl7-guix-0.8.1.f1082ec/bin/guix package -i bash
 
