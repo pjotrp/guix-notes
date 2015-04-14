@@ -2,6 +2,9 @@
 
 #+TITLE: Installing GNU Guix
 
+*NEWS FLASH*: GNU Guix can be installed in on go on most Linux installs! 
+See the tarball section below.
+
 * Introduction
 
 Software packaging is part of the programmer's toolbox. First and
@@ -41,9 +44,15 @@ machine to machine. Of course, also the build target archicture has to
 match.  With a binary distribution it is possible to simply unpack the
 package, create the build group and permissions.
 
-** The TAR ball
+** The one-step tarball installation
 
-As root user fetch the TAR ball and unpack it in the root directory
+Fetch the TAR ball 
+
+    http://www.fdn.fr/~lcourtes/software/guix/guix-tarball-0.8.1.1140.tar.lz
+    http://www.fdn.fr/~lcourtes/software/guix/guix-tarball-0.8.1.1140.tar.lz.sig
+    SHA1: afde62b3e9f97f9ae0c57eaccfaca842b157cd2f
+
+and unpack it in the root directory
 
     tar -C / --lzip -xvf guix-tarball-0.8.1.1140.tar.lz 
 
@@ -83,10 +92,11 @@ mount it with kpartx
 * Create build group and users
 
 Now we have the /gnu/store in place we need to create a group and
-users with build permissions for the Guix daemon. 
- 
+users with build permissions for the Guix daemon. In bash
+
+    builders=10
     groupadd guix-builder
-    for i in `seq 1 10`; do
+    for i in `seq 1 $builders`; do
         useradd -g guix-builder -G guix-builder       \
             -d /var/empty -s `which nologin`          \
             -c "Guix build user $i" --system          \
