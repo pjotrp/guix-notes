@@ -224,6 +224,27 @@ build depencies too
 
 How many package managers can achieve that?
 
+* Set locale
+
+If you see the message 
+
+:  warning: failed to install locale: Invalid argument
+
+it means your locale needs to be found. Guix comes with a locale database
+
+:  guix package -i glibc-utf8-locales
+
+and set the LOCPATH
+
+:  export LOCPATH=$HOME/.guix-profile/lib/locale
+
+Choose one from
+
+:  ls $LOCPATH
+:  export LC_ALL=en_US.UTF-8
+
+Alternatively set the LOCPATH to your underlying distribution
+
 * Other installation routes
 ** Bootstrap from source
 
