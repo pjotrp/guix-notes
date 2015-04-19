@@ -118,14 +118,7 @@ Now you should be able to run Guix with
 
     /gnu/store/(...)-guix-0.8(...)/bin/guix --help
 
-* Run the guix daemon
-
-First we need to get the daemon running (first follow the
-[[https://www.gnu.org/software/guix/manual/html_node/Build-Environment-Setup.html#Build-Environment-Setup][installation instructions for the environment]] in the Guix manual) and then
-
-  sudo guix-daemon --build-users-group=guix-builder
-
-** Set the key
+* Set the key
 
 To enable binary installs you need to authorize it with a key which can 
 be found with guix
@@ -136,18 +129,19 @@ Note that you can also call GNU Guix from its direct path, e.g.
 
   /gnu/store/8lays(...)-guix-0.8.47739f5/bin/guix archive --authorize < /gnu/store/8lay(...)-guix-0.8.47739f5/share/guix/hydra.gnu.org.pub
 
-** Update the package list
+* Update the package list
 
    guix pull
 
 downloads the latest Guix source code and package descriptions, and
-deploys it.  Update guix
+deploys it.  Update guix (do this as root so the daemon does not get
+garbage collected later).
 
    guix package -i guix
 
 you may want to restart the daemon after a successful upgrade.
 
-** Use guix as a normal user
+* Use guix as a normal user
 
 As a normal user you can now install software (see below install the
 hello package). Guix will ask you to install a dir for the user in
