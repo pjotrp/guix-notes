@@ -296,3 +296,7 @@ using Docker for bootstrapping Guix. Until now there is no such Docker download.
 * Continue with Ruby installation and environment
 
 There is a write-up in the RUBY file in this repository.
+
+* Continue with Python installation and environment
+
+There is a write-up in the PYTHON file in this repository.

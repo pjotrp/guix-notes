@@ -1,0 +1,122 @@
+-*- mode: org; coding: utf-8; -*-
+
+#+TITLE: Python on GNU Guix
+
+* Introduction
+
+The GNU software packaging project is packaging done right. The Python
+packages support Python 2 and 3 and a host of modules installs out
+of the box.
+You should look at Guix when you 
+
+1. are serious about software deployment
+2. need to handle multiple versions of Python
+3. want clear isolation of dependencies
+4. want clean separation of gems
+5. want a reproducible environment
+
+GNU Guix allows you to define a software package once with all its
+dependencies. Every time you install the package it gets reproduced
+*exactly* with its exact dependency graph, all the way down to
+glibc. Whether you are a sysadmin who needs to deploy an exact Rails
+stack or you are a developer and need to support user environment, GNU
+Guix is the solution you require. Use cases are
+
+1. test modules using multiple versions of Python
+2. install concurrent rubies with or without linked openssl support
+3. run minimal Python to be exposed to the web
+4. update Python in production and roll-back after a problem
+5. run multiple versions of the same module against one Python
+6. run multiple versions of openssl dependencies
+
+Use your imagination. The point is that you control the *full*
+dependency graph. Always. You can even give users rights to install
+and share software because the underlying system is
+'immutable'. Existing graphs can not be overwritten by others.
+
+GNU Guix is a next generation software package installer with a range
+of features, including sane dependency handling, transactional and
+reproducible installs which can be rolled back. In short, GNU Guix has
+resolved the fundamental problems of software deployment and
+management. GNU Guix also should play well with Docker and VMs.
+
+GNU Guix is getting mature with almost a thousand software
+packages. In this document I explain what the philosophy is of Python
+(pip) software management and how we put it together. Feel free to ask
+questions and contribute ideas. There are multiple possible tactics
+for sane dependency handling that GNU Guix could support.
+
+* GNU Guix installation
+
+See the
+[INSTALL](https://github.com/pjotrp/guix-notes/blob/master/INSTALL)
+document in this repository.
+
+Note that if you have Guix installed and running from /guix/store you
+can just transfer the setup to another machine! The only dependency is
+the Linux kernel.
+
+* Python
+
+The basic idea of GNU Guix is simple. A HASH value (SHA256) is calculated 
+over the inputs to a build. This includes the source code of Python, and the
+switches used over configure and make. The software is installed under the
+HASH, for example I have Python 2.7.6 and 2.7.5 on my system sitting under
+
+  /gnu/store/fy9arp9cn4zxzl69vsqj30p2j31w62al-python-2.7.6:
+  bin  include  lib  share
+
+  /gnu/store/yb9z2y7ndzra9r3x7l3020zjpds43yyc-python-2.7.5:
+  bin  include  lib  share
+
+and, for example, Python3 under
+
+  /gnu/store/f01fv1v2q2bdqxsrhabryjk3rz866i3h-python-3.3.5::
+  bin  lib  share
+
+They are cleanly separated. Now if I were to change the configure for
+2.1.3, for example a build without openssl, it would simply become
+another HASH and therefore directory.
+
+It gets even better, the HASH value is also calculated over the
+dependencies. So, if you are running two different glibc's on your
+system (each under its own HASH directory), or openssl's, the python
+interpreter gets build against one of each and calculates a unique
+HASH. So you can theoretically have four concurrent Python 2.1.3
+installations, compiled against any combination of two glibc's and two
+openssl's. The point, again, is that you have full control over the dependency
+graph!
+
+To make a Python visible to a user, GNU Guix uses symlinks. Installing a
+particular Python will symlink a so-called profile in
+~/.guix-profile/bin. To run Python, simply run it as
+
+  ~/.guix-profile/bin/python --version
+  Python 2.7.6
+
+The libraries that come with Python are also symlinked via
+~/.guix-profile/lib/python/.  The numbering does not matter too
+much since it points to an immutable (read-only) directory in
+
+  ~/.guix-profile/lib/python2.7 -> /gnu/store/fy9arp9cn4zxzl69vsqj30p2j31w62al-python-2.7.6/lib/python2.7
+
+This means that you can access Python libraries shipped with a
+particular Python version, but that you can not write new files into
+that directory! The Python installation is carved in stone.
+
+* TODO Adding Python modules in user land
+
+
+* TODO Adding system shared modules
+
+System shared modules are GNU Guix packages (unless you start
+explicitly overriding above _PATHs). The advantage of using GNU Guix
+is that the dependency graph is explicit and people can easily share
+installations. A module gets installed with its version under its own
+HASH dir, e.g.
+
+  /gnu/store/HASH-rspec-1.0.0
+
+This means (again) you can support multiple versions of modules. Under GNU Guix gems become
+first-rate citizens in a software stack.
+
