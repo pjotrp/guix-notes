@@ -104,8 +104,28 @@ This means that you can access Python libraries shipped with a
 particular Python version, but that you can not write new files into
 that directory! The Python installation is carved in stone.
 
+* PYTHONPATH
+
+To make sure Python finds the default guix Python modules that are symlinked use
+
+    export PYTHONPATH="$HOME/.guix-profile/lib/python2.7/site-packages"
+    
 * TODO Adding Python modules in user land
 
+Guix supports python virtualenv. Install
+    
+    guix package -i python-virtualenv
+
+or
+
+    guix package -i python2-virtualenv
+
+And running
+
+    virtualenv newdir
+    ~/newdir/bin/pip list
+
+will give access to pip etc.
 
 * TODO Adding system shared modules
 

@@ -87,8 +87,10 @@ mount it with kpartx
 
 * Set the store permissions
 
-    chgrp guix-builder -R /gnu/store
-    chmod 1775 /gnu/store
+This part is done automatically by the guix-daemon
+
+:    chgrp guix-builder -R /gnu/store
+:    chmod 1775 /gnu/store
 
 * Create build group and users
 
@@ -243,7 +245,7 @@ Choose one from
 :  ls $LOCPATH
 :  export LC_ALL=en_US.UTF-8
 
-Alternatively set the LOCPATH to your underlying distribution
+Alternatively set the LOCPATH to that of your underlying distribution
 
 * Other installation routes
 ** Bootstrap from source
@@ -251,9 +253,72 @@ Alternatively set the LOCPATH to your underlying distribution
 Bootstrapping from source, after checking out the git Guix source tree
 is surprisingly tricky because of the build dependencies. Your mileage
 may vary, but currently I recommend using the tar-ball install
-described above.
+described above instead.
+
+For building from source I found it to be important to make sure not to 
+*mix* Guix and native dependencies. Also make sure you are using the
+proper localstatedir.
+
+*** Installing Guix from Guix
+
+You can re-build and re-install Guix using a system that already runs Guix.
+To do so (copied from the Guix README):
+
+  - Install the dependencies and build tools using Guix:
+
+      guix package --install autoconf automake bzip2 gcc-toolchain gettext \
+                             guile libgcrypt pkg-config sqlite
+
+    I also run
+
+      guix package --install gettext grep sed texinfo graphviz
+
+    which may be used during build time.
+
+    Arguably, you may want to create a special build profile using -p 
+    and add that to your PATH instead.
+
+  - Set the environment variables that Guix recommends you to set during the
+    package installation process:
+      ACLOCAL_PATH, CPATH, LIBRARY_PATH, PKG_CONFIG_PATH
+
+    Mine look like
+
+    export PKG_CONFIG_PATH="/home/pjotr/.guix-profile/lib/pkgconfig"
+    export GUILE_LOAD_PATH="/home/pjotr/.guix-profile/share/guile/site/2.0"
+    export GUILE_LOAD_COMPILED_PATH="/home/pjotr/.guix-profile/share/guile/site/2.0"
+    export CPATH="/home/pjotr/.guix-profile/include"
+    export LIBRARY_PATH="/home/pjotr/.guix-profile/lib"
+    export ACLOCAL_PATH="/home/pjotr/.guix-profile/share/aclocal"
+    export CMAKE_PREFIX_PATH="/home/pjotr/.guix-profile/"
+    export PYTHONPATH="/home/pjotr/.guix-profile/lib/python2.7/site-packages"
+
+  - Set the PATH environment variable to refer to the profile:
+     export PATH=$HOME/.guix-profile/bin:$PATH
+
+  - Re-run the 'configure' script passing it the option
+    '--with-libgcrypt-prefix=$HOME/.guix-profile/', as well as
+    '--localstatedir=/somewhere', where '/somewhere' is the 'localstatedir'
+    value of the currently installed Guix (failing to do that would lead the
+    new Guix to consider the store to be empty!). E.g.,
+
+      ./configure --with-libgcrypt-prefix=$HOME/.guix-profile --localstatedir=/var/guix
+
+  - Run "make", "make check", and "make install".
+
+Actually you may want to avoid the last since it will install the guix
+binaries in /usr. Just run in the source dir
+
+   ./pre-inst-env guix package -A ruby
+
+You may want to make sure the PATH only points to $HOME/.guix-profile/bin
+or, at least, that it comes first.
+
+: export PATH=$HOME/.guix-profile/bin:/usr/bin:/bin
+: set|grep guix
 
 ** Building GNU Guix from source
+
 
 There is always a fly in the soup. Before autumn 2014, I was not
 successful in installing GNU Guix from source, in fact, to get GNU Guix
@@ -261,7 +326,17 @@ running on Debian proved surprisingly hard. But with Guix 0.7 I got a
 working installation on Debian (building from the source tarball) and
 David and I created the first Ruby package in September 2014.
 
-You'll need autoconf, automake and a few other packages.
+Remove all references to guix in the PATH and other settings. Use the
+full native dependencies too bootstrap from source.
+
+You'll need autoconf, automake and a few other packages. With Debian
+
+: apt-get install autoconf automake
+
+Use a minimal environment
+
+  export BASH=/bin/bash
+  export PATH=/usr/local/bin:/usr/bin:/bin
 
 With guix 0.7 and 0.8 I have built from source on Debian.
 
@@ -289,14 +364,23 @@ downloads.
 
 ** Bootstrap with Docker
 
-The store /gnu/store can be mounted inside a Docker image. This not only allows
-sharing packages between docker images, but also gives the perspective of 
-using Docker for bootstrapping Guix. Until now there is no such Docker download.
+Docker allows isolation of packages. For installing Docker follow the
+instructions on http://www.docker.com/. Docker should play well with
+Guix, though I have not tried it (yet).
+
+The store /gnu/store can be mounted inside a Docker image. This not
+only allows sharing packages between docker images, but also gives the
+perspective of using Docker for bootstrapping Guix. Until now there is
+no such Docker image download available.
+
+Note that Docker is a propriety technology and frowned upon by members
+of the GNU Guix community. If you use Guix (properly) you most likely
+don't need Docker.
 
 * Continue with Ruby installation and environment
 
-There is a write-up in the RUBY file in this repository.
+There is a write-up in [[https://github.com/pjotrp/guix-notes/blob/master/RUBY][RUBY]]
 
 * Continue with Python installation and environment
 
-There is a write-up in the PYTHON file in this repository.
+There is a write-up in [[https://github.com/pjotrp/guix-notes/blob/master/PYTHON][PYTHON]]

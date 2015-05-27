@@ -218,6 +218,12 @@ can be run as
 
   source ./scripts/guix-ruby-env
 
+** Dynamically Linked Libraries
+
+Gems build in GEM_HOME may look for linked libraries
+
+: export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/.guix-profile/lib
+
 * TODO Adding system shared gems
 
 System shared gems are GNU Guix packages (unless you start explicitly overriding above 

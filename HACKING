@@ -175,7 +175,6 @@ for processing.
                       (mkdir-p bin)
                       (copy-file (string-append bin "/mpc123") (string-append bin "/mpc123"))))
 
-
 * Starting the daemon
 
 Do not forget to start the daemon
@@ -229,7 +228,7 @@ Start geiser and you should be able to replicate above commands.
 
 * Building the package
 
-Usually I start with
+From a prebuilt guix in the source tree one can start with
 
   ./pre-inst-env guix package -A ruby
     ruby    2.1.3   out     gnu/packages/ruby.scm:37:2
@@ -239,6 +238,7 @@ to see if the package compiles. Next
 
   ./pre-inst-env guix build -K -e '(@ (gnu packages ruby) ruby)' 
 
+It is also possible to use the standard guix by giving the 
 * Fixing problems
 
 Compiling the package there may be build problems. cd into the build directory
