@@ -1,11 +1,11 @@
 #! /bin/bash
 #
-# Set up a Ruby environment for Guix. Run as
+# Set up a Ruby environment for Guix after installing ruby. Run as
 #
-#   . guix-ruby-env
+#   . ruby-guix-env
 #
-# This also works with Nix, provided .nix-profile is in the path and a ruby
-# is installed.
+# This can also works with Nix, provided .nix-profile is in the path
+# and a ruby is installed.
 
 echo $PATH|grep guix-profile
 if [ $? == 1 ]; then
@@ -16,14 +16,20 @@ fi
 RUBYBIN=$(readlink -f `which ruby`)
 RUBYHASH=$(basename $(dirname $(dirname $RUBYBIN)))
 
+# Set GEM_PATH and GEM_HOME to point to a unique local dir
 export GEM_PATH=$HOME/.gem/$RUBYHASH/2.1.0
-export GEM_HOME=$GEM_PATH
-export GEM_SPEC_CACHE=$HOME/.gem/$RUBYHASH/specs
 mkdir -p $GEM_PATH
+export GEM_HOME=$GEM_PATH
+
+# Add the rspec cache
+export GEM_SPEC_CACHE=$HOME/.gem/$RUBYHASH/specs
 mkdir -p $GEM_SPEC_CACHE
-GEM_BIN=$HOME/.gem/$RUBYHASH/2.1.0/bin/
+
+# Now add GNU Guix local GEM path
 export GEM_PATH=$GEM_PATH:$HOME/.guix-profile/lib/ruby/gems/2.2.0/
 
+# Add the path for local gems built in-situ
+GEM_BIN=$HOME/.gem/$RUBYHASH/2.1.0/bin/
 echo $PATH|grep $GEM_BIN
 if [ $? == 1 ]; then
   export PATH=$GEM_BIN:$PATH
