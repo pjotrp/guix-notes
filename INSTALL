@@ -259,31 +259,36 @@ For building from source I found it to be important to make sure not to
 *mix* Guix and native dependencies. Also make sure you are using the
 proper localstatedir.
 
-*** Installing Guix from Guix
+** Building GNU Guix from source (using Guix)
 
 You can re-build and re-install Guix using a system that already runs Guix.
-To do so (copied from the Guix README):
+To do so (copied from the Guix README). After the binary tar install 
+described above:
 
-  - Install the dependencies and build tools using Guix:
+*** Install the dependencies and build tools using Guix:
 
-      guix package --install autoconf automake bzip2 gcc-toolchain gettext \
-                             guile libgcrypt pkg-config sqlite
+Make sure Guix is at the front of the PATH
 
-    I also run
+:  export PATH=$HOME/.guix-profile/bin:$PATH
+:  guix package --install autoconf automake bzip2 gcc-toolchain gettext \
+:                         guile libgcrypt pkg-config sqlite m4
 
-      guix package --install gettext grep sed texinfo graphviz
+I also run
 
-    which may be used during build time.
+:   guix package --install grep sed texinfo graphviz
 
-    Arguably, you may want to create a special build profile using -p 
-    and add that to your PATH instead.
+which may be used during build time.
 
-  - Set the environment variables that Guix recommends you to set during the
-    package installation process:
-      ACLOCAL_PATH, CPATH, LIBRARY_PATH, PKG_CONFIG_PATH
+Arguably, you may want to create a special build profile using -p and
+add that to your PATH instead. I use -p $HOME/opt/guix-build-system
 
-    Mine look like
+***  Set the Guix environment variables 
 
+Guix recommends you to set during the package installation process: ACLOCAL_PATH, CPATH, LIBRARY_PATH, PKG_CONFIG_PATH
+
+Mine are
+
+#+BEGIN_EXAMPLE
     export PKG_CONFIG_PATH="/home/pjotr/.guix-profile/lib/pkgconfig"
     export GUILE_LOAD_PATH="/home/pjotr/.guix-profile/share/guile/site/2.0"
     export GUILE_LOAD_COMPILED_PATH="/home/pjotr/.guix-profile/share/guile/site/2.0"
@@ -292,61 +297,68 @@ To do so (copied from the Guix README):
     export ACLOCAL_PATH="/home/pjotr/.guix-profile/share/aclocal"
     export CMAKE_PREFIX_PATH="/home/pjotr/.guix-profile/"
     export PYTHONPATH="/home/pjotr/.guix-profile/lib/python2.7/site-packages"
+#+END_EXAMPLE
 
-  - Set the PATH environment variable to refer to the profile:
-     export PATH=$HOME/.guix-profile/bin:$PATH
+If you created a special profile, add it to the path, e.g.
 
-  - Re-run the 'configure' script passing it the option
-    '--with-libgcrypt-prefix=$HOME/.guix-profile/', as well as
-    '--localstatedir=/somewhere', where '/somewhere' is the 'localstatedir'
-    value of the currently installed Guix (failing to do that would lead the
-    new Guix to consider the store to be empty!). E.g.,
+:   export PATH=$HOME/opt/guix-build-system/bin:$PATH
 
-      ./configure --with-libgcrypt-prefix=$HOME/.guix-profile --localstatedir=/var/guix
+Re-run the 'configure' script passing it the option
+'--with-libgcrypt-prefix=$HOME/.guix-profile/', as well as
+'--localstatedir=/somewhere', where '/somewhere' is the
+'localstatedir' value of the currently installed Guix (failing to do
+that would lead the new Guix to consider the store to be
+empty!). E.g.,
 
-  - Run "make", "make check", and "make install".
+:   ./configure --with-libgcrypt-prefix=$HOME/.guix-profile --localstatedir=/var
 
-Actually you may want to avoid the last since it will install the guix
-binaries in /usr. Just run in the source dir
+Run "make" and "make check".
 
-   ./pre-inst-env guix package -A ruby
+You may want to avoid "make install" since it will probably install the guix
+binaries in /usr and you can just run it in the source dir with
 
-You may want to make sure the PATH only points to $HOME/.guix-profile/bin
+:   ./pre-inst-env guix package -A ruby
+
+At this point check whether the database path (localstatedir) was correct by checking
+what packages it can find and what packages you have installed with
+
+:   ./pre-inst-env guix package -I
+
+And you can upgrade GNU Guix itself to the latest and greatest with
+
+:   ./pre-inst-env guix package -i guix
+
+Now you may want to make sure the PATH only points to $HOME/.guix-profile/bin
 or, at least, that it comes first.
 
 : export PATH=$HOME/.guix-profile/bin:/usr/bin:/bin
 : set|grep guix
 
-** Building GNU Guix from source
+** Building GNU Guix from source (Debian native)
 
+Before autumn 2014, I was not successful in installing GNU Guix from
+source, in fact, to get GNU Guix running on Debian proved surprisingly
+hard. But with Guix 0.7 I got a working installation on Debian
+(building from the source tarball using Debian packages) and David and
+I created the first Ruby package in September 2014.
 
-There is always a fly in the soup. Before autumn 2014, I was not
-successful in installing GNU Guix from source, in fact, to get GNU Guix
-running on Debian proved surprisingly hard. But with Guix 0.7 I got a
-working installation on Debian (building from the source tarball) and
-David and I created the first Ruby package in September 2014.
+To do a Debian install make sure to remove all references to guix in
+the PATH and other settings. Use the full native dependencies too
+bootstrap from source. I.e.
 
-Remove all references to guix in the PATH and other settings. Use the
-full native dependencies too bootstrap from source.
-
-You'll need autoconf, automake and a few other packages. With Debian
-
-: apt-get install autoconf automake
-
-Use a minimal environment
-
+#+BEGIN_EXAMPLE
   export BASH=/bin/bash
   export PATH=/usr/local/bin:/usr/bin:/bin
+  set|grep -i guix 
+#+END_EXAMPLE
 
 With guix 0.7 and 0.8 I have built from source on Debian.
 
-  which guix
+: which guix
+:     /usr/local/bin/guix
 
-    /usr/local/bin/guix
-
-  guix --version
-
-    guix (GNU Guix) 0.8
+: guix --version
+:   guix (GNU Guix) 0.8
 
 NOTE: When upgrading guix through guix (i.e., 'guix package -i guix')
 make sure the same metadata is seen by the new daemon! The old one may
@@ -379,8 +391,8 @@ don't need Docker.
 
 * Continue with Ruby installation and environment
 
-There is a write-up in [[https://github.com/pjotrp/guix-notes/blob/master/RUBY][RUBY]]
+See [[https://github.com/pjotrp/guix-notes/blob/master/RUBY][GNU Guix Ruby]]
 
 * Continue with Python installation and environment
 
-There is a write-up in [[https://github.com/pjotrp/guix-notes/blob/master/PYTHON][PYTHON]]
+See [[https://github.com/pjotrp/guix-notes/blob/master/PYTHON][GNU Guix Python]]

@@ -224,6 +224,14 @@ Gems build in GEM_HOME may look for linked libraries
 
 : export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/.guix-profile/lib
 
+** Bundler
+
+Recently bundler support was added! After installing bundler you may want to set the GEM_PATH
+
+: export GEM_PATH=/home/wrk/.gem/x4z4vi0aynd5krn4fz3l7ix9187z0g8y-ruby-2.2.2/2.1.0:$HOME/.guix-profile/lib/ruby/gems/2.2.0
+
+Check with `gem env' and try to `run bundle'.
+
 * TODO Adding system shared gems
 
 System shared gems are GNU Guix packages (unless you start explicitly overriding above 
