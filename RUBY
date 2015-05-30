@@ -213,10 +213,10 @@ $HOME/.gem/ziy7a6zib846426kprc7fgimggh8bz97-ruby-2.1.3 and start from
 scratch with a clean Ruby installation. Or, more rigorously, start writing
 system shared gems.
 
-A bash script which does this can be found as ./scripts/guix-ruby-env and 
-can be run as 
+I wrote a bash script which does this can be found as
+[[https://github.com/pjotrp/guix-notes/blob/master/scripts/ruby-guix-env][./scripts/ruby-guix-env]] and can be run as
 
-  source ./scripts/guix-ruby-env
+  source ./scripts/ruby-guix-env
 
 ** Dynamically Linked Libraries
 
@@ -224,9 +224,11 @@ Gems build in GEM_HOME may look for linked libraries
 
 : export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/.guix-profile/lib
 
-** Bundler
+** GNU Guix ruby with bundler
 
-Recently bundler support was added! After installing bundler you may want to set the GEM_PATH
+Recently bundler support was added! After installing bundler you may
+want to set the GEM_PATH to include the guix-profile gem location,
+e.g.,
 
 : export GEM_PATH=/home/wrk/.gem/x4z4vi0aynd5krn4fz3l7ix9187z0g8y-ruby-2.2.2/2.1.0:$HOME/.guix-profile/lib/ruby/gems/2.2.0
 

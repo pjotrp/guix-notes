@@ -22,6 +22,7 @@ export GEM_SPEC_CACHE=$HOME/.gem/$RUBYHASH/specs
 mkdir -p $GEM_PATH
 mkdir -p $GEM_SPEC_CACHE
 GEM_BIN=$HOME/.gem/$RUBYHASH/2.1.0/bin/
+export GEM_PATH=$GEM_PATH:$HOME/.guix-profile/lib/ruby/gems/2.2.0/
 
 echo $PATH|grep $GEM_BIN
 if [ $? == 1 ]; then
