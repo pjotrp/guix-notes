@@ -281,8 +281,23 @@ format which is a header with a filewise change description:
   * gnu/packages/ruby.scm (Ruby): New file.
   * guix/licenses.scm: Add Ruby license information.
 
-Use git format-patch to send a patch to the mailing list.  See also
-the HACKING document in the Guix git repo.
+Use git format-patch to send a patch to the mailing list.  
+
+You can set up an environment to hack on Guix by entering the clone
+directory and running
+
+    guix environment guix
+
+Then you can just run make to see if everything builds fine.  If it
+does, make a commit with an appropriate commit message (see Pjotr's
+email for an example) and use
+
+    git format-patch -1
+
+to generate a patch file, which you can then send to the Guix-devel
+mailing list (guix-devel@gnu.org).
+
+See also the HACKING document in the Guix git repo.
 
 * Hints
 
