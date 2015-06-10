@@ -167,13 +167,17 @@ for processing.
 
 ## Renaming and moving files
 
-                 (alist-replace
-                  'install
-                  (lambda* (#:key outputs #:allow-other-keys)
-                    (let* ((out (assoc-ref outputs "out"))
-                           (bin (string-append out "/bin")))
-                      (mkdir-p bin)
-                      (copy-file (string-append bin "/mpc123") (string-append bin "/mpc123"))))
+Replace the install phase with a function that adds /bin to outputs
+and makes sure to make the directory and copy a file named mpc123 into
+bin:
+
+    (alist-replace
+     'install
+     (lambda* (#:key outputs #:allow-other-keys)
+       (let* ((out (assoc-ref outputs "out"))
+              (bin (string-append out "/bin")))
+         (mkdir-p bin)
+         (copy-file (string-append bin "/mpc123") (string-append bin "/mpc123"))))
 
 # Starting the daemon
 
@@ -189,22 +193,18 @@ Do not forget to start the daemon
 
 Basically there are two approaches.  From the command line, like this:
 
-$ ./pre-inst-env guile
-GNU Guile 2.0.11.20-4338f
-Copyright (C) 1995-2014 Free Software Foundation, Inc.
+  $ ./pre-inst-env guile
+    GNU Guile 2.0.11.20-4338f
+    Copyright (C) 1995-2014 Free Software Foundation, Inc.
 
-Guile comes with ABSOLUTELY NO WARRANTY; for details type `,show w'.
-This program is free software, and you are welcome to redistribute it
-under certain conditions; type `,show c' for details.
-
-Enter `,help' for help.
-scheme@(guile-user)> ,use (gnu packages ruby)
-scheme@(guile-user)> ,use (guix)
-scheme@(guile-user)> (define s (open-connection))
-scheme@(guile-user)> ruby
-$1 = #<package ruby-2.1.3 gnu/packages/ruby.scm:36 47d4dc0>
-scheme@(guile-user)> (package-derivation s ruby)
-ERROR: Unbound variable: sha256
+  Enter `,help' for help.
+  scheme@(guile-user)> ,use (gnu packages ruby)
+  scheme@(guile-user)> ,use (guix)
+  scheme@(guile-user)> (define s (open-connection))
+  scheme@(guile-user)> ruby
+  $1 = #<package ruby-2.1.3 gnu/packages/ruby.scm:36 47d4dc0>
+  scheme@(guile-user)> (package-derivation s ruby)
+  ERROR: Unbound variable: sha256
 
     $2 = #<derivation /gnu/store/k0lvsy8jwcw0amv1rsmii2cvwfnmn2gz-python-3.3.5.drv 
       => /gnu/store/ij8xgynicdmnzb7pzmyb6bqi17s0ll3y-python-3.3.5 3f4fdc0>
