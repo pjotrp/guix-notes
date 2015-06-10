@@ -1,8 +1,8 @@
--*- mode: org; coding: utf-8; -*-
+-*- mode: markdown; coding: utf-8; -*-
 
-#+TITLE: Hacking GNU Guix
+# TITLE: Hacking GNU Guix
 
-* Introduction
+# Introduction
 
 'You are in a maze of twisty packages all alike...'
 
@@ -28,16 +28,16 @@ a simple system, so you are bound to get frustrated. But it is hackable,
 that means you can solve any problem! And the reward is sane software
 deployment. Guix will pay back your investment.
 
-* Guile, the language
+# Guile, the language
 
 Guile is a LISP. Here we list some Scheme specific material that is used
 by GNU Guix.
 
-** Boolean #f, #t notation
+## Boolean #f, #t notation
 
 Guess what, #f signifies false, #t signifies true.
 
-** Hash colon (#:) notation
+## Hash colon (#:) notation
 
 The #: signifies a symbol or literal keyword syntax and is used to 
 create unique identifiers
@@ -46,7 +46,7 @@ create unique identifiers
 
 in Ruby, for example, #:key would be a colon notation :key.
 
-** Key-values
+## Key-values
 
 GNU Guix uses key-value pairs extensively. With
 
@@ -79,7 +79,7 @@ parameters store, name, builder and a list of variable key-value pairs
 named #:inputs, inputs etc. The idea is that the number of parameters
 is variable to the build-expression->derivation function.
 
-** Defining a function
+## Defining a function
 
 define and define* are used to define functions. Note that functions are
 defined in a module or function local scope. define-module at the top of 
@@ -96,13 +96,13 @@ variable length parameter lists.
 A thing to note is that every LISP function returns a value, i.e., the last
 expression evaluated.
 
-** Defining a variable
+## Defining a variable
 
 Use the let and let* functions to define multiple variables in scope. The 
 difference between let and let* is that let* guarantees sequential initialization,
 so you can cross-reference values in the list.
 
-** Inside functions
+## Inside functions
 
 One thing to note is the extensive use of backquote in GNU Guix. Backquote
 is like quote, but only selected subexpressions are evaluated. These are
@@ -137,7 +137,7 @@ When ,@ is used, e.g. in
 it indicates an expression to be evaluated and the elements of the
 returned list inserted (the resulting list is 'spliced in').
 
-** More about Guile/scheme
+## More about Guile/scheme
 
 Use your editor to jump to function definitions inside the GNU Guix
 source tree. With emacs you can use 'ctags -R -e' in the base
@@ -153,19 +153,19 @@ Running Guile stand-alone is easy using a command line REPL or inside emacs.
 That allows you to play with language features, as well as call 
 GNU Guix functionality directly.
 
-* Guix, the language
+# Guix, the language
 
 GNU Guix is not a language. But as they say, LISP is used to create a
 new language for every purpose (using macros). So here we list some of
 the commonly used macros.
 
-** Bags
+## Bags
 
 Recently GNU Guix introduced bags as an intermediate form between packages
 and derivations. A bag includes all the implicit inputs which is useful 
 for processing.
 
-** Renaming and moving files
+## Renaming and moving files
 
                  (alist-replace
                   'install
@@ -175,13 +175,13 @@ for processing.
                       (mkdir-p bin)
                       (copy-file (string-append bin "/mpc123") (string-append bin "/mpc123"))))
 
-* Starting the daemon
+# Starting the daemon
 
 Do not forget to start the daemon
 
   guix-daemon --build-users-group=guix-builder
 
-* Testing the package
+# Testing the package
 
 > Do we have a HOWTO on how to run expressions in the Guile debugger?
 > Never used that and would like to see how individual statements
@@ -206,10 +206,10 @@ $1 = #<package ruby-2.1.3 gnu/packages/ruby.scm:36 47d4dc0>
 scheme@(guile-user)> (package-derivation s ruby)
 ERROR: Unbound variable: sha256
 
-# $2 = #<derivation /gnu/store/k0lvsy8jwcw0amv1rsmii2cvwfnmn2gz-python-3.3.5.drv 
-# => /gnu/store/ij8xgynicdmnzb7pzmyb6bqi17s0ll3y-python-3.3.5 3f4fdc0>
-# scheme@(guile-user)> (build-derivations s (list $2))
-# $3 = #t
+    $2 = #<derivation /gnu/store/k0lvsy8jwcw0amv1rsmii2cvwfnmn2gz-python-3.3.5.drv 
+      => /gnu/store/ij8xgynicdmnzb7pzmyb6bqi17s0ll3y-python-3.3.5 3f4fdc0>
+    scheme@(guile-user)> (build-derivations s (list $2))
+    $3 = #t
 
 You may also want readline support:
 
@@ -226,7 +226,7 @@ Install Geiser and add the guile path to ~/.emacs with
 
 Start geiser and you should be able to replicate above commands.
 
-* Building the package
+# Building the package
 
 From a prebuilt guix in the source tree one can start with
 
@@ -239,7 +239,8 @@ to see if the package compiles. Next
   ./pre-inst-env guix build -K -e '(@ (gnu packages ruby) ruby)' 
 
 It is also possible to use the standard guix by giving the 
-* Fixing problems
+
+# Fixing problems
 
 Compiling the package there may be build problems. cd into the build directory
 
@@ -252,7 +253,7 @@ and
 will recreate the build environment. Now you can see where the build stopped by running
 commands.
   
-* Installing the package
+# Installing the package
 
 Once the build works you can use standard guix to install the package
 
@@ -265,12 +266,12 @@ directory into your profile, but lacks information for updates etc:
 
   guix package -i $(guix build ruby)
 
-* Updating the version
-** Getting the HASH value
+# Updating the version
+## Getting the HASH value
 
   guix download http://cache.ruby-lang.org/pub/ruby/2.1/ruby-2.1.3.tar.gz
 
-* Making a patch
+# Making a patch
 
 A patch can be sent to the mailing list. Use git rebase --interactive
 to merge and squash patches into one. Next use the GNU ChangeLog
@@ -299,18 +300,20 @@ mailing list (guix-devel@gnu.org).
 
 See also the HACKING document in the Guix git repo.
 
-* Hints
+# Hints
 
 Read the HACKING documentation in the Guix source tree.
 
 There are also videos on hacking in gnu.org/s/guix. 
-* The Ruby package
-* Ruby Gems
+
+# The Ruby package
+
+## Ruby Gems
 
 The first Ruby gem support by GNU Guix is ruby-i18n (internationalization). The 
 definition looked like
 
-(define-public ruby-i18n
+  (define-public ruby-i18n
   (package
     (name "ruby-i18n")
     (version "0.6.11")

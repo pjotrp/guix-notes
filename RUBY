@@ -1,8 +1,8 @@
--*- mode: org; coding: utf-8; -*-
+-*- mode: markdown; coding: utf-8; -*-
 
-#+TITLE: Ruby on GNU Guix
+# TITLE: Ruby on GNU Guix
 
-* Introduction
+# Introduction
 
 The GNU software packaging project is packaging done right. Ruby
 deployment with rubygems used to be pretty good, years ago, but over
@@ -50,7 +50,7 @@ packages. In this document I explain what the philosophy is of Ruby
 questions and contribute ideas. There are multiple possible tactics
 for sane dependency handling that GNU Guix could support.
 
-* TODO GNU Guix installation
+# TODO GNU Guix installation
 
 The Achilles heel of introducing GNU Guix at this point (autumn 2014)
 is that it is not standard in Linux distributions. That support will
@@ -65,7 +65,7 @@ should make things easier. Note that if you have Guix installed and
 running from /guix/store you can just transfer the setup to another
 machine! The only dependency is the Linux kernel.
 
-* Ruby
+# Ruby
 
 The basic idea of GNU Guix is simple. A HASH value (SHA256) is calculated 
 over the inputs to a build. This includes the source code of Ruby, and the
@@ -120,7 +120,7 @@ This means that you can access Ruby libraries shipped with a
 particular Ruby version, but that you can not write new files into
 that directory! The Ruby installation is carved in stone.
 
-* TODO Adding Gems in user land
+# TODO Adding Gems in user land
 
 Ruby comes with gem support out of the box. The gem tool also is symlinked
 in ~/.guix-profile/bin. When we run `gem env' it says
@@ -152,7 +152,7 @@ To achieve clean separation we can patch Ruby and gem to make use of the new
 GEM_PATHs, or we can create a wrapper script which presets the PATH. At this
 point I favour the patching because Ruby gem has these paths built-in.
 
-** User land gems with GEM_HOME and GEM_PATH
+## User land gems with GEM_HOME and GEM_PATH
 
 When you do a grep on the files in the Ruby installation dir, all references
 to GEM_HOME and GEM_PATH occur in files under lib/ruby/2.1.0/rubygems/.
@@ -218,13 +218,13 @@ I wrote a bash script which does this can be found as
 
   source ./scripts/ruby-guix-env
 
-** Dynamically Linked Libraries
+## Dynamically Linked Libraries
 
 Gems build in GEM_HOME may look for linked libraries
 
 : export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/.guix-profile/lib
 
-** GNU Guix ruby with bundler
+## GNU Guix ruby with bundler
 
 Recently bundler support was added! After installing bundler you may
 want to set the GEM_PATH to include the guix-profile gem location,
@@ -234,7 +234,7 @@ e.g.,
 
 Check with `gem env' and try to `run bundle'.
 
-* TODO Adding system shared gems
+# TODO Adding system shared gems
 
 System shared gems are GNU Guix packages (unless you start explicitly overriding above 
 GEM_PATHs). The advantage of using GNU Guix is that the dependency graph is explicit
@@ -246,7 +246,7 @@ its own HASH dir, e.g.
 This means (again) you can support multiple versions of gems. Under GNU Guix gems become
 first-rate citizens in a software stack.
 
-* TODO Generating GNU Guix Gem packages
+# TODO Generating GNU Guix Gem packages
 
 The Gem specification is pretty straightforward. The great problem with rubygems is
 that they are not designed for clear isolation of installations. With GNU Guix it

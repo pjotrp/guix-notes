@@ -1,8 +1,8 @@
--*- mode: org; coding: utf-8; -*-
+-*- mode: markdown; coding: utf-8; -*-
 
-#+TITLE: Python on GNU Guix
+# Python on GNU Guix
 
-* Introduction
+# Introduction
 
 The GNU software packaging project is packaging done right. The Python
 packages support Python 2 and 3 and a host of modules installs out
@@ -46,7 +46,7 @@ packages. In this document I explain what the philosophy is of Python
 questions and contribute ideas. There are multiple possible tactics
 for sane dependency handling that GNU Guix could support.
 
-* GNU Guix installation
+# GNU Guix installation
 
 See the
 [INSTALL](https://github.com/pjotrp/guix-notes/blob/master/INSTALL)
@@ -56,7 +56,7 @@ Note that if you have Guix installed and running from /guix/store you
 can just transfer the setup to another machine! The only dependency is
 the Linux kernel.
 
-* Python
+# Python
 
 The basic idea of GNU Guix is simple. A HASH value (SHA256) is calculated 
 over the inputs to a build. This includes the source code of Python, and the
@@ -104,13 +104,13 @@ This means that you can access Python libraries shipped with a
 particular Python version, but that you can not write new files into
 that directory! The Python installation is carved in stone.
 
-* PYTHONPATH
+# PYTHONPATH
 
 To make sure Python finds the default guix Python modules that are symlinked use
 
     export PYTHONPATH="$HOME/.guix-profile/lib/python2.7/site-packages"
     
-* TODO Adding Python modules in user land
+# TODO Adding Python modules in user land
 
 Guix supports python virtualenv. Install
     
@@ -127,7 +127,7 @@ And running
 
 will give access to pip etc.
 
-* TODO Adding system shared modules
+# TODO Adding system shared modules
 
 System shared modules are GNU Guix packages (unless you start
 explicitly overriding above _PATHs). The advantage of using GNU Guix
