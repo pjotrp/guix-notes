@@ -66,14 +66,14 @@ delivers package-name, package-version, etc.
 Also literal keywoard syntax
 is used, e.g.,
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
   (build-expression->derivation store name builder
                                 #:inputs inputs
                                 #:system system
                                 #:modules imported-modules
                                 #:outputs outputs
                                 #:guile-for-build guile-for-build))
-#+end_src sh   :lang bash
+#+end_src
 
 calls the build-expression->derivation function (note that Guile can
 use more than alphanum characters to create a function name) with
@@ -87,12 +87,12 @@ define and define* are used to define functions. Note that functions are
 defined in a module or function local scope. define-module at the top of 
 a package can export functions, e.g.
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
   (define-module (guix build-system ruby)
     #:use-module (guix store)
     #:export (ruby-build
               ruby-build-system))
-#+end_src sh   :lang bash
+#+end_src
 
 The difference between define and define* is that the latter can handle
 variable length parameter lists.
@@ -112,7 +112,7 @@ One thing to note is the extensive use of backquote in GNU Guix. Backquote
 is like quote, but only selected subexpressions are evaluated. These are
 assigned with a comma, e.g.
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
        (ruby-build #:name ,name
                    #:source ,(match (assoc-ref inputs "source")
                                (((? derivation? source))
@@ -125,14 +125,14 @@ assigned with a comma, e.g.
                    #:test-target ,test-target
                    #:tests? ,tests?
                    #:phases ,phases
-#+end_src sh   :lang bash
+#+end_src
 
 Note match operator which is used for expression matching. Here 'source'
 is matched to pull out the source path and generate a #:source key-value pair.
 
 When ,@ is used, e.g. in
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
          (host-inputs `(,@(if source
                               `(("source" ,source))
                               '())
@@ -140,7 +140,7 @@ When ,@ is used, e.g. in
 
                         ;; Keep the standard inputs of 'gnu-build-system'.
                         ,@(standard-packages)))
-#+end_src sh   :lang bash
+#+end_src
 
 it indicates an expression to be evaluated and the elements of the
 returned list inserted (the resulting list is 'spliced in').
@@ -179,7 +179,7 @@ Replace the install phase with a function that adds /bin to outputs
 and makes sure to make the directory and copy a file named mpc123 into
 bin:
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
     (alist-replace
      'install
      (lambda* (#:key outputs #:allow-other-keys)
@@ -187,15 +187,15 @@ bin:
               (bin (string-append out "/bin")))
          (mkdir-p bin)
          (copy-file (string-append bin "/mpc123") (string-append bin "/mpc123"))))
-#+end_src sh   :lang bash
+#+end_src
 
 * Starting the daemon
 
 Do not forget to start the daemon
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
   guix-daemon --build-users-group=guix-builder
-#+end_src sh   :lang bash
+#+end_src
 
 * Testing the package
 
@@ -205,7 +205,7 @@ Do not forget to start the daemon
 
 Basically there are two approaches.  From the command line, like this:
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
   $ ./pre-inst-env guile
     GNU Guile 2.0.11.20-4338f
     Copyright (C) 1995-2014 Free Software Foundation, Inc.
@@ -223,14 +223,14 @@ Basically there are two approaches.  From the command line, like this:
       => /gnu/store/ij8xgynicdmnzb7pzmyb6bqi17s0ll3y-python-3.3.5 3f4fdc0>
     scheme@(guile-user)> (build-derivations s (list $2))
     $3 = #t
-#+end_src sh   :lang bash
+#+end_src
 
 You may also want readline support:
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
   (use-modules (ice-9 readline))
   (activate-readline)
-#+end_src sh   :lang bash
+#+end_src
 
 But the best thing, if you use Emacs, is to use Geiser, as noted in
 ‘HACKING’.  In addition to a REPL, it brings stuff like autodoc,
@@ -238,9 +238,9 @@ jump-to-definition, expression evaluation from the buffer, etc.
 
 Install Geiser and add the guile path to ~/.emacs with
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
   (setq-default geiser-guile-load-path '("~/src/guix"))
-#+end_src sh   :lang bash
+#+end_src
 
 Start geiser and you should be able to replicate above commands.
 
@@ -248,17 +248,17 @@ Start geiser and you should be able to replicate above commands.
 
 From a prebuilt guix in the source tree one can start with
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
   ./pre-inst-env guix package -A ruby
     ruby    2.1.3   out     gnu/packages/ruby.scm:37:2
     ruby    1.8.7-p374      out     gnu/packages/ruby.scm:37:2
-#+end_src sh   :lang bash
+#+end_src
 
 to see if the package compiles. Next
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
   ./pre-inst-env guix build -K -e '(@ (gnu packages ruby) ruby)' 
-#+end_src sh   :lang bash
+#+end_src
 
 It is also possible to use the standard guix by giving the 
 
@@ -266,15 +266,15 @@ It is also possible to use the standard guix by giving the
 
 Compiling the package there may be build problems. cd into the build directory
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
   cd /tmp/nix-build-ruby-2.1.3.drv-0
-#+end_src sh   :lang bash
+#+end_src
 
 and 
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
   . environment-variables
-#+end_src sh   :lang bash
+#+end_src
 
 will recreate the build environment. Now you can see where the build stopped by running
 commands.
@@ -283,27 +283,27 @@ commands.
 
 Once the build works you can use standard guix to install the package
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
   ./pre-inst-env guix package -i ruby
-#+end_src sh   :lang bash
+#+end_src
 
 This will also build from the source tree and blindly merges that
 directory into your profile, but lacks information for updates etc:
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
   ./pre-inst-env guix package -e '(@ (gnu packages ruby) ruby)'
-#+end_src sh   :lang bash
+#+end_src
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
   guix package -i $(guix build ruby)
-#+end_src sh   :lang bash
+#+end_src
 
 * Updating the version
 ** Getting the HASH value
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
   guix download http://cache.ruby-lang.org/pub/ruby/2.1/ruby-2.1.3.tar.gz
-#+end_src sh   :lang bash
+#+end_src
 
 * Making a patch
 
@@ -311,29 +311,29 @@ A patch can be sent to the mailing list. Use git rebase --interactive
 to merge and squash patches into one. Next use the GNU ChangeLog
 format which is a header with a filewise change description:
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
   gnu: Add Ruby.
     
   * gnu/packages/ruby.scm (Ruby): New file.
   * guix/licenses.scm: Add Ruby license information.
-#+end_src sh   :lang bash
+#+end_src
 
 Use git format-patch to send a patch to the mailing list.  
 
 You can set up an environment to hack on Guix by entering the clone
 directory and running
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
     guix environment guix
-#+end_src sh   :lang bash
+#+end_src
 
 Then you can just run make to see if everything builds fine.  If it
 does, make a commit with an appropriate commit message (see Pjotr's
 email for an example) and use
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
     git format-patch -1
-#+end_src sh   :lang bash
+#+end_src
 
 to generate a patch file, which you can then send to the Guix-devel
 mailing list (guix-devel@gnu.org).
@@ -353,7 +353,7 @@ There are also videos on hacking in gnu.org/s/guix.
 The first Ruby gem support by GNU Guix is ruby-i18n (internationalization). The 
 definition looked like
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
   (define-public ruby-i18n
   (package
     (name "ruby-i18n")
@@ -369,31 +369,31 @@ definition looked like
     (arguments
      '(#:tests? #f)) ; requires bundler
     (synopsis "Internationalization library for Ruby")
-#+end_src sh   :lang bash
+#+end_src
 
 so it downloads the tar ball. The build system looks like
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
 (define ruby-build-system
   (build-system
     (name 'ruby)
     (description "The standard Ruby build system")
     (lower lower)))
-#+end_src sh   :lang bash
+#+end_src
 
 which creates an expression using the standard build-system and the 
 local lower function.
 
 When you install it says
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
   The following environment variable definitions may be needed:
    export GEM_PATH="/home/wrk/.guix-profile/lib/ruby/gems/2.1.3"
-#+end_src sh   :lang bash
+#+end_src
 
 which contains
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
   ls /home/wrk/.guix-profile/lib/ruby/gems/2.1.3/gems/i18n-0.6.11/
     gemfiles  lib  MIT-LICENSE  README.md  test
-#+end_src sh   :lang bash
+#+end_src
