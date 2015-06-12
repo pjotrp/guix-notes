@@ -28,7 +28,7 @@
 
 *NEWS FLASH*: GNU Guix can be installed in one go on most Linux installations!
  
-See the tarball section below.
+See the [[#the-one-step-tarball-installation][The one-step tarball installation]] below
 
 Software packaging is part of the programmer's toolbox. First and
 foremost, for development you need a dependable and reproducable
