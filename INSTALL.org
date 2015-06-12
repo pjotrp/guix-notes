@@ -1,5 +1,3 @@
--*- mode: markdown; coding: utf-8; -*-
-
 * Installing GNU Guix
 
 *NEWS FLASH*: GNU Guix can be installed in one go on most Linux installations!
@@ -55,17 +53,17 @@ Fetch the TAR ball
 
 and unpack it in the root directory
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
     tar -C / --lzip -xvf guix-tarball-0.8.1.1140.tar.lz 
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 (on Debian you may need 'apt-get install lzip' first)
 
 Add the guix-profile to the path
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
     export ~/.guix-profile/bin:$PATH
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 	
 Set the store permissions and start the daemon after creating the
 build users as described below. 
@@ -77,37 +75,37 @@ that to a local hard disk.
 
 To bootstrap I have successfully downloaded a GNU Guix tarball 
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
     wget http://alpha.gnu.org/gnu/guix/gnu-usb-install-0.8.1.x86_64-linux.xz
     xz -d gnu-usb-install-0.8.x86_64-linux.xz 
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 	
 mount it with kpartx
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
     kpartx -v -a gnu-usb-install-0.8.1.x86_64-linux
     mkdir mnt 
     mkdir tmp
     mount /dev/mapper/loop0p1 mnt
     cp -vau mnt/gnu tmp
     mv tmp/gnu/ /
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 * Set the store permissions
 
 This part is done automatically by the guix-daemon
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
     chgrp guix-builder -R /gnu/store
     chmod 1775 /gnu/store
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 * Create build group and users
 
 Now we have the /gnu/store in place we need to create a group and
 users with build permissions for the Guix daemon. In bash
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
     builders=10
     groupadd guix-builder
     for i in `seq 1 $builders`; do
@@ -116,7 +114,7 @@ users with build permissions for the Guix daemon. In bash
             -c "Guix build user $i" --system          \
             guix-builder$i;
     done
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 (set the number of builders to the number of cores).
 
@@ -128,40 +126,40 @@ system before running guix.
 
 Now you should be able to run Guix with
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
     guix-daemon --build-users-group=guix-builder
 
     /gnu/store/(...)-guix-0.8(...)/bin/guix --help
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 * Set the key
 
 To enable binary installs you need to authorize it with a key which can 
 be found with guix
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
   guix archive --authorize < ~/.guix-profile/share/guix/hydra.gnu.org.pub 
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 Note that you can also call GNU Guix from its direct path, e.g.
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
   /gnu/store/8lays(...)-guix-0.8.47739f5/bin/guix archive --authorize < /gnu/store/8lay(...)-guix-0.8.47739f5/share/guix/hydra.gnu.org.pub
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 * Update the package list
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
    guix pull
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
    
 downloads the latest Guix source code and package descriptions, and
 deploys it.  Update guix (do this as root so the daemon does not get
 garbage collected later).
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
    guix package -i guix
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 you may want to restart the daemon after a successful upgrade.
 
@@ -174,7 +172,7 @@ hello package). Guix will ask you to install a dir for the user in
 
 * Install the hello package
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
   guix package -i hello
 
     The following package will be installed:      
@@ -184,7 +182,7 @@ hello package). Guix will ask you to install a dir for the user in
     found valid signature for '/gnu/store/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9', from 'http://hydra.gnu.org/nar/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9'
     downloading `/gnu/store/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9' from `http://hydra.gnu.org/nar/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9' (0.2 MiB installed)...
     http://hydra.gnu.org/nar/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9       43.0 KiB transferred2 packages in profile
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 did a binary install of the hello package. A symlink was created in ~/.guix-profile/bin/ pointing to
 /gnu/store/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9/bin/hello. 
@@ -201,66 +199,66 @@ another. Note: you may need to copy the dependencies too.
 
 After adding to the path
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
   export PATH=$HOME/.guix-profile/bin:$PATH
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 we can run 
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
   hello
 
     Hello, world!
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 Since GNU Guix development revolves around guile (the Scheme programming language) and emacs, let us 
 install
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
   guix package -i guile
   guix package -i emacs
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 in both cases I got a successful install for guile and emacs.
   
 To build a package from source, checkout the repository with git and run
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
   ./pre-inst-env guix build hello
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 downloaded a few more packages for building and compiled a new hello. This time with a different
 path, presumably because these are different dependencies. This we can check:
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
   guix gc --references $(guix build hello)
 
     /gnu/store/1qf4rsznfhvdis39jzdmx0dfjy2jwzgz-gcc-4.8.3-lib
     /gnu/store/scmy8hnpccld0jszbgdw5csdc9z8f9jf-glibc-2.19
     /gnu/store/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 To get the other one
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
   guix gc --references /gnu/store/77dzhv9yx5x2rq370swp8scsps961pj6-hello-2.9  
 
     /gnu/store/3h38sfay2f02rk4i768ci8xabl706rf9-glibc-2.20
     /gnu/store/px5ks6hyjszqp269l9b91354zjclv6c2-gcc-4.8.3-lib
     /gnu/store/77dzhv9yx5x2rq370swp8scsps961pj6-hello-2.9
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 And you can tell that the dependencies are not the same. It gets better. You can list the 
 build depencies too
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
   guix gc --requisites /gnu/store/77dzhv9yx5x2rq370swp8scsps961pj6-hello-2.9
 
     /gnu/store/2sflarfdfpcjkywy4hwknwrwxmx4rrhi-glibc-2.20-locales
     /gnu/store/px5ks6hyjszqp269l9b91354zjclv6c2-gcc-4.8.3-lib
     /gnu/store/3h38sfay2f02rk4i768ci8xabl706rf9-glibc-2.20
     /gnu/store/77dzhv9yx5x2rq370swp8scsps961pj6-hello-2.9
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 How many package managers can achieve that?
 
@@ -272,22 +270,22 @@ If you see the message
 
 it means your locale needs to be found. Guix comes with a locale database
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
    guix package -i glibc-utf8-locales
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 and set the LOCPATH
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
    export LOCPATH=$HOME/.guix-profile/lib/locale
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 Choose one from
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
    ls $LOCPATH
    export LC_ALL=en_US.UTF-8
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 Alternatively set the LOCPATH to that of your underlying distribution
 
@@ -313,17 +311,17 @@ described above:
 
 Make sure Guix is at the front of the PATH
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
    export PATH=$HOME/.guix-profile/bin:$PATH
    guix package --install autoconf automake bzip2 gcc-toolchain gettext \
                           guile libgcrypt pkg-config sqlite m4
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 I also run
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
     guix package --install grep sed texinfo graphviz
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 which may be used during build time.
 
@@ -336,7 +334,7 @@ Guix recommends you to set during the package installation process: ACLOCAL_PATH
 
 Mine are
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
     export PKG_CONFIG_PATH="/home/pjotr/.guix-profile/lib/pkgconfig"
     export GUILE_LOAD_PATH="/home/pjotr/.guix-profile/share/guile/site/2.0"
     export GUILE_LOAD_COMPILED_PATH="/home/pjotr/.guix-profile/share/guile/site/2.0"
@@ -345,13 +343,13 @@ Mine are
     export ACLOCAL_PATH="/home/pjotr/.guix-profile/share/aclocal"
     export CMAKE_PREFIX_PATH="/home/pjotr/.guix-profile/"
     export PYTHONPATH="/home/pjotr/.guix-profile/lib/python2.7/site-packages"
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 If you created a special profile, add it to the path, e.g.
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
     export PATH=$HOME/opt/guix-build-system/bin:$PATH
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 	
 Re-run the 'configure' script passing it the option
 '--with-libgcrypt-prefix=$HOME/.guix-profile/', as well as
@@ -360,39 +358,39 @@ Re-run the 'configure' script passing it the option
 that would lead the new Guix to consider the store to be
 empty!). E.g.,
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
     ./configure --with-libgcrypt-prefix=$HOME/.guix-profile --localstatedir=/var
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 Run "make" and "make check".
 
 You may want to avoid "make install" since it will probably install the guix
 binaries in /usr and you can just run it in the source dir with
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
     ./pre-inst-env guix package -A ruby
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 At this point check whether the database path (localstatedir) was correct by checking
 what packages it can find and what packages you have installed with
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
     ./pre-inst-env guix package -I
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 And you can upgrade GNU Guix itself to the latest and greatest with
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
     ./pre-inst-env guix package -i guix
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 Now you may want to make sure the PATH only points to $HOME/.guix-profile/bin
 or, at least, that it comes first.
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
   export PATH=$HOME/.guix-profile/bin:/usr/bin:/bin
   set|grep guix
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 ** Building GNU Guix from source (Debian native)
 
@@ -406,21 +404,21 @@ To do a Debian install make sure to remove all references to guix in
 the PATH and other settings. Use the full native dependencies too
 bootstrap from source. I.e.
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
   export BASH=/bin/bash
   export PATH=/usr/local/bin:/usr/bin:/bin
   set|grep -i guix 
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 With guix 0.7 and 0.8 I have built from source on Debian.
 
-*+begin_src sh   :lang bash
+#+begin_src sh   :lang bash
   which guix
       /usr/local/bin/guix
 
   guix --version
     guix (GNU Guix) 0.8
-*+end_src sh   :lang bash
+#+end_src sh   :lang bash
 
 NOTE: When upgrading guix through guix (i.e., 'guix package -i guix')
 make sure the same metadata is seen by the new daemon! The old one may
