@@ -1,8 +1,6 @@
--*- mode: markdown; coding: utf-8; -*-
+#+TITLE: GNU Guix and Bioinformatics
 
-# TITLE: GNU Guix and Bioinformatics
-
-# Introduction
+* Introduction
 
 Bioinformatics needs GNU Guix because:
 
