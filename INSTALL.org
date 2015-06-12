@@ -1,7 +1,5 @@
 #+TITLE: Installing GNU Guix
 
-* Installing GNU Guix
-
 *NEWS FLASH*: GNU Guix can be installed in one go on most Linux installations!
  
 See the tarball section below.

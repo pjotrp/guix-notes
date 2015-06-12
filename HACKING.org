@@ -1,4 +1,4 @@
-*+TITLE: Pjotr's hacking guide to GNU Guix
+#+TITLE: Pjotr's hacking guide to GNU Guix
 
 * Introduction
 
@@ -28,7 +28,7 @@ deployment. Guix will pay back your investment.
 
 * Guile, the language
 
-Guile is a LISP. Here we list some Scheme specific material that is used
+Guile is a Scheme LISP. Here we list some Scheme specific material that is used
 by GNU Guix.
 
 ** Boolean #f, #t notation
@@ -42,18 +42,18 @@ create unique identifiers, see also
 
   http://practical-scheme.net/wiliki/schemexref.cgi?keyword%3F
 
-in Ruby, for example, #:key would be a colon notation :key.
+in Ruby, for comparison, #:key would be in colon notation :key.
 
 ** Key-values
 
 GNU Guix uses key-value pairs extensively. With
 
-#+begin_src sh   :lang bash
+#+begin_src scheme
   (build-system
     (name 'ruby)
     (description "The standard Ruby build system")
     (lower lower)))
-#+end_src sh   :lang bash
+#+end_src
 
 the Guix build-system method is called with the functions name, decscription and lower, 
 where the last is a function with the same name. The functions expand to whatever
