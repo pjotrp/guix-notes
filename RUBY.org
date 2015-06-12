@@ -1,4 +1,4 @@
-#+ TITLE: Ruby on GNU Guix
+#+TITLE: Ruby on GNU Guix
 
 * Introduction
 
