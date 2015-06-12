@@ -49,13 +49,15 @@ package, create the build group and permissions.
 
 Fetch the TAR ball 
 
-    http://www.fdn.fr/~lcourtes/software/guix/guix-tarball-0.8.1.1140.tar.lz
-    http://www.fdn.fr/~lcourtes/software/guix/guix-tarball-0.8.1.1140.tar.lz.sig
-    SHA1: afde62b3e9f97f9ae0c57eaccfaca842b157cd2f
+: http://www.fdn.fr/~lcourtes/software/guix/guix-tarball-0.8.1.1140.tar.lz
+: http://www.fdn.fr/~lcourtes/software/guix/guix-tarball-0.8.1.1140.tar.lz.sig
+: SHA1: afde62b3e9f97f9ae0c57eaccfaca842b157cd2f
 
 and unpack it in the root directory
 
+#+begin_src sh   :lang bash
     tar -C / --lzip -xvf guix-tarball-0.8.1.1140.tar.lz 
+#+end_src sh   :lang bash
 
 (on Debian you may need 'apt-get install lzip' first)
 
