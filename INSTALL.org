@@ -307,7 +307,7 @@ You can re-build and re-install Guix using a system that already runs Guix.
 To do so (copied from the Guix README). After the binary tar install 
 described above:
 
-**# Install the dependencies and build tools using Guix:
+*** Install the dependencies and build tools using Guix:
 
 Make sure Guix is at the front of the PATH
 
@@ -328,7 +328,7 @@ which may be used during build time.
 Arguably, you may want to create a special build profile using -p and
 add that to your PATH instead. I use -p $HOME/opt/guix-build-system
 
-**#  Set the Guix environment variables 
+***  Set the Guix environment variables 
 
 Guix recommends you to set during the package installation process: ACLOCAL_PATH, CPATH, LIBRARY_PATH, PKG_CONFIG_PATH
 
