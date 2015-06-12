@@ -1,5 +1,30 @@
 #+TITLE: Pjotr's hacking guide to GNU Guix
 
+* Table of Contents                                                     :TOC:
+ - [[#introduction][Introduction]]
+ - [[#guile-the-language][Guile, the language]]
+     - [[#boolean-f-t-notation][Boolean #f, #t notation]]
+     - [[#hash-colon--notation][Hash colon (#:) notation]]
+     - [[#key-values][Key-values]]
+     - [[#defining-a-function][Defining a function]]
+     - [[#defining-a-variable][Defining a variable]]
+     - [[#inside-functions][Inside functions]]
+     - [[#more-about-guilescheme][More about Guile/scheme]]
+ - [[#guix-the-language][Guix, the language]]
+     - [[#bags][Bags]]
+     - [[#renaming-and-moving-files][Renaming and moving files]]
+ - [[#starting-the-daemon][Starting the daemon]]
+ - [[#testing-the-package][Testing the package]]
+ - [[#building-the-package][Building the package]]
+ - [[#fixing-problems][Fixing problems]]
+ - [[#installing-the-package][Installing the package]]
+ - [[#updating-the-version][Updating the version]]
+     - [[#getting-the-hash-value][Getting the HASH value]]
+ - [[#making-a-patch][Making a patch]]
+ - [[#hints][Hints]]
+ - [[#the-ruby-package][The Ruby package]]
+     - [[#ruby-gems][Ruby Gems]]
+
 * Introduction
 
 'You are in a maze of twisty packages all alike...'

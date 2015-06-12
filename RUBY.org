@@ -1,5 +1,16 @@
 #+TITLE: Ruby on GNU Guix
 
+* Table of Contents                                                     :TOC:
+ - [[#introduction][Introduction]]
+ - [[#todo-gnu-guix-installation][TODO GNU Guix installation]]
+ - [[#ruby][Ruby]]
+ - [[#todo-adding-gems-in-user-land][TODO Adding Gems in user land]]
+     - [[#user-land-gems-with-gem_home-and-gem_path][User land gems with GEM_HOME and GEM_PATH]]
+     - [[#dynamically-linked-libraries][Dynamically Linked Libraries]]
+     - [[#gnu-guix-ruby-with-bundler][GNU Guix ruby with bundler]]
+ - [[#todo-adding-system-shared-gems][TODO Adding system shared gems]]
+ - [[#todo-generating-gnu-guix-gem-packages][TODO Generating GNU Guix Gem packages]]
+
 * Introduction
 
 The GNU software packaging project is packaging done right. Ruby

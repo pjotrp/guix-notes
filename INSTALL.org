@@ -1,10 +1,34 @@
 #+TITLE: Installing GNU Guix
 
+* Table of Contents                                                     :TOC:
+ - [[#introduction][Introduction]]
+ - [[#install-with-an-existing-package-manager][Install with an existing package manager]]
+ - [[#binary-installation][Binary installation]]
+     - [[#the-one-step-tarball-installation][The one-step tarball installation]]
+     - [[#from-an-existing-gnu-guix-installation][From an existing GNU Guix installation]]
+ - [[#set-the-store-permissions][Set the store permissions]]
+ - [[#create-build-group-and-users][Create build group and users]]
+ - [[#start-the-gnu-guix-daemon][Start the GNU Guix daemon]]
+ - [[#set-the-key][Set the key]]
+ - [[#update-the-package-list][Update the package list]]
+ - [[#use-guix-as-a-normal-user][Use guix as a normal user]]
+ - [[#install-the-hello-package][Install the hello package]]
+ - [[#add-symlinks-to-the-path][Add symlinks to the PATH]]
+ - [[#set-locale][Set locale]]
+ - [[#other-installation-routes][Other installation routes]]
+     - [[#bootstrap-from-source][Bootstrap from source]]
+     - [[#building-gnu-guix-from-source-using-guix][Building GNU Guix from source (using Guix)]]
+     - [[#building-gnu-guix-from-source-debian-native][Building GNU Guix from source (Debian native)]]
+     - [[#bootstrap-with-nix][Bootstrap with Nix]]
+     - [[#bootstrap-with-docker][Bootstrap with Docker]]
+ - [[#continue-with-ruby-installation-and-environment][Continue with Ruby installation and environment]]
+ - [[#continue-with-python-installation-and-environment][Continue with Python installation and environment]]
+
+* Introduction
+
 *NEWS FLASH*: GNU Guix can be installed in one go on most Linux installations!
  
 See the tarball section below.
-
-* Introduction
 
 Software packaging is part of the programmer's toolbox. First and
 foremost, for development you need a dependable and reproducable
