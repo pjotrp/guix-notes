@@ -508,10 +508,6 @@ only allows sharing packages between docker images, but also gives the
 perspective of using Docker for bootstrapping Guix. Until now there is
 no such Docker image download available.
 
-Note that Docker is a propriety technology and frowned upon by members
-of the GNU Guix community. If you use Guix (properly) you most likely
-don't need Docker.
-
 * Continue with Ruby installation and environment
 
 See [[https://github.com/pjotrp/guix-notes/blob/master/RUBY.org][GNU Guix Ruby]]
