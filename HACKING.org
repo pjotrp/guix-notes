@@ -26,12 +26,13 @@
      - [[#in-progress-debugging-inside-guile][IN PROGRESS Debugging inside Guile]]
  - [[#fixing-problems][Fixing problems]]
  - [[#installing-the-package][Installing the package]]
- - [[#making-a-patch][Making a patch]]
+ - [[#making-a-patch-to-submit-to-the-mailing-list][Making a patch to submit to the mailing list]]
      - [[#using-git-branches][Using git branches]]
  - [[#hints][Hints]]
      - [[#using-emacs][Using emacs]]
  - [[#the-ruby-package][The Ruby package]]
      - [[#ruby-gems][Ruby Gems]]
+ - [[#dealing-with-special-or-non-free-packages][Dealing with special or non-free packages]]
  - [[#todo-create-a-caching-server][TODO Create a caching server]]
 
 * Introduction
@@ -384,7 +385,7 @@ directory into your profile, but lacks information for updates etc:
   guix package -i $(guix build ruby)
 #+end_src
 
-* Making a patch
+* Making a patch to submit to the mailing list
 
 A patch can be sent to the mailing list. Use git rebase --interactive
 to merge and [[http://gitready.com/advanced/2009/02/10/squashing-commits-with-rebase.html][squash patches]] into one. Next use the GNU ChangeLog
@@ -504,4 +505,11 @@ which contains
   ls /home/wrk/.guix-profile/lib/ruby/gems/2.1.3/gems/i18n-0.6.11/
     gemfiles  lib  MIT-LICENSE  README.md  test
 #+end_src
+* Dealing with special or non-free packages
+
+Some packages won't make it into GNU Guix. If you have need a special section,
+simply create a directory with packages and add them to the GUIX_PACKAGE_PATH:
+
+: export GUIX_PACKAGE_PATH="~/code/guix-nonfree"
+
 * TODO Create a caching server
