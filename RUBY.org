@@ -4,6 +4,7 @@
  - [[#introduction][Introduction]]
  - [[#todo-gnu-guix-installation][TODO GNU Guix installation]]
  - [[#ruby][Ruby]]
+     - [[#check-shared-libraries][Check shared libraries]]
  - [[#todo-adding-gems-in-user-land][TODO Adding Gems in user land]]
      - [[#user-land-gems-with-gem_home-and-gem_path][User land gems with GEM_HOME and GEM_PATH]]
      - [[#dynamically-linked-libraries][Dynamically Linked Libraries]]
@@ -67,12 +68,12 @@ come because GNU Guix is the official packaging system of the GNU
 project and is orthogonal to existing software packaging systems (everything
 is installed in /gnu). It will happen.
 
-Currently there are two ways of installing GNU Guix. See the
-[[https://github.com/pjotrp/guix-notes/blob/master/INSTALL.org][INSTALL]]
+Currently there are two ways of installing GNU Guix. See the [[https://github.com/pjotrp/guix-notes/blob/master/INSTALL.org][INSTALL]]
 document in this repository. Soon we'll add a binary installer, which
 should make things easier. Note that if you have Guix installed and
 running from /guix/store you can just transfer the setup to another
-machine! The only dependency is the Linux kernel.
+machine! The only dependency is the Linux kernel. To add packages see
+[[https://github.com/pjotrp/guix-notes/blob/master/HACKING.org][HACKING]].
 
 * Ruby
 
@@ -136,6 +137,26 @@ down.
 This means that you can access Ruby libraries shipped with a
 particular Ruby version, but that you can not write new files into
 that directory! The Ruby installation is carved in stone.
+
+** Check shared libraries
+
+To check the version of openssl you can do
+
+: ~/.guix-profile/bin/ruby -ropenssl -e "puts OpenSSL::VERSION"
+
+To list the shared libraries:
+
+#+begin_src sh
+ldd ~/.guix-profile/bin/ruby 
+        linux-vdso.so.1 (0x00007ffee8533000)
+        libpthread.so.0 => /gnu/store/hy2hi0zj5hrqkmkhpdxf04c9bcnlnsf9-glibc-2.21/lib/libpthread.so.0 (0x00007efe20b58000)
+        libdl.so.2 => /gnu/store/hy2hi0zj5hrqkmkhpdxf04c9bcnlnsf9-glibc-2.21/lib/libdl.so.2 (0x00007efe20954000)
+        libcrypt.so.1 => /gnu/store/hy2hi0zj5hrqkmkhpdxf04c9bcnlnsf9-glibc-2.21/lib/libcrypt.so.1 (0x00007efe2071d000)
+        libm.so.6 => /gnu/store/hy2hi0zj5hrqkmkhpdxf04c9bcnlnsf9-glibc-2.21/lib/libm.so.6 (0x00007efe2041b000)
+        libgcc_s.so.1 => /gnu/store/rsw0dkmv1x2krv9pl1ciai1h235r9nb7-gcc-4.8.4-lib/lib/libgcc_s.so.1 (0x00007efe20205000)
+        libc.so.6 => /gnu/store/hy2hi0zj5hrqkmkhpdxf04c9bcnlnsf9-glibc-2.21/lib/libc.so.6 (0x00007efe1fe65000)
+        /gnu/store/hy2hi0zj5hrqkmkhpdxf04c9bcnlnsf9-glibc-2.21/lib/ld-linux-x86-64.so.2 (0x00007efe20d75000)
+#+end_src
 
 * TODO Adding Gems in user land
 

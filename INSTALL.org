@@ -16,6 +16,7 @@
  - [[#add-symlinks-to-the-path][Add symlinks to the PATH]]
  - [[#set-locale][Set locale]]
  - [[#other-installation-routes][Other installation routes]]
+     - [[#install-repository-from-git][Install repository from git]]
      - [[#bootstrap-from-source][Bootstrap from source]]
      - [[#building-gnu-guix-from-source-using-guix][Building GNU Guix from source (using Guix)]]
      - [[#building-gnu-guix-from-source-debian-native][Building GNU Guix from source (Debian native)]]
@@ -23,6 +24,7 @@
      - [[#bootstrap-with-docker][Bootstrap with Docker]]
  - [[#continue-with-ruby-installation-and-environment][Continue with Ruby installation and environment]]
  - [[#continue-with-python-installation-and-environment][Continue with Python installation and environment]]
+ - [[#add-your-own-package][Add your own package]]
 
 * Introduction
 
@@ -151,7 +153,7 @@ system before running guix.
 Now you should be able to run Guix with
 
 #+begin_src sh   :lang bash
-    guix-daemon --build-users-group=guix-builder
+    ~/.guix-profile/bin/guix-daemon --build-users-group=guix-builder
 
     /gnu/store/(...)-guix-0.8(...)/bin/guix --help
 #+end_src sh   :lang bash
@@ -314,6 +316,11 @@ Choose one from
 Alternatively set the LOCPATH to that of your underlying distribution
 
 * Other installation routes
+
+** Install repository from git
+
+Use one of https://savannah.gnu.org/git/?group=guix
+
 ** Bootstrap from source
 
 Bootstrapping from source, after checking out the git Guix source tree
@@ -333,30 +340,40 @@ described above:
 
 *** Install the dependencies and build tools using Guix:
 
-Make sure Guix is at the front of the PATH
+Make sure Guix is at the *front* of the PATH
 
 #+begin_src sh   :lang bash
    export PATH=$HOME/.guix-profile/bin:$PATH
    guix package --install autoconf automake bzip2 gcc-toolchain gettext \
-                          guile libgcrypt pkg-config sqlite m4
+                          guile libgcrypt pkg-config sqlite m4 make
 #+end_src sh   :lang bash
 
 I also run
 
 #+begin_src sh   :lang bash
-    guix package --install grep sed texinfo graphviz
+    guix package --install grep sed texinfo graphviz 
 #+end_src sh   :lang bash
 
 which may be used during build time.
 
 Arguably, you may want to create a special build profile using -p and
 add that to your PATH instead. I use -p $HOME/opt/guix-build-system
+so the full thing becomes
+
+#+begin_src sh   :lang bash
+   export PATH=$HOME/opt/guix-build-system/bin:$PATH
+   guix package -p $HOME/opt/guix-build-system --install autoconf automake bzip2 gcc-toolchain gettext \
+                          guile libgcrypt pkg-config sqlite m4 make grep sed texinfo graphviz bash help2man
+#+end_src sh   :lang bash
+
+Note that hydra can be slow when many people are using it. The download farm should
+become faster in the future (it is designed for scalability).
 
 ***  Set the Guix environment variables 
 
 Guix recommends you to set during the package installation process: ACLOCAL_PATH, CPATH, LIBRARY_PATH, PKG_CONFIG_PATH
 
-Mine are
+Mine are (general)
 
 #+begin_src sh   :lang bash
     export PKG_CONFIG_PATH="/home/pjotr/.guix-profile/lib/pkgconfig"
@@ -369,10 +386,14 @@ Mine are
     export PYTHONPATH="/home/pjotr/.guix-profile/lib/python2.7/site-packages"
 #+end_src sh   :lang bash
 
-If you created a special profile, add it to the path, e.g.
+Or (for the build system)
 
 #+begin_src sh   :lang bash
-    export PATH=$HOME/opt/guix-build-system/bin:$PATH
+   export PATH="/home/wrk/opt/guix-build-system/bin:/usr/bin:/bin"
+   export PKG_CONFIG_PATH="/home/wrk/opt/guix-build-system/lib/pkgconfig"
+   export CPATH="/home/wrk/opt/guix-build-system/include"
+   export LIBRARY_PATH="/home/wrk/opt/guix-build-system/lib"
+   export ACLOCAL_PATH="/home/wrk/opt/guix-build-system/share/aclocal"
 #+end_src sh   :lang bash
 	
 Re-run the 'configure' script passing it the option
@@ -386,7 +407,25 @@ empty!). E.g.,
     ./configure --with-libgcrypt-prefix=$HOME/.guix-profile --localstatedir=/var
 #+end_src sh   :lang bash
 
-Run "make" and "make check".
+If that did not work try recreating configure with bootstrap
+
+#+begin_src sh   :lang bash
+    ./bootstrap
+    ./configure --with-libgcrypt-prefix=$HOME/.guix-profile --localstatedir=/var
+    make clean
+    make
+#+end_src sh   :lang bash
+
+and if you used a special build profile
+
+#+begin_src sh   :lang bash
+./configure --with-libgcrypt-prefix=$HOME/opt/guix-build-system --localstatedir=/var
+#+end_src
+
+Run `make' (and optionally `make check') every time you change something in the
+repository. Make can do parallel builds so for 4 cores
+
+: make -j 4 
 
 You may want to avoid "make install" since it will probably install the guix
 binaries in /usr and you can just run it in the source dir with
@@ -475,8 +514,12 @@ don't need Docker.
 
 * Continue with Ruby installation and environment
 
-See [GNU Guix Ruby](https://github.com/pjotrp/guix-notes/blob/master/RUBY)
+See [[https://github.com/pjotrp/guix-notes/blob/master/RUBY.org][GNU Guix Ruby]]
 
 * Continue with Python installation and environment
 
-See [GNU Guix Python](https://github.com/pjotrp/guix-notes/blob/master/PYTHON)
+See [[https://github.com/pjotrp/guix-notes/blob/master/PYTHON.org][GNU Guix Python]]
+
+* Add your own package
+
+See [[https://github.com/pjotrp/guix-notes/blob/master/HACKING.org][GNU Guix HACKING]]

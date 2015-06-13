@@ -14,16 +14,25 @@
      - [[#bags][Bags]]
      - [[#renaming-and-moving-files][Renaming and moving files]]
  - [[#starting-the-daemon][Starting the daemon]]
- - [[#testing-the-package][Testing the package]]
+ - [[#install-guix-from-the-git-repository][Install Guix from the git repository]]
+     - [[#checkout-guix-from-git][Checkout Guix from git]]
+     - [[#build-guix-current][Build Guix (current)]]
+     - [[#from-the-command-line][From the command line]]
+ - [[#creating-a-package][Creating a package]]
+     - [[#updating-the-version][Updating the version]]
+     - [[#updating-the-hash-value][Updating the HASH value]]
  - [[#building-the-package][Building the package]]
+ - [[#debugging-the-package][Debugging the package]]
+     - [[#in-progress-debugging-inside-guile][IN PROGRESS Debugging inside Guile]]
  - [[#fixing-problems][Fixing problems]]
  - [[#installing-the-package][Installing the package]]
- - [[#updating-the-version][Updating the version]]
-     - [[#getting-the-hash-value][Getting the HASH value]]
  - [[#making-a-patch][Making a patch]]
+     - [[#using-git-branches][Using git branches]]
  - [[#hints][Hints]]
+     - [[#using-emacs][Using emacs]]
  - [[#the-ruby-package][The Ruby package]]
      - [[#ruby-gems][Ruby Gems]]
+ - [[#todo-create-a-caching-server][TODO Create a caching server]]
 
 * Introduction
 
@@ -50,6 +59,11 @@ First a note of caution. Try to work one step at a time. GNU Guix is not
 a simple system, so you are bound to get frustrated. But it is hackable,
 that means you can solve any problem! And the reward is sane software
 deployment. Guix will pay back your investment.
+
+Before hacking GNU Guix it may be worth contemplating the speed of the
+network connection: in short, the faster the better. Caching packages
+somewhere may be worth considering too. Finally a fast server may be a
+good thing too because GNU Guix is designed to build packages in parallel.
 
 * Guile, the language
 
@@ -222,11 +236,76 @@ Do not forget to start the daemon
   guix-daemon --build-users-group=guix-builder
 #+end_src
 
-* Testing the package
+* Install Guix from the git repository
 
-> Do we have a HOWTO on how to run expressions in the Guile debugger?
-> Never used that and would like to see how individual statements
-> evaluate in LISP.
+** Checkout Guix from git
+
+Clone the Guix git repository.
+
+** Build Guix (current)
+
+First build Guix from source so you can run guix from the
+repository. See the section [[https://github.com/pjotrp/guix-notes/blob/master/INSTALL.org#building-gnu-guix-from-source-using-guix][Building GNU Guix from source]] in [[https://github.com/pjotrp/guix-notes/blob/master/INSTALL.org][INSTALL]].
+
+** From the command line
+
+Once you have Guix running you can pass it the path to the package repository:
+
+#+begin_src sh
+./pre-inst-env guix --load-path ./gnu 
+#+end_src 
+
+* Creating a package
+** Updating the version
+
+The version is located in the package definition. E.g.
+
+#+begin_src scheme
+(define-public ruby-2.1
+  (package (inherit ruby)
+    (version "2.1.6")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "http://cache.ruby-lang.org/pub/ruby/"
+                           (version-major+minor version)
+                           "/ruby-" version ".tar.bz2"))
+       (sha256
+        (base32
+         "1r4bs8lfwsypbcf8j2lpv3by40729vp5mh697njizj97fjp644qy"))))
+#+end_src
+
+** Updating the HASH value
+
+#+begin_src scheme
+  guix download http://cache.ruby-lang.org/pub/ruby/2.1/ruby-2.1.3.tar.gz
+#+end_src
+
+* Building the package
+
+From a prebuilt guix in the source tree one can start with
+
+#+begin_src scheme
+  ./pre-inst-env guix package -A ruby
+    ruby    1.8.7-p374      out     gnu/packages/ruby.scm:119:2
+    ruby    2.1.6   out     gnu/packages/ruby.scm:91:2
+    ruby    2.2.2   out     gnu/packages/ruby.scm:39:2
+#+end_src
+
+to see if the package compiles. Note that Guix contains three versions
+of Ruby!  Next try the explicit package compile which should return
+the destination
+
+#+begin_src scheme
+  ./pre-inst-env guix build -K -e '(@ (gnu packages ruby) ruby-2.1)' 
+  /gnu/store/c13v73jxmj2nir2xjqaz5259zywsa9zi-ruby-2.1.6
+#+end_src
+
+* Debugging the package
+
+** IN PROGRESS Debugging inside Guile
+
+*Note*: this section is not complete
 
 Basically there are two approaches.  From the command line, like this:
 
@@ -269,24 +348,6 @@ Install Geiser and add the guile path to ~/.emacs with
 
 Start geiser and you should be able to replicate above commands.
 
-* Building the package
-
-From a prebuilt guix in the source tree one can start with
-
-#+begin_src scheme
-  ./pre-inst-env guix package -A ruby
-    ruby    2.1.3   out     gnu/packages/ruby.scm:37:2
-    ruby    1.8.7-p374      out     gnu/packages/ruby.scm:37:2
-#+end_src
-
-to see if the package compiles. Next
-
-#+begin_src scheme
-  ./pre-inst-env guix build -K -e '(@ (gnu packages ruby) ruby)' 
-#+end_src
-
-It is also possible to use the standard guix by giving the 
-
 * Fixing problems
 
 Compiling the package there may be build problems. cd into the build directory
@@ -323,17 +384,10 @@ directory into your profile, but lacks information for updates etc:
   guix package -i $(guix build ruby)
 #+end_src
 
-* Updating the version
-** Getting the HASH value
-
-#+begin_src scheme
-  guix download http://cache.ruby-lang.org/pub/ruby/2.1/ruby-2.1.3.tar.gz
-#+end_src
-
 * Making a patch
 
 A patch can be sent to the mailing list. Use git rebase --interactive
-to merge and squash patches into one. Next use the GNU ChangeLog
+to merge and [[http://gitready.com/advanced/2009/02/10/squashing-commits-with-rebase.html][squash patches]] into one. Next use the GNU ChangeLog
 format which is a header with a filewise change description:
 
 #+begin_src scheme
@@ -363,13 +417,41 @@ email for an example) and use
 to generate a patch file, which you can then send to the Guix-devel
 mailing list (guix-devel@gnu.org).
 
-See also the HACKING document in the Guix git repo.
+To change the last commit message do
+
+: git commit --amend
+
+See also the official HACKING document in the Guix git repo.
+
+** Using git branches
+
+It may be a good idea to keep the master branch in sync with that of Guix.
+When adding something new checkout a branch first
+
+: git checkout -b dev
+
+Now to creat a patch to send to the mailing list do
+
+: git commit -a -m 'My last commit'
+: git checkout master
+: git checkout -b submit
+: git rebase --interactive dev
+
+Squash the commits into one
 
 * Hints
 
 Read the HACKING documentation in the Guix source tree.
 
 There are also videos on hacking in gnu.org/s/guix. 
+
+** Using emacs
+
+Emacs has powerful support for editing LISP (unsurprisingly, perhaps).
+
+*** Key binding
+
++ C-M-f and C-M-b move to forward/backward to matching braces
 
 * The Ruby package
 
@@ -422,3 +504,4 @@ which contains
   ls /home/wrk/.guix-profile/lib/ruby/gems/2.1.3/gems/i18n-0.6.11/
     gemfiles  lib  MIT-LICENSE  README.md  test
 #+end_src
+* TODO Create a caching server
