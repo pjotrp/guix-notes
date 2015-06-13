@@ -9,3 +9,13 @@ Bioinformatics needs GNU Guix because:
 3. Often multiple versions of software are run at the same time
 4. Reproducible installs is a requirement in Science
 5. Sane 1-click installs are the future
+
+* Non-free packages
+
+GNU Guix only accepts packages that have an FSF approved license. For Bioinformatics we also
+have non-free packages, but they live in separate repositories, e.g.
+
++ https://github.com/genenetwork/guix-nonfree
++ https://github.com/genenetwork/guix-bioinformatics-nonfree
+
+Use the GUIX_PACKAGE_PATH to include one or more of these package lists.
