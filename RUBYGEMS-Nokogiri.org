@@ -1,0 +1,95 @@
+#+TITLE: Supporting (native) gems in GNU Guix
+
+* Table of Contents                                                     :TOC:
+ - [[#introduction][Introduction]]
+ - [[#current-state][Current state]]
+     - [[#gnu-guix-installed-gem][GNU Guix installed gem]]
+     - [[#gem-in-home][Gem in $HOME]]
+     - [[#bundler][Bundler]]
+ - [[#nokogiri][Nokogiri]]
+
+* Introduction
+
+Ruby developers have multiple needs when running a system when it
+comes to Ruby versions and modules (called gems). GNU Guix has great
+support for versioning and control of the dependency graph. Here we
+discuss gem support in GNU Guix (this is a work in progress).
+
+Basically we are aware of the following use cases after installing
+a version of Ruby (say 2.1.6):
+
+1. A user/sysadmin wants to install a gem in the GNU Guix store 
+2. A user wants to install a gem using rubygems outside GNU Guix and
+   local to $HOME
+3. A developer wants to use bundler which installs gems in the source
+   tree for development and testing
+
+In all cases, when Ruby code needs to include a file, resolving the
+location of the gem should start in 3, next 2, then 1. As an example
+of supporting a complex gem we use the example of Nokogiri which has
+over 1,000 installation related questions on Stack Overflow.
+
+* Current state
+
+** GNU Guix installed gem
+
+GNU Guix now build gems from a tar-ball using a Ruby build
+environment. Installing ruby-hoe
+
+: guix package -i ruby-hoe
+
+creates a symlink to the executable sow in
+
+: /home/wrk/.guix-profile/bin/sow -> /gnu/store/ccx2ri5l8y6qbrzkw4p0gq8l647kxn0g-ruby-hoe-3.13.1/bin/sow
+
+and the libraries are available through the symlink in
+
+: /home/wrk/.guix-profile/lib/ruby/gems/2.2.0/gems/hoe-3.13.1/ -> /gnu/store/ccx2ri5l8y6qbrzkw4p0gq8l647kxn0g-ruby-hoe-3.13.1/lib/ruby/gems/2.2.0/gems/hoe-3.13.1
+
+Running sow means you'll need to add the GNU Guix gem locations to the
+GEM_PATH, e.g.,
+
+: env GEM_PATH=~/.guix-profile/lib/ruby/gems/2.2.0 sow
+
+*** TODO Make the GNU Guix gem path automatically available
+
+At this point the GEM_PATH is not set properly.
+
+*** TODO Provide a build system that uses simple gem descriptions
+
+We could extract Gem information from Rubygems - something Nix was
+capable of doing - and create expressions from those (even on the
+fly).
+
+** Gem in $HOME
+
+The gem tool comes with the GNU Guix Ruby installation. This means you can run
+gem after tweaking the local PATHs. An example can be found [[https://github.com/pjotrp/guix-notes/blob/master/scripts/ruby-guix-env][here]]. Run it as
+
+: . ruby-guix-env
+
+Note: it also sets the path for GNU Guix global gems.
+
+*** TODO Supporting native gems
+
+Native gems include some C or C++ code.
+
+Currently the GNU Guix gem tool does not build native gems. The reason
+is that the build environment is not complete for the gem tool that
+comes with the installed Ruby. It is possible to force native builds
+by tweaking C_INCLUDE_PATH, LD_LIBRARY_PATH and friends, but that is
+not encouraged.
+
+To move forward I think we should create a 'rubygems' package that
+includes the most important build tools and a 'rubygems-extra' for
+some of the rarer tools.
+
+** Bundler
+
+Bundler works in GNU Guix, both installed though Guix and through
+gems, but at this point there are no native builds for the same reason.
+
+*** TODO Support native gems for bundler
+
+* Nokogiri
+
