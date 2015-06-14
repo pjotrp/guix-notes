@@ -111,9 +111,10 @@ the Guix build-system method is called with the functions name,
 decscription and lower, where the last is a function with the same
 name. The functions expand to whatever data structure is required
 underneath by the package build system. These definitions are actually
-resolved as Guile records can be found in ./guix/packages.scm.  Look
-up 'define-record-type' defined in ./guix/build-system.scm to see how
-that works:
+resolved as [[http://www.scheme.com/tspl4/records.html][Guile records]] can be found in ./guix/packages.scm.  Look
+up 'define-record-type*' defined in ./guix/build-system.scm to see how
+that works (the asterisk * implies that fields are bound as per
+letrec*, allowing them to refer to one another):
 
 #+begin_src scheme
 (define-record-type* <build-system> build-system make-build-system
@@ -155,10 +156,9 @@ that works:
   (build         bag-build))             ;bag -> derivation
 #+end_src
 
-
-In GNU Guix data is
-available as build-system-name, build-system-description etc. Same for
-the package record which delivers package-name, package-version, etc.
+In GNU Guix the record data is available as build-system-name,
+build-system-description etc. Same for the package record which
+delivers package-name, package-version, etc. 
 
 Also literal keywoard syntax is used, e.g.,
 
