@@ -5,12 +5,14 @@
  - [[#guile-the-language][Guile, the language]]
      - [[#boolean-f-t-notation][Boolean #f, #t notation]]
      - [[#hash-colon--notation][Hash colon (#:) notation]]
+     - [[#percentage--notation][Percentage (%) notation]]
      - [[#key-values][Key-values]]
      - [[#defining-a-function][Defining a function]]
      - [[#defining-a-variable][Defining a variable]]
      - [[#inside-functions][Inside functions]]
      - [[#more-about-guilescheme][More about Guile/scheme]]
  - [[#guix-the-language][Guix, the language]]
+     - [[#expressions][Expressions]]
      - [[#bags][Bags]]
      - [[#renaming-and-moving-files][Renaming and moving files]]
  - [[#starting-the-daemon][Starting the daemon]]
@@ -69,7 +71,8 @@ good thing too because GNU Guix is designed to build packages in parallel.
 * Guile, the language
 
 Guile is a Scheme LISP. Here we list some Scheme specific material that is used
-by GNU Guix.
+by GNU Guix. There is much information on the web on Scheme. Check out 
+[[http://www.troubleshooters.com/codecorn/scheme_guile/hello.htm][Scheme at a Glance]], for example.
 
 ** Boolean #f, #t notation
 
@@ -84,6 +87,15 @@ create unique identifiers, see also
 
 in Ruby, for comparison, #:key would be in colon notation :key.
 
+** Percentage (%) notation
+
+The percentage is a syntactical name helper used to generate and
+create values available in scope.  For example, the output file name
+is reified via the %output variable automatically added to builder’s
+scope. Input file names are similarly reified through the
+%build-inputs variable. Both variables are non-hygienically introduced
+in the build expression by build-expression->derivation.
+
 ** Key-values
 
 GNU Guix uses key-value pairs extensively. With
@@ -95,16 +107,60 @@ GNU Guix uses key-value pairs extensively. With
     (lower lower)))
 #+end_src
 
-the Guix build-system method is called with the functions name, decscription and lower, 
-where the last is a function with the same name. The functions expand to whatever
-data structure is required underneath by the package build system. These 
-definitions are actually resolved as Guile records can be found in ./guix/packages.scm.
-Look up 'define-record-type' to see how that works. In GNU Guix data is availabel
-as build-system-name, build-system-description etc. Same for the package record which
-delivers package-name, package-version, etc.
+the Guix build-system method is called with the functions name,
+decscription and lower, where the last is a function with the same
+name. The functions expand to whatever data structure is required
+underneath by the package build system. These definitions are actually
+resolved as Guile records can be found in ./guix/packages.scm.  Look
+up 'define-record-type' defined in ./guix/build-system.scm to see how
+that works:
 
-Also literal keywoard syntax
-is used, e.g.,
+#+begin_src scheme
+(define-record-type* <build-system> build-system make-build-system
+  build-system?
+  (name        build-system-name)         ; symbol
+  (description build-system-description)  ; short description
+  (lower       build-system-lower))       ; args ... -> bags
+
+;; "Bags" are low-level representations of "packages".  The system and target
+;; of a bag is fixed when it's created.  This is because build systems may
+;; choose inputs as a function of the system and target.
+(define-record-type* <bag> bag %make-bag
+  bag?
+  (name          bag-name)               ;string
+
+  (system        bag-system)             ;string
+  (target        bag-target              ;string | #f
+                 (default #f))
+
+  ;; Here we use build/host/target in the sense of the GNU tool chain (info
+  ;; "(autoconf) Specifying Target Triplets").
+  (build-inputs  bag-build-inputs        ;list of packages
+                 (default '()))
+  (host-inputs   bag-host-inputs         ;list of packages
+                 (default '()))
+
+  ;; "Target inputs" are packages that are built natively, but that are used
+  ;; by target programs in a cross-compilation environment.  Thus, they act
+  ;; like 'inputs' as far as search paths are concerned.  The only example of
+  ;; that is the cross-libc: it is an input of 'cross-gcc', thus built
+  ;; natively; yet, we want it to be considered as a target input for the
+  ;; purposes of $CPATH, $LIBRARY_PATH, etc.
+  (target-inputs bag-target-inputs
+                 (default '()))
+  (outputs       bag-outputs             ;list of strings
+                 (default '("out")))
+  (arguments     bag-arguments           ;list
+                 (default '()))
+  (build         bag-build))             ;bag -> derivation
+#+end_src
+
+
+In GNU Guix data is
+available as build-system-name, build-system-description etc. Same for
+the package record which delivers package-name, package-version, etc.
+
+Also literal keywoard syntax is used, e.g.,
 
 #+begin_src scheme
   (build-expression->derivation store name builder
@@ -203,9 +259,15 @@ GNU Guix functionality directly.
 
 * Guix, the language
 
-GNU Guix is not a language. But as they say, LISP is used to create a
-new language for every purpose (using macros). So here we list some of
-the commonly used macros.
+GNU Guix is not a language per se. But as they say, LISP is used to
+create a new language for every purpose (using macros). So here we
+list some of the commonly used macros.
+
+** Expressions
+
+A good explanation of expressions (a derivation in Nix-speak) and how
+they are implemented can be found on [[https://en.wikisource.org/wiki/Functional_Package_Management_with_Guix/Build_expressions_and_package_descriptions][Wikisource]]. Actually at the low 
+level an expression returns a derivation variable or structure.
 
 ** Bags
 
