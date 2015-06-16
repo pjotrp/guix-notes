@@ -489,7 +489,55 @@ Let's inspect the package using the methods defined in guix/packages.scm
 ;;; ("libffi" #<package libffi-3.1 gnu/packages/libffi.scm:34 2b8b900>) 
 ;;; etc.
 (package->bag p)
-;;; $22 = #<<bag> name: "ruby-2.2.2" system: "x86_64-linux" target: #f build-inputs: (("source" #<origin "http://cache.ruby-lang.org/pub/ruby/2.2/ruby-2.2.2.tar.xz" 6az3luekwvyihzemdwa3zvzztftvpdbxbnte3kiockrsrekcirra () 36f28c0>) ("tar" #<package tar-1.28 gnu/packages/bootstrap.scm:145 3953540>) ("gzip" #<package gzip-1.6 gnu/packages/bootstrap.scm:145 39533c0>) ("bzip2" #<package bzip2-1.0.6 gnu/packages/bootstrap.scm:145 3953240>) ("xz" #<package xz-5.0.4 gnu/packages/bootstrap.scm:145 39530c0>) ("file" #<package file-5.22 gnu/packages/bootstrap.scm:145 395cf00>) ("diffutils" #<package diffutils-3.3 gnu/packages/bootstrap.scm:145 395cd80>) ("patch" #<package patch-2.7.5 gnu/packages/bootstrap.scm:145 395cc00>) ("sed" #<package sed-4.2.2 gnu/packages/bootstrap.scm:145 395ca80>) ("findutils" #<package findutils-4.4.2 gnu/packages/bootstrap.scm:145 395c900>) ("gawk" #<package gawk-4.1.1 gnu/packages/bootstrap.scm:145 395c780>) ("grep" #<package grep-2.21 gnu/packages/bootstrap.scm:145 39536c0>) ("coreutils" #<package coreutils-8.23 gnu/packages/bootstrap.scm:145 3953840>) ("make" #<package make-4.1 gnu/packages/bootstrap.scm:145 3953a80>) ("bash" #<package bash-4.3.33 gnu/packages/bootstrap.scm:145 3953e40>) ("ld-wrapper" #<package ld-wrapper-0 gnu/packages/commencement.scm:644 39539c0>) ("binutils" #<package binutils-2.25 gnu/packages/bootstrap.scm:145 394d3c0>) ("gcc" #<package gcc-4.8.4 gnu/packages/commencement.scm:530 394d180>) ("libc" #<package glibc-2.21 gnu/packages/commencement.scm:454 394d600>) ("locales" #<package glibc-utf8-locales-2.21 gnu/packages/commencement.scm:621 3953c00>)) host-inputs: (("readline" #<package readline-6.3 gnu/packages/readline.scm:39 2aa2840>) ("openssl" #<package openssl-1.0.2b gnu/packages/openssl.scm:30 2f15d80>) ("libffi" #<package libffi-3.1 gnu/packages/libffi.scm:34 2b8b900>) ("gdbm" #<package gdbm-1.11 gnu/packages/gdbm.scm:26 2b8b6c0>) ("zlib" #<package zlib-1.2.7 gnu/packages/compression.scm:33 36f1c00>)) target-inputs: () outputs: ("out") arguments: (#:system "x86_64-linux" #:test-target "test" #:parallel-tests? #f #:phases (alist-cons-before (quote configure) (quote replace-bin-sh) (lambda _ (substitute* (quote ("Makefile.in" "ext/pty/pty.c" "io.c" "lib/mkmf.rb" "process.c" "test/rubygems/test_gem_ext_configure_builder.rb" "test/rdoc/test_rdoc_parser.rb" "test/ruby/test_rubyoptions.rb" "test/ruby/test_process.rb" "test/ruby/test_system.rb" "tool/rbinstall.rb")) (("/bin/sh") (which "sh")))) %standard-phases)) build: #<procedure gnu-build (store name input-drvs #:key guile outputs search-paths configure-flags make-flags out-of-source? tests? test-target parallel-build? parallel-tests? patch-shebangs? strip-binaries? strip-flags strip-directories validate-runpath? phases locale system imported-modules modules substitutable? allowed-references)>>
+ 
+
+$22 = #<<bag> name: "ruby-2.2.2" system: "x86_64-linux" target: #f 
+build-inputs: (
+("source" #<origin "http://cache.ruby-lang.org/pub/ruby/2.2/ruby-2.2.2.tar.xz" 6az3luekwvyihzemdwa3zvzztftvpdbxbnte3kiockrsrekcirra () 36f28c0>)
+("tar" #<package tar-1.28 gnu/packages/bootstrap.scm:145 3953540>)
+("gzip" #<package gzip-1.6 gnu/packages/bootstrap.scm:145 39533c0>)
+("bzip2" #<package bzip2-1.0.6 gnu/packages/bootstrap.scm:145 3953240>) 
+("xz" #<package xz-5.0.4 gnu/packages/bootstrap.scm:145 39530c0>) 
+("file" #<package file-5.22 gnu/packages/bootstrap.scm:145 395cf00>) 
+("diffutils" #<package diffutils-3.3 gnu/packages/bootstrap.scm:145 395cd80>) 
+("patch" #<package patch-2.7.5 gnu/packages/bootstrap.scm:145 395cc00>) 
+("sed" #<package sed-4.2.2 gnu/packages/bootstrap.scm:145 395ca80>) 
+("findutils" #<package findutils-4.4.2 gnu/packages/bootstrap.scm:145 395c900>)
+("gawk" #<package gawk-4.1.1 gnu/packages/bootstrap.scm:145 395c780>)
+("grep" #<package grep-2.21 gnu/packages/bootstrap.scm:145 39536c0>)
+("coreutils" #<package coreutils-8.23 gnu/packages/bootstrap.scm:145 3953840>) 
+("make" #<package make-4.1 gnu/packages/bootstrap.scm:145 3953a80>) 
+("bash" #<package bash-4.3.33 gnu/packages/bootstrap.scm:145 3953e40>) 
+("ld-wrapper" #<package ld-wrapper-0 gnu/packages/commencement.scm:644 39539c0>) 
+("binutils" #<package binutils-2.25 gnu/packages/bootstrap.scm:145 394d3c0>) 
+("gcc" #<package gcc-4.8.4 gnu/packages/commencement.scm:530 394d180>)
+("libc" #<package glibc-2.21 gnu/packages/commencement.scm:454 394d600>) 
+("locales" #<package glibc-utf8-locales-2.21 gnu/packages/commencement.scm:621 3953c00>)
+) 
+host-inputs: (
+("readline" #<package readline-6.3 gnu/packages/readline.scm:39 2aa2840>)
+("openssl" #<package openssl-1.0.2b gnu/packages/openssl.scm:30 2f15d80>) 
+("libffi" #<package libffi-3.1 gnu/packages/libffi.scm:34 2b8b900>) 
+("gdbm" #<package gdbm-1.11 gnu/packages/gdbm.scm:26 2b8b6c0>) 
+("zlib" #<package zlib-1.2.7 gnu/packages/compression.scm:33 36f1c00>)
+) 
+target-inputs: () 
+outputs: ("out") 
+arguments: (#:system "x86_64-linux" #:test-target "test" #:parallel-tests? #f #:phases
+(alist-cons-before (quote configure) (quote replace-bin-sh) 
+  (lambda _ (substitute* (quote ("Makefile.in" "ext/pty/pty.c" "io.c"
+"lib/mkmf.rb" "process.c" "test/rubygems/test_gem_ext_configure_builder.rb"
+"test/rdoc/test_rdoc_parser.rb" "test/ruby/test_rubyoptions.rb"
+"test/ruby/test_process.rb" "test/ruby/test_system.rb"
+"tool/rbinstall.rb")) 
+(("/bin/sh") (which "sh")))) %standard-phases)
+)
+build: #<procedure gnu-build (store name input-drvs #:key guile
+outputs search-paths configure-flags make-flags out-of-source? tests?
+test-target parallel-build? parallel-tests? patch-shebangs?
+strip-binaries? strip-flags strip-directories validate-runpath? phases
+locale system imported-modules modules substitutable?
+allowed-references)>>
 #+end_src scheme
 
 where bag is the actual data that gets passed to the build system.
