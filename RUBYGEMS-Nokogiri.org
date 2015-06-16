@@ -53,7 +53,18 @@ GEM_PATH, e.g.,
 
 *** TODO Make the GNU Guix gem path automatically available
 
-At this point the GEM_PATH is not set properly.
+At this point the GEM_PATH is not set properly. Guix prints the PATH
+after installing a package so you can add it to you environment. For end-users 
+we may want to automate that.
+
+To see the actual paths and libraries that a Ruby uses, check
+
+: guix environment ruby-2.1 --search-paths
+
+To see the environment paths
+
+: guix package --search-paths
+
 
 *** TODO Provide a build system that uses simple gem descriptions
 

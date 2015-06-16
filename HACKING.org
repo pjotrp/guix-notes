@@ -23,11 +23,15 @@
  - [[#creating-a-package][Creating a package]]
      - [[#updating-the-version][Updating the version]]
      - [[#updating-the-hash-value][Updating the HASH value]]
+     - [[#use-import-to-convert-other-packages-from-gnu-pypi-rubygems-and-nix][Use import to convert other packages from GNU, pypi, rubygems and Nix]]
  - [[#building-the-package][Building the package]]
  - [[#debugging-the-package][Debugging the package]]
+     - [[#environment][Environment]]
      - [[#in-progress-debugging-inside-guile][IN PROGRESS Debugging inside Guile]]
+     - [[#in-progress-using-guile-in-emacs-geiser][IN PROGRESS Using guile in emacs (geiser)]]
  - [[#fixing-problems][Fixing problems]]
  - [[#installing-the-package][Installing the package]]
+ - [[#using-the-search-path][Using the search path]]
  - [[#making-a-patch-to-submit-to-the-mailing-list][Making a patch to submit to the mailing list]]
      - [[#using-git-branches][Using git branches]]
  - [[#hints][Hints]]
@@ -344,6 +348,42 @@ The version is located in the package definition. E.g.
   guix download http://cache.ruby-lang.org/pub/ruby/2.1/ruby-2.1.3.tar.gz
 #+end_src
 
+** Use import to convert other packages from GNU, pypi, rubygems and Nix
+
+Guix can read package definitions from other sources and write a Guix expression to stdout.
+Make sure gnutls is installed (to avoid a JSON error) and
+
+: guix package -i gnutls
+: guix import pypi readline
+
+prints out
+
+#+begin_src scheme
+(package
+  (name "python-readline")
+  (version "6.2.4.1")
+  (source
+    (origin
+      (method url-fetch)
+      (uri (string-append
+             "https://pypi.python.org/packages/source/r/readline/readline-"
+             version
+             ".tar.gz"))
+      (sha256
+        (base32
+          "01yi9cls19nglj0h172hhlf64chb0xj5rv1ca38yflpy7ph8c3z0"))))
+  (build-system python-build-system)
+  (inputs
+    `(("python-setuptools" ,python-setuptools)))
+  (home-page
+    "http://github.com/ludwigschwardt/python-readline")
+  (synopsis
+    "The standard Python readline extension statically linked against the GNU readline library.")
+  (description
+    "The standard Python readline extension statically linked against the GNU readline library.")
+  (license #f))
+#+end_src scheme
+
 * Building the package
 
 From a prebuilt guix in the source tree one can start with
@@ -366,38 +406,91 @@ the destination
 
 * Debugging the package
 
+** Environment
+
+Before debugging it is important to have a clean environment. Mine
+looks like:
+
+#+begin_src sh
+set|grep guix
+  ACLOCAL_PATH=/home/pjotr/.guix-profile/share/aclocal
+  BASH=/home/pjotr/.guix-profile/bin/bash
+  CPATH=/home/pjotr/.guix-profile/include
+  GUILE_LOAD_COMPILED_PATH=/home/pjotr/.guix-profile/share/guile/site/2.0
+  GUILE_LOAD_PATH=/home/pjotr/.guix-profile/share/guile/site/2.0
+  LIBRARY_PATH=/home/pjotr/.guix-profile/lib
+  LOCPATH=/home/pjotr/.guix-profile/lib/locale
+  PATH=/home/pjotr/.guix-profile/bin:/home/pjotr/.guix-profile/sbin
+  PKG_CONFIG_PATH=/home/pjotr/.guix-profile/lib/pkgconfig
+#+end_src
+
 ** IN PROGRESS Debugging inside Guile
 
 *Note*: this section is not complete
 
-Basically there are two approaches.  From the command line, like this:
+From the command line with guile use the [[https://www.gnu.org/software/guile/manual/html_node/The-REPL.html][REPL]] like this:
 
 #+begin_src scheme
   $ ./pre-inst-env guile
-    GNU Guile 2.0.11.20-4338f
+    GNU Guile 2.0.11
     Copyright (C) 1995-2014 Free Software Foundation, Inc.
 
   Enter `,help' for help.
-  scheme@(guile-user)> ,use (gnu packages ruby)
-  scheme@(guile-user)> ,use (guix)
-  scheme@(guile-user)> (define s (open-connection))
-  scheme@(guile-user)> ruby
-  $1 = #<package ruby-2.1.3 gnu/packages/ruby.scm:36 47d4dc0>
-  scheme@(guile-user)> (package-derivation s ruby)
-  ERROR: Unbound variable: sha256
-
-    $2 = #<derivation /gnu/store/k0lvsy8jwcw0amv1rsmii2cvwfnmn2gz-python-3.3.5.drv 
-      => /gnu/store/ij8xgynicdmnzb7pzmyb6bqi17s0ll3y-python-3.3.5 3f4fdc0>
-    scheme@(guile-user)> (build-derivations s (list $2))
-    $3 = #t
-#+end_src
-
-You may also want readline support:
-
-#+begin_src scheme
+  scheme@(guile-user)> 
+  ;;; read-line support
   (use-modules (ice-9 readline))
   (activate-readline)
+  ;;; help may come in useful
+  ,help
+  ;;; some LISP
+  (define a 3)
+  a
+  ;;; $1 = 3
+  ,pretty-print a
+  ;;; $2 = 3
+#+end_src 
+
+Load guix (the leading comma interprets the command)
+
+#+begin_src scheme
+  ,use (gnu packages ruby)
+  ,use (guix)
+  ,use (guix build-system)
 #+end_src
+
+Note that the order of gnu/packages/ruby is simply the directory structure of the git
+repository. Now start talking with the daemon
+
+#+begin_src scheme
+  (define s (open-connection))
+  ruby
+  ;;; $1 = #<package ruby-2.2.2 gnu/packages/ruby.scm:39 2ed9f00>
+  ruby-2.1
+  ;;; $1 = #<package ruby-2.1.6 gnu/packages/ruby.scm:91 36f10c0>
+  (package-derivation s ruby)
+  ;;; $2 = #<derivation /gnu/store/cvsq4yijavhv7vj7pk3ns0qmvvxdp935-ruby-2.2.2.drv => /gnu/store/66nc9miql9frizn0v02iq1siywsq65w5-ruby-2.2.2 3a9d7d0>
+  ,pretty-print s
+  ;;; $3 = #<build-daemon 256.14 32b7800>
+#+end_src
+
+Let's inspect the package using the methods defined in guix/packages.scm
+
+#+begin_src scheme
+(define p ruby)
+(package-name p)
+;;; "ruby"
+(package-inputs p)
+;;; (("readline" #<package readline-6.3 gnu/packages/readline.scm:39 2aa2840>) 
+;;; ("openssl" #<package openssl-1.0.2b gnu/packages/openssl.scm:30 2f15d80>) 
+;;; ("libffi" #<package libffi-3.1 gnu/packages/libffi.scm:34 2b8b900>) 
+;;; etc.
+(package->bag p)
+;;; $22 = #<<bag> name: "ruby-2.2.2" system: "x86_64-linux" target: #f build-inputs: (("source" #<origin "http://cache.ruby-lang.org/pub/ruby/2.2/ruby-2.2.2.tar.xz" 6az3luekwvyihzemdwa3zvzztftvpdbxbnte3kiockrsrekcirra () 36f28c0>) ("tar" #<package tar-1.28 gnu/packages/bootstrap.scm:145 3953540>) ("gzip" #<package gzip-1.6 gnu/packages/bootstrap.scm:145 39533c0>) ("bzip2" #<package bzip2-1.0.6 gnu/packages/bootstrap.scm:145 3953240>) ("xz" #<package xz-5.0.4 gnu/packages/bootstrap.scm:145 39530c0>) ("file" #<package file-5.22 gnu/packages/bootstrap.scm:145 395cf00>) ("diffutils" #<package diffutils-3.3 gnu/packages/bootstrap.scm:145 395cd80>) ("patch" #<package patch-2.7.5 gnu/packages/bootstrap.scm:145 395cc00>) ("sed" #<package sed-4.2.2 gnu/packages/bootstrap.scm:145 395ca80>) ("findutils" #<package findutils-4.4.2 gnu/packages/bootstrap.scm:145 395c900>) ("gawk" #<package gawk-4.1.1 gnu/packages/bootstrap.scm:145 395c780>) ("grep" #<package grep-2.21 gnu/packages/bootstrap.scm:145 39536c0>) ("coreutils" #<package coreutils-8.23 gnu/packages/bootstrap.scm:145 3953840>) ("make" #<package make-4.1 gnu/packages/bootstrap.scm:145 3953a80>) ("bash" #<package bash-4.3.33 gnu/packages/bootstrap.scm:145 3953e40>) ("ld-wrapper" #<package ld-wrapper-0 gnu/packages/commencement.scm:644 39539c0>) ("binutils" #<package binutils-2.25 gnu/packages/bootstrap.scm:145 394d3c0>) ("gcc" #<package gcc-4.8.4 gnu/packages/commencement.scm:530 394d180>) ("libc" #<package glibc-2.21 gnu/packages/commencement.scm:454 394d600>) ("locales" #<package glibc-utf8-locales-2.21 gnu/packages/commencement.scm:621 3953c00>)) host-inputs: (("readline" #<package readline-6.3 gnu/packages/readline.scm:39 2aa2840>) ("openssl" #<package openssl-1.0.2b gnu/packages/openssl.scm:30 2f15d80>) ("libffi" #<package libffi-3.1 gnu/packages/libffi.scm:34 2b8b900>) ("gdbm" #<package gdbm-1.11 gnu/packages/gdbm.scm:26 2b8b6c0>) ("zlib" #<package zlib-1.2.7 gnu/packages/compression.scm:33 36f1c00>)) target-inputs: () outputs: ("out") arguments: (#:system "x86_64-linux" #:test-target "test" #:parallel-tests? #f #:phases (alist-cons-before (quote configure) (quote replace-bin-sh) (lambda _ (substitute* (quote ("Makefile.in" "ext/pty/pty.c" "io.c" "lib/mkmf.rb" "process.c" "test/rubygems/test_gem_ext_configure_builder.rb" "test/rdoc/test_rdoc_parser.rb" "test/ruby/test_rubyoptions.rb" "test/ruby/test_process.rb" "test/ruby/test_system.rb" "tool/rbinstall.rb")) (("/bin/sh") (which "sh")))) %standard-phases)) build: #<procedure gnu-build (store name input-drvs #:key guile outputs search-paths configure-flags make-flags out-of-source? tests? test-target parallel-build? parallel-tests? patch-shebangs? strip-binaries? strip-flags strip-directories validate-runpath? phases locale system imported-modules modules substitutable? allowed-references)>>
+#+end_src scheme
+
+where bag is the actual data that gets passed to the build system.
+
+** IN PROGRESS Using guile in emacs (geiser)
 
 But the best thing, if you use Emacs, is to use Geiser, as noted in
 ‘HACKING’.  In addition to a REPL, it brings stuff like autodoc,
@@ -446,6 +539,21 @@ directory into your profile, but lacks information for updates etc:
 #+begin_src scheme
   guix package -i $(guix build ruby)
 #+end_src
+
+* Using the search path
+
+One can run:
+
+:  GUIX_PROFILE=$HOME/.guix-profile . ~/.guix-profile/etc/profile
+
+or
+
+:  eval `guix package --search-paths`
+
+See <http://www.gnu.org/software/guix/manual/html_node/Invoking-guix-package.html>.
+
+And nowadays one can also use --search-paths=suffix or
+--search-paths=prefix, for more flexibility.
 
 * Making a patch to submit to the mailing list
 
@@ -558,13 +666,13 @@ When you install it says
 
 #+begin_src scheme
   The following environment variable definitions may be needed:
-   export GEM_PATH="/home/wrk/.guix-profile/lib/ruby/gems/2.1.3"
+   export GEM_PATH="/home/pjotr/.guix-profile/lib/ruby/gems/2.1.3"
 #+end_src
 
 which contains
 
 #+begin_src scheme
-  ls /home/wrk/.guix-profile/lib/ruby/gems/2.1.3/gems/i18n-0.6.11/
+  ls /home/pjotr/.guix-profile/lib/ruby/gems/2.1.3/gems/i18n-0.6.11/
     gemfiles  lib  MIT-LICENSE  README.md  test
 #+end_src
 * Dealing with special or non-free packages
