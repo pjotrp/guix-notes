@@ -27,7 +27,7 @@
  - [[#building-the-package][Building the package]]
  - [[#debugging-the-package][Debugging the package]]
      - [[#environment][Environment]]
-     - [[#in-progress-debugging-inside-guile][IN PROGRESS Debugging inside Guile]]
+     - [[#debugging-inside-guile][Debugging inside Guile]]
      - [[#in-progress-using-guile-in-emacs-geiser][IN PROGRESS Using guile in emacs (geiser)]]
  - [[#fixing-problems][Fixing problems]]
  - [[#installing-the-package][Installing the package]]
@@ -424,9 +424,13 @@ set|grep guix
   PKG_CONFIG_PATH=/home/pjotr/.guix-profile/lib/pkgconfig
 #+end_src
 
-** IN PROGRESS Debugging inside Guile
+** Debugging inside Guile
 
-*Note*: this section is not complete
+With most packaging systems the only way to debug them is by sprinkling print
+statements, using a debugger or hoping for the best (TM). 
+
+GNU Guix is written in scheme lisp with the GNU Guile interpreter/compiler. This means
+code can be run and data can be inspected in the REPL.
 
 From the command line with guile use the [[https://www.gnu.org/software/guile/manual/html_node/The-REPL.html][REPL]] like this:
 
