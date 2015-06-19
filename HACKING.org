@@ -729,9 +729,15 @@ which contains
 #+end_src
 * Dealing with special packages
 
-Some packages won't make it into GNU Guix. If you have need a special section,
-simply create a directory with packages and add them to the GUIX_PACKAGE_PATH:
+Some packages won't make it into GNU Guix. 
+
+If you have need a special section, simply create a directory with
+packages and add them to the GUIX_PACKAGE_PATH:
 
 : export GUIX_PACKAGE_PATH="~/code/guix-special"
+
+this is also useful for packages that are in Guix but that you would
+like to customize, for instance with a different set of dependencies
+or different build flags.
 
 * TODO Create a caching server
