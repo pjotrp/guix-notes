@@ -592,6 +592,13 @@ directory into your profile, but lacks information for updates etc:
   guix package -i $(guix build ruby)
 #+end_src
 
+Where (guix build ruby) is a LISP call which translates into a raw
+path.  With the last example, passing a raw directory name to "guix
+package -i" does not really know what package it is, so it just
+blindly merges that directory into your profile. Later upgrades,
+propagated inputs, and search-path advisories aren't handled
+correctly.
+
 * Using the search path
 
 One can run:

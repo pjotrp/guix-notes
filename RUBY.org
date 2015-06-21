@@ -129,7 +129,7 @@ much since it points to an immutable (read-only) directory in
 
 When a profile is built, the symlinks are always placed as close to
 the root as possible.  In the case above, the ruby package is the only
-thing in your profile that has a top-level 'lib' directory.  If later
+thing in the profile that has a top-level 'lib' directory.  If later
 another package gets installed that contains 'lib', the newly-built
 profile will create 'lib' as a directory and move the symlinks further
 down.
