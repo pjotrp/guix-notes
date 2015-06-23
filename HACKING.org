@@ -28,7 +28,9 @@
  - [[#building-the-package][Building the package]]
  - [[#debugging-the-package][Debugging the package]]
      - [[#environment][Environment]]
-     - [[#debugging-inside-guile][Debugging inside Guile]]
+     - [[#debugging-inside-guile-repl][Debugging inside Guile (REPL)]]
+     - [[#the-user-init-file][The user init file]]
+     - [[#running-a-guile-script][Running a Guile script]]
      - [[#in-progress-using-guile-in-emacs-geiser][IN PROGRESS Using guile in emacs (geiser)]]
  - [[#fixing-problems][Fixing problems]]
  - [[#installing-the-package][Installing the package]]
@@ -474,7 +476,7 @@ set|grep guix
   PKG_CONFIG_PATH=/home/pjotr/.guix-profile/lib/pkgconfig
 #+end_src
 
-** Debugging inside Guile
+** Debugging inside Guile (REPL)
 
 With most packaging systems the only way to debug them is by sprinkling print
 statements, using a debugger or hoping for the best (TM). 
@@ -591,6 +593,55 @@ allowed-references)>>
 #+end_src scheme
 
 where bag is the actual data that gets passed to the build system.
+
+It is also possible to [[https://www.gnu.org/software/guile/manual/html_node/Single-Stepping-through-a-Procedure_0027s-Code.html#Single-Stepping-through-a-Procedure_0027s-Code][step through code]] and view progress. To install the 
+debugger install the libs from [[http://download.gna.org/guile-debugging/][here]].
+
+For further information on interactive debugging in Guile see the 
+[[https://www.gnu.org/software/guile/manual/html_node/Interactive-Debugging.html][Guile manual]].
+
+** The user init file
+
+You can set up an init file that gets loaded every time Guile gets
+started in interactive mode. Mine contains:
+
+#+begin_src scheme
+;; Init file in ~/.guile
+
+;;; read-line support
+(use-modules (ice-9 readline))
+ (activate-readline)
+ 
+;;; GNU Guix
+(use-modules (guix hash) (guix) (guix build-system))
+
+#+end_src scheme
+
+** Running a Guile script
+
+Instead of using the Guile REPL is is also possible to run the code as
+a [[https://www.gnu.org/software/guile/manual/html_node/Scripting-Examples.html#Scripting-Examples][script]]. Create a script:
+
+#+begin_src scheme
+(define-module (gnu packages mytest)
+  #:use-module (gnu packages ruby)
+  #:use-module (guix)
+  )
+
+(define s (open-connection))
+(define p ruby-2.1)
+
+(write (package->bag p))
+(newline)(newline)
+(write (string-append (package-name p) "-" (package-version p)))
+#+end_src scheme
+
+Run it as
+
+: ./pre-inst-env guile -s test.scm
+: (lots of info)
+:
+: "ruby-2.1.6"
 
 ** IN PROGRESS Using guile in emacs (geiser)
 
