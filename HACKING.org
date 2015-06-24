@@ -28,7 +28,8 @@
  - [[#building-the-package][Building the package]]
  - [[#debugging-the-package][Debugging the package]]
      - [[#environment][Environment]]
-     - [[#debugging-inside-guile-repl][Debugging inside Guile (REPL)]]
+     - [[#inside-guile-repl][Inside Guile (REPL)]]
+     - [[#using-the-debugger-][Using the debugger ]]
      - [[#the-user-init-file][The user init file]]
      - [[#running-a-guile-script][Running a Guile script]]
      - [[#in-progress-using-guile-in-emacs-geiser][IN PROGRESS Using guile in emacs (geiser)]]
@@ -476,7 +477,7 @@ set|grep guix
   PKG_CONFIG_PATH=/home/pjotr/.guix-profile/lib/pkgconfig
 #+end_src
 
-** Debugging inside Guile (REPL)
+** Inside Guile (REPL)
 
 With most packaging systems the only way to debug them is by sprinkling print
 statements, using a debugger or hoping for the best (TM). 
@@ -528,6 +529,8 @@ repository. Now start talking with the daemon
   ,pretty-print s
   ;;; $3 = #<build-daemon 256.14 32b7800>
 #+end_src
+
+*** Inspect package (and bag)
 
 Let's inspect the package using the methods defined in guix/packages.scm
 
@@ -594,11 +597,43 @@ allowed-references)>>
 
 where bag is the actual data that gets passed to the build system.
 
-It is also possible to [[https://www.gnu.org/software/guile/manual/html_node/Single-Stepping-through-a-Procedure_0027s-Code.html#Single-Stepping-through-a-Procedure_0027s-Code][step through code]] and view progress. To install the 
-debugger install the libs from [[http://download.gna.org/guile-debugging/][here]].
+*** Store monad and G-expressions
 
-For further information on interactive debugging in Guile see the 
-[[https://www.gnu.org/software/guile/manual/html_node/Interactive-Debugging.html][Guile manual]].
+Guix uses [[https://www.gnu.org/software/guix/manual/html_node/The-Store-Monad.html][monad to handle the store state]]. Read up on these and [[https://www.gnu.org/software/guix/manual/html_node/G_002dExpressions.html#G_002dExpressions][G-expressions]]
+if you intend to hack Guix. To run a procedure within a Store do something like
+
+#+begin_src scheme
+,enter-store-monad
+   (git-fetch ref 'sha256
+                  (base32
+                   "0yvkv7pnigvcifas3vcr8sk87xrrb8y9nh9v1yx2p43k0xz1q8vz")
+                  "mypackage")
+$4 = #<derivation /gnu/store/fmpk2sck6ny5dgyx12s539qcadzky24n-mypackage.drv => /gnu/store/k6q69arfmsm116a8hfkqqah
+m0ddzacjc-mypackage 50b9e10>
+#+end_src scheme
+
+Here $4 is a derivation object, and calling ‘built-derivations’ starts
+the build process
+
+#+begin_src scheme
+(built-derivations (list $4))
+building path(s) `/gnu/store/fid19bds4rak2zn8pzfhrjdcpmqwhjn4-module-import'
+building path(s) `/gnu/store/vf1pmac8yz2g0d4ln5ibwg0xaffdrnpq-module-import-compiled'
+building path(s) `/gnu/store/k6q69arfmsm116a8hfkqqahm0ddzacjc-mypackage'
+(...)
+#+end_src scheme
+
+#+begin_src scheme
+  (run-with-store s
+    (git-fetch ref ...))
+#+end_src scheme
+
+** Using the debugger 
+
+It is also possible to [[https://www.gnu.org/software/guile/manual/html_node/Debug-Commands.html][step through code]] and view progress and the
+contents of variables at every stage. The debugger comes with Guile by
+default. You can set breakpoints and step through code with step,
+next and finish.
 
 ** The user init file
 
