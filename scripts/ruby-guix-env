@@ -2,14 +2,20 @@
 #
 # Set up a Ruby environment for Guix after installing ruby. Run as
 #
-#   . ruby-guix-env
+#   . ruby-guix-env [--export]
+#
+# Run with --export to only show exports
 #
 # This can also works with Nix, provided .nix-profile is in the path
 # and a ruby is installed.
 
-echo $PATH|grep guix-profile
+if [ "$1" == "--export" ]; then
+    EXPORT_ONLY=1
+fi
+
+echo $PATH|grep -q guix-profile
 if [ $? == 1 ]; then
-  echo guix missing! Adding ~/guix-profile/bin to the PATH.
+  echo \# guix missing! Adding ~/guix-profile/bin to the PATH.
   export PATH=$HOME/.guix-profile/bin:$PATH
 fi
 
@@ -31,12 +37,14 @@ export GEM_PATH=$GEM_PATH:$HOME/.guix-profile/lib/ruby/gems/$RUBYVER/
 
 # Add the path for local gems built in-situ
 GEM_BIN_PATH=$HOME/.gem/$RUBYHASH/$RUBYVER/bin
-echo $PATH|grep $GEM_BIN_PATH
+echo $PATH|grep -q $GEM_BIN_PATH
 if [ $? == 1 ]; then
   export PATH=$GEM_BIN_PATH:$PATH
 fi
 
-gem env
+if [ -z $EXPORT_ONLY ]; then
+    gem env
+fi
 
 echo export PATH=$PATH
 echo export GEM_PATH=$GEM_PATH
