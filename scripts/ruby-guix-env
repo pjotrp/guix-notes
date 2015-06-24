@@ -15,9 +15,10 @@ fi
 
 RUBYBIN=$(readlink -f `which ruby`)
 RUBYHASH=$(basename $(dirname $(dirname $RUBYBIN)))
+RUBYVER=$($RUBYBIN -e 'print RUBY_VERSION[0..3],0')
 
 # Set GEM_PATH and GEM_HOME to point to a unique local dir
-export GEM_PATH=$HOME/.gem/$RUBYHASH/2.1.0
+export GEM_PATH=$HOME/.gem/$RUBYHASH/$RUBYVER
 mkdir -p $GEM_PATH
 export GEM_HOME=$GEM_PATH
 
@@ -26,13 +27,19 @@ export GEM_SPEC_CACHE=$HOME/.gem/$RUBYHASH/specs
 mkdir -p $GEM_SPEC_CACHE
 
 # Now add GNU Guix local GEM path
-export GEM_PATH=$GEM_PATH:$HOME/.guix-profile/lib/ruby/gems/2.2.0/
+export GEM_PATH=$GEM_PATH:$HOME/.guix-profile/lib/ruby/gems/$RUBYVER/
 
 # Add the path for local gems built in-situ
-GEM_BIN=$HOME/.gem/$RUBYHASH/2.1.0/bin/
-echo $PATH|grep $GEM_BIN
+GEM_BIN_PATH=$HOME/.gem/$RUBYHASH/$RUBYVER/bin
+echo $PATH|grep $GEM_BIN_PATH
 if [ $? == 1 ]; then
-  export PATH=$GEM_BIN:$PATH
+  export PATH=$GEM_BIN_PATH:$PATH
 fi
 
 gem env
+
+echo export PATH=$PATH
+echo export GEM_PATH=$GEM_PATH
+echo export GEM_HOME=$GEM_HOME
+echo export GEM_SPEC_CACHE=$GEM_SPEC_CACHE
+
