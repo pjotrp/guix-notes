@@ -374,7 +374,6 @@ should be such that module (gnu packages foo) is located in
 packages within ./gnu/packages/*.scm.
 
 
-
 * Creating a package
 ** Updating the version
 
@@ -627,6 +626,14 @@ building path(s) `/gnu/store/k6q69arfmsm116a8hfkqqahm0ddzacjc-mypackage'
   (run-with-store s
     (git-fetch ref ...))
 #+end_src scheme
+
+The principle of a Monad is simply to handle `state' (here the store)
+outside the called procedures (here the package builder). This
+prevents passing around state parameters all the time leading to
+simpler code.  For a description of how Monads can be implemented in
+Guile, read [[http://okmij.org/ftp/Scheme/monad-in-Scheme.html][Chris Okasaki brilliant writeup `Monadic Programming in
+Scheme']]. If you are a Ruby guy (like me) and want to understand
+monads, read [[http://codon.com/refactoring-ruby-with-monads][Tom Stuart's more gentle `Refactoring Ruby with Monads']].
 
 ** Using the debugger 
 
