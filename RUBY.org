@@ -221,9 +221,9 @@ you can see Rubygems cleanly honours these environment variables
 thus be enforced from the command line with
 
 #+begin_src sh
-  export GEM_PATH=/home/wrk/.gem/ziy7a6zib846426kprc7fgimggh8bz97-ruby-2.1.3/2.1.0
+  export GEM_PATH=/home/pjotrp/.gem/ziy7a6zib846426kprc7fgimggh8bz97-ruby-2.1.3/2.1.0
   export GEM_HOME=$GEM_PATH
-  export GEM_SPEC_CACHE=/home/wrk/.gem/ziy7a6zib846426kprc7fgimggh8bz97-ruby-2.1.3/specs
+  export GEM_SPEC_CACHE=/home/pjotrp/.gem/ziy7a6zib846426kprc7fgimggh8bz97-ruby-2.1.3/specs
   mkdir -p $GEM_PATH
   mkdir -p $GEM_SPEC_CACHE
   gem env
@@ -286,7 +286,7 @@ Recently bundler support was added! After installing bundler you may
 want to set the GEM_PATH to include the guix-profile gem location,
 e.g.,
 
-: export GEM_PATH=/home/wrk/.gem/x4z4vi0aynd5krn4fz3l7ix9187z0g8y-ruby-2.2.2/2.1.0:$HOME/.guix-profile/lib/ruby/gems/2.2.0
+: export GEM_PATH=/home/pjotrp/.gem/x4z4vi0aynd5krn4fz3l7ix9187z0g8y-ruby-2.2.2/2.1.0:$HOME/.guix-profile/lib/ruby/gems/2.2.0
 
 Check with `gem env' and try to `run bundle'.
 

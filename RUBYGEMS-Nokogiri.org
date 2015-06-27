@@ -44,11 +44,11 @@ environment. Installing ruby-hoe
 
 creates a symlink to the executable sow in
 
-: /home/wrk/.guix-profile/bin/sow -> /gnu/store/ccx2ri5l8y6qbrzkw4p0gq8l647kxn0g-ruby-hoe-3.13.1/bin/sow
+: /home/pjotrp/.guix-profile/bin/sow -> /gnu/store/ccx2ri5l8y6qbrzkw4p0gq8l647kxn0g-ruby-hoe-3.13.1/bin/sow
 
 and the libraries are available through the symlink in
 
-: /home/wrk/.guix-profile/lib/ruby/gems/2.2.0/gems/hoe-3.13.1/ -> /gnu/store/ccx2ri5l8y6qbrzkw4p0gq8l647kxn0g-ruby-hoe-3.13.1/lib/ruby/gems/2.2.0/gems/hoe-3.13.1
+: /home/pjotrp/.guix-profile/lib/ruby/gems/2.2.0/gems/hoe-3.13.1/ -> /gnu/store/ccx2ri5l8y6qbrzkw4p0gq8l647kxn0g-ruby-hoe-3.13.1/lib/ruby/gems/2.2.0/gems/hoe-3.13.1
 
 Running sow means you'll need to add the GNU Guix gem locations to the
 GEM_PATH, e.g.,
@@ -110,16 +110,16 @@ First using [[https://github.com/pjotrp/guix-notes/blob/master/scripts/ruby-guix
 
 #+begin_src sh   :lang bash
 set|grep guix
-ACLOCAL_PATH=/home/wrk/.guix-profile/share/aclocal
-BASH=/home/wrk/.guix-profile/bin/bash
-CPATH=/home/wrk/.guix-profile/include
-GEM_PATH=/home/wrk/.gem/c13v73jxmj2nir2xjqaz5259zywsa9zi-ruby-2.1.6/2.1.0:/home/wrk/.guix-profile/lib/ruby/gems/2.1.0/
-GUILE_LOAD_COMPILED_PATH=/home/wrk/.guix-profile/share/guile/site/2.0
-GUILE_LOAD_PATH=/home/wrk/.guix-profile/share/guile/site/2.0
-LIBRARY_PATH=/home/wrk/.guix-profile/lib
-LOCPATH=/home/wrk/.guix-profile/lib/locale
-PATH=/home/wrk/.gem/c13v73jxmj2nir2xjqaz5259zywsa9zi-ruby-2.1.6/2.1.0/bin:/home/wrk/.guix-profile/bin:/home/wrk/.guix-profile/sbin:/usr/bin:/bin
-PKG_CONFIG_PATH=/home/wrk/.guix-profile/lib/pkgconfig
+ACLOCAL_PATH=/home/pjotrp/.guix-profile/share/aclocal
+BASH=/home/pjotrp/.guix-profile/bin/bash
+CPATH=/home/pjotrp/.guix-profile/include
+GEM_PATH=/home/pjotrp/.gem/c13v73jxmj2nir2xjqaz5259zywsa9zi-ruby-2.1.6/2.1.0:/home/pjotrp/.guix-profile/lib/ruby/gems/2.1.0/
+GUILE_LOAD_COMPILED_PATH=/home/pjotrp/.guix-profile/share/guile/site/2.0
+GUILE_LOAD_PATH=/home/pjotrp/.guix-profile/share/guile/site/2.0
+LIBRARY_PATH=/home/pjotrp/.guix-profile/lib
+LOCPATH=/home/pjotrp/.guix-profile/lib/locale
+PATH=/home/pjotrp/.gem/c13v73jxmj2nir2xjqaz5259zywsa9zi-ruby-2.1.6/2.1.0/bin:/home/pjotrp/.guix-profile/bin:/home/pjotrp/.guix-profile/sbin:/usr/bin:/bin
+PKG_CONFIG_PATH=/home/pjotrp/.guix-profile/lib/pkgconfig
 #+end_src sh   :lang bash
 
 ** GNU Guix: gem install nokogiri
@@ -202,7 +202,7 @@ starting to build the libxml2. This should not happen with the
 But somehow these do not get honoured by extconf.rb. After some trying inside the 
 build dir 
 
-: ~/.gems/bundler/ruby/2.1.0/gems/nokogiri-1.6.1/ext/nokogiri$ env NOKOGIRI_USE_SYSTEM_LIBRARIES=1 ruby extconf.rb  --with-xml2-include=/home/wrk/.guix-profile/include/libxml2 --with-xslt-include=/home/wrk/.guix-profile/include/libxslt --with-xml2-lib=/home/wrk/.guix-profile/lib --with-xslt-lib=/home/wrk/.guix-profile/lib
+: ~/.gems/bundler/ruby/2.1.0/gems/nokogiri-1.6.1/ext/nokogiri$ env NOKOGIRI_USE_SYSTEM_LIBRARIES=1 ruby extconf.rb  --with-xml2-include=/home/pjotrp/.guix-profile/include/libxml2 --with-xslt-include=/home/pjotrp/.guix-profile/include/libxslt --with-xml2-lib=/home/pjotrp/.guix-profile/lib --with-xslt-lib=/home/pjotrp/.guix-profile/lib
 
 resulted in 
 

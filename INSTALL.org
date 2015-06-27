@@ -393,11 +393,11 @@ Mine are (general)
 Or (for the build system)
 
 #+begin_src sh   :lang bash
-   export PATH="/home/wrk/opt/guix-build-system/bin:/usr/bin:/bin"
-   export PKG_CONFIG_PATH="/home/wrk/opt/guix-build-system/lib/pkgconfig"
-   export CPATH="/home/wrk/opt/guix-build-system/include"
-   export LIBRARY_PATH="/home/wrk/opt/guix-build-system/lib"
-   export ACLOCAL_PATH="/home/wrk/opt/guix-build-system/share/aclocal"
+   export PATH="/home/pjotrp/opt/guix-build-system/bin:/usr/bin:/bin"
+   export PKG_CONFIG_PATH="/home/pjotrp/opt/guix-build-system/lib/pkgconfig"
+   export CPATH="/home/pjotrp/opt/guix-build-system/include"
+   export LIBRARY_PATH="/home/pjotrp/opt/guix-build-system/lib"
+   export ACLOCAL_PATH="/home/pjotrp/opt/guix-build-system/share/aclocal"
 #+end_src sh   :lang bash
 	
 Re-run the 'configure' script passing it the option
