@@ -35,7 +35,6 @@ of supporting a complex gem we use the example of Nokogiri which has
 over 1,000 installation related questions on Stack Overflow.
 
 * Current state
-
 ** GNU Guix installed gem
 
 GNU Guix now build gems from a tar-ball using a Ruby build
@@ -75,7 +74,7 @@ To see the environment paths, check
 
 We could extract Gem information from Rubygems - something Nix was
 capable of doing - and create expressions from those (even on the
-fly).
+fly). GNU Guix has an 'import' command just for this.
 
 ** Gem in $HOME
 
@@ -86,26 +85,17 @@ gem after tweaking the local PATHs. An example can be found [[https://github.com
 
 Note: it also sets the path for GNU Guix global gems.
 
-*** IN PROGRESS Supporting native gems
+*** Supporting native gems
 
 Native gems include some C or C++ code.
 
-Currently the GNU Guix gem tool does not build native gems. The reason
-is that the build environment is not complete for the gem tool that
-comes with the installed Ruby. It is possible to force native builds
-by tweaking C_INCLUDE_PATH, LD_LIBRARY_PATH and friends, but that is
-not encouraged.
-
-To move forward I think we should create a 'rubygems' package that
-includes the most important build tools and a 'rubygems-extra' for
-some of the rarer tools.
+Currently the GNU Guix gem tool does build native gems. See below the 
+infamous Nokogiri example.
 
 ** Bundler
 
 Bundler works in GNU Guix, both installed though Guix and through
-gems, but at this point there are no native builds for the same reason.
-
-*** TODO Support native gems for bundler
+gems. See the Nokogiri example below.
 
 * Nokogiri
 
