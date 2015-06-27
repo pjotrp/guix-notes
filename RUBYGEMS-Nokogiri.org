@@ -135,8 +135,8 @@ is to install libxml2 in Guix and tell nokogiri where to find it.
 
 : guix package -i libxml2
 
-Guix installed both static and shared libraries in ~/.guix-profile/lib/ so we 
-tell nokogiri where to find them
+Guix symlinks both static and shared libraries in ~/.guix-profile/lib/
+so we tell nokogiri where to find them
 
 : gem install nokogiri -- --use-system-libraries --with-xml2-include=$HOME/.guix-profile/include/libxml2 --with-xml2-lib=$HOME/.guix-profile/lib
 
@@ -210,7 +210,13 @@ resulted in
 
 predefs is part of the GNU C library, so it is kinda strange it does
 not get picked up. Adding --with-opt-include=/usr/include/x86_64-linux-gnu does find it.
-Added that to bundler's config and ran
+Added that to bundler's config 
+
+: BUNDLE_PATH: /home/pjotrp/.gems/bundler/
+: BUNDLE_DISABLE_SHARED_GEMS: '1'
+: BUNDLE_BUILD__NOKOGIRI: " --with-xml2-include=/home/pjotrp/.guix-profile/include/libxml2 --with-xslt-include=/home/pjotrp/.guix-profile/include/libxslt --with-xml2-lib=/home/pjotrp/.guix-profile/lib --with-xslt-lib=/home/pjotrp/.guix-profile/lib --with-opt-include=/usr/include/x86_64-linux-gnu"
+
+and ran
 
 : env NOKOGIRI_USE_SYSTEM_LIBRARIES=1 bundle
 
@@ -218,7 +224,6 @@ and the thing builds. Better even, also Cucumber builds and all the
 test pass for bio-vcf (the tool I want to ultimately package).
 
 ** GNU Guix: creating the nokogiri package
-
 ** Notes
 
 *** Why is bundler installing in .gems?
