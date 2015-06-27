@@ -7,6 +7,11 @@
      - [[#gem-in-home][Gem in $HOME]]
      - [[#bundler][Bundler]]
  - [[#nokogiri][Nokogiri]]
+     - [[#set-up-the-environment][Set up the environment]]
+     - [[#gnu-guix-gem-install-nokogiri][GNU Guix: gem install nokogiri]]
+     - [[#gnu-guix-bundler-install-of-nokogiri][GNU Guix: bundler install of Nokogiri]]
+     - [[#gnu-guix-creating-the-nokogiri-package][GNU Guix: creating the nokogiri package]]
+     - [[#notes][Notes]]
 
 * Introduction
 
@@ -61,7 +66,7 @@ To see the actual paths and libraries that a Ruby uses, check
 
 : guix environment ruby-2.1 --search-paths
 
-To see the environment paths
+To see the environment paths, check
 
 : guix package --search-paths
 
@@ -81,7 +86,7 @@ gem after tweaking the local PATHs. An example can be found [[https://github.com
 
 Note: it also sets the path for GNU Guix global gems.
 
-*** TODO Supporting native gems
+*** IN PROGRESS Supporting native gems
 
 Native gems include some C or C++ code.
 
@@ -104,3 +109,128 @@ gems, but at this point there are no native builds for the same reason.
 
 * Nokogiri
 
+Nokogiri is a great test case because the gem contains both Ruby and C
+files (that need to be compiled into shared library nokogiri.so) and
+it depends on external C libraries which are not always on a system
+(libxml2 and libxslt, for example).
+
+** Set up the environment
+
+First using [[https://github.com/pjotrp/guix-notes/blob/master/scripts/ruby-guix-env][the script]] I set up the Guix environment so it looked like
+
+#+begin_src sh   :lang bash
+set|grep guix
+ACLOCAL_PATH=/home/wrk/.guix-profile/share/aclocal
+BASH=/home/wrk/.guix-profile/bin/bash
+CPATH=/home/wrk/.guix-profile/include
+GEM_PATH=/home/wrk/.gem/c13v73jxmj2nir2xjqaz5259zywsa9zi-ruby-2.1.6/2.1.0:/home/wrk/.guix-profile/lib/ruby/gems/2.1.0/
+GUILE_LOAD_COMPILED_PATH=/home/wrk/.guix-profile/share/guile/site/2.0
+GUILE_LOAD_PATH=/home/wrk/.guix-profile/share/guile/site/2.0
+LIBRARY_PATH=/home/wrk/.guix-profile/lib
+LOCPATH=/home/wrk/.guix-profile/lib/locale
+PATH=/home/wrk/.gem/c13v73jxmj2nir2xjqaz5259zywsa9zi-ruby-2.1.6/2.1.0/bin:/home/wrk/.guix-profile/bin:/home/wrk/.guix-profile/sbin:/usr/bin:/bin
+PKG_CONFIG_PATH=/home/wrk/.guix-profile/lib/pkgconfig
+#+end_src sh   :lang bash
+
+** GNU Guix: gem install nokogiri
+
+Trying a naive 
+
+: gem install nokogiri 
+
+results in 'ERROR: Failed to build gem native extension' due to a failing libxml2
+build. Nokogiri packages its own version of libxml2. One way to solve this error
+is by fixing the compile problem (the logs say it is libtool related), the other way
+is to install libxml2 in Guix and tell nokogiri where to find it.
+
+: guix package -i libxml2
+
+Guix installed both static and shared libraries in ~/.guix-profile/lib/ so we 
+tell nokogiri where to find them
+
+: gem install nokogiri -- --use-system-libraries --with-xml2-include=$HOME/.guix-profile/include/libxml2 --with-xml2-lib=$HOME/.guix-profile/lib
+
+First Nokogiri complains 'libxml2 version 2.9.2 or later is highly recommended, but proceeding anyway' - we can fix that later.
+Next error is missing libxslt, but now we know what to do
+
+: guix package -i libxslt
+
+and
+
+: gem install nokogiri -- --use-system-libraries --with-xml2-include=$HOME/.guix-profile/include/libxml2 --with-xslt-include=$HOME/.guix-profile/include/libxslt --with-xml2-lib=$HOME/.guix-profile/lib --with-xslt-lib=$HOME/.guix-profile/lib
+
+and now the build succeeded
+
+: nokogiri -v
+: # Nokogiri (1.6.6.2)
+
+That was rather easy! And it looks like we can formalize this in a
+Guix package. Note that I cheated a little. Since /usr/bin is still in
+the path I am (probably) still using some of the build tools of the
+underlying distribution. I could aim to fix that, but it will come out
+when we add a proper guix package anyway.
+
+One interesting check is to see what the nokogiri.so shared library
+that we built links against, e.g.
+
+: ldd $HOME/.gem/c13v73jxmj2nir2xjqaz5259zywsa9zi-ruby-2.1.6/2.1.0/extensions/x86_64-linux/2.1.0-static/nokogiri-1.6.6.2/nokogiri/nokogiri.so
+
+and validate all the paths are pointing at the GNU Guix store. You
+don't want to mix in libraries that are non-guix. Note that the
+Nokigiri documentation also suggests gem path options for
+
+: --with-iconv-dir=/path/to/dir --with-zlib-dir=/path/to/dir 
+
+as well as 
+
+: --with-exslt-dir=/path/to/dir --with-exslt-config=/path/to/exslt-config.
+
+But none of these were needed here.
+
+** GNU Guix: bundler install of Nokogiri
+
+Running bundler naively 
+
+:  bundle install
+
+results in the same library issues with 'Gem::Ext::BuildError: ERROR:
+Failed to build gem native extension'. Bundler also needs to be told
+where to find the libraries.
+
+The first try was to configure bundler by adding to .bundle/config
+
+: BUNDLE_BUILD__NOKOGIRI: "--use-system-libraries --with-xml2-include=$HOME/.guix-profile/include/libxml2 --with-xslt-include=$HOME/.guix-profile/include/libxslt --with-xml2-lib=$HOME/.guix-profile/lib --with-xslt-lib=$HOME/.guix-profile/lib"
+
+Unfortunately, this does not work as it does not prevent bundler for
+starting to build the libxml2. This should not happen with the
+--use-system-libraries option. To check the bundler setting see
+
+: bundle config build.nokogiri
+:
+: Set for your local app (app/.bundle/config): "--use-system-libraries --with-xml2-include=$HOME/.guix-profile/include/libxml2 --with-xslt-include=$HOME/.guix-profile/include/libxslt --with-xml2-lib=$HOME/.guix-profile/lib --with-xslt-lib=$HOME/.guix-profile/lib"
+
+But somehow these do not get honoured by extconf.rb. After some trying inside the 
+build dir 
+
+: ~/.gems/bundler/ruby/2.1.0/gems/nokogiri-1.6.1/ext/nokogiri$ env NOKOGIRI_USE_SYSTEM_LIBRARIES=1 ruby extconf.rb  --with-xml2-include=/home/wrk/.guix-profile/include/libxml2 --with-xslt-include=/home/wrk/.guix-profile/include/libxslt --with-xml2-lib=/home/wrk/.guix-profile/lib --with-xslt-lib=/home/wrk/.guix-profile/lib
+
+resulted in 
+
+: /usr/include/features.h:323:26: fatal error: bits/predefs.h: No such file or directory
+
+predefs is part of the GNU C library, so it is kinda strange it does
+not get picked up. Adding --with-opt-include=/usr/include/x86_64-linux-gnu does find it.
+Added that to bundler's config and ran
+
+: env NOKOGIRI_USE_SYSTEM_LIBRARIES=1 bundle
+
+and the thing builds. Better even, also Cucumber builds and all the
+test pass for bio-vcf (the tool I want to ultimately package).
+
+** GNU Guix: creating the nokogiri package
+
+** Notes
+
+*** Why is bundler installing in .gems?
+
+It says so in the ./bundle/config file.

@@ -460,8 +460,13 @@ the destination
 
 ** Environment
 
-Before debugging it is important to have a clean environment. Mine
-looks like:
+Before debugging it is important to have a clean environment. 
+
+You can view the environment variable definitions Guix recommends with
+
+: guix package --search-paths
+
+Mine looks like:
 
 #+begin_src sh
 set|grep guix
@@ -475,6 +480,7 @@ set|grep guix
   PATH=/home/pjotr/.guix-profile/bin:/home/pjotr/.guix-profile/sbin
   PKG_CONFIG_PATH=/home/pjotr/.guix-profile/lib/pkgconfig
 #+end_src
+
 
 ** Inside Guile (REPL)
 
