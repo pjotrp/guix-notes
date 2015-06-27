@@ -49,7 +49,7 @@ for sane dependency handling that GNU Guix could support.
 # GNU Guix installation
 
 See the
-[INSTALL](https://github.com/pjotrp/guix-notes/blob/master/INSTALL)
+[INSTALL](https://github.com/pjotrp/guix-notes/blob/master/INSTALL.org)
 document in this repository.
 
 Note that if you have Guix installed and running from /guix/store you
