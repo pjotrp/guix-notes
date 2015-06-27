@@ -46,6 +46,10 @@ if [ -z $EXPORT_ONLY ]; then
     gem env
 fi
 
+echo "# GNU Guix general recommended settings"
+source `guix package --search-paths`
+guix package --search-paths
+echo "# GNU Guix Ruby recommended settings"
 echo export PATH=$PATH
 echo export GEM_PATH=$GEM_PATH
 echo export GEM_HOME=$GEM_HOME
