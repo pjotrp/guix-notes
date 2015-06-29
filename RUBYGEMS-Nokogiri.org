@@ -7,13 +7,23 @@
      - [[#gem-in-home][Gem in $HOME]]
      - [[#bundler][Bundler]]
  - [[#nokogiri][Nokogiri]]
+     - [[#introduction-][Introduction ]]
      - [[#set-up-the-environment][Set up the environment]]
-     - [[#gnu-guix-gem-install-nokogiri][GNU Guix: gem install nokogiri]]
-     - [[#gnu-guix-bundler-install-of-nokogiri][GNU Guix: bundler install of Nokogiri]]
-     - [[#gnu-guix-creating-the-nokogiri-package][GNU Guix: creating the nokogiri package]]
-     - [[#notes][Notes]]
+     - [[#gem-install-nokogiri]['gem install nokogiri']]
+     - [[#bundle-install]['bundle install']]
+     - [[#in-progress-creating-the-tgz-derived-package][IN PROGRESS Creating the tgz-derived package]]
+     - [[#todo-creating-the-gem-derived-package][TODO Creating the gem-derived package]]
+     - [[#todo-gnu-guix-import-gem][TODO GNU Guix: import gem]]
+ - [[#notes][Notes]]
+     - [[#why-is-bundler-installing-in-gems][Why is bundler installing in .gems?]]
+     - [[#todo-add-gnu-guix-to-the-nokogiri-installation-page][TODO Add GNU Guix to the Nokogiri installation page]]
 
 * Introduction
+
+This document explains how to go from creating a software package to
+creating a non-native software packaging system in GNU Guix. Examples
+of such systems are Python pip, emacs ELPA packages and (here) Ruby
+gems.
 
 Ruby developers have multiple needs when running a system when it
 comes to Ruby versions and modules (called gems). GNU Guix has great
@@ -70,6 +80,8 @@ To see the environment paths, check
 : guix package --search-paths
 
 
+Currently you have to set the GEM_PATH by hand. I use a [[https://github.com/pjotrp/guix-notes/blob/master/scripts/ruby-guix-env][script]] for this.
+
 *** TODO Provide a build system that uses simple gem descriptions
 
 We could extract Gem information from Rubygems - something Nix was
@@ -99,6 +111,8 @@ gems. See the Nokogiri example below.
 
 * Nokogiri
 
+** Introduction 
+
 Nokogiri is a great test case because the gem contains both Ruby and C
 files (that need to be compiled into shared library nokogiri.so) and
 it depends on external C libraries which are not always on a system
@@ -106,7 +120,7 @@ it depends on external C libraries which are not always on a system
 
 ** Set up the environment
 
-First using [[https://github.com/pjotrp/guix-notes/blob/master/scripts/ruby-guix-env][the script]] I set up the Guix environment so it looked like
+First using [[https://github.com/pjotrp/guix-notes/blob/master/scripts/ruby-guix-env][the script]] I set up the Guix environment so it looks like
 
 #+begin_src sh   :lang bash
 set|grep guix
@@ -122,7 +136,9 @@ PATH=/home/pjotrp/.gem/c13v73jxmj2nir2xjqaz5259zywsa9zi-ruby-2.1.6/2.1.0/bin:/ho
 PKG_CONFIG_PATH=/home/pjotrp/.guix-profile/lib/pkgconfig
 #+end_src sh   :lang bash
 
-** GNU Guix: gem install nokogiri
+Note the PATH still contains /usr/bin for convenience.
+
+** 'gem install nokogiri'
 
 Trying a naive 
 
@@ -154,11 +170,12 @@ and now the build succeeded
 : nokogiri -v
 : # Nokogiri (1.6.6.2)
 
-That was rather easy! And it looks like we can formalize this in a
-Guix package. Note that I cheated a little. Since /usr/bin is still in
-the path I am (probably) still using some of the build tools of the
-underlying distribution. I could aim to fix that, but it will come out
-when we add a proper guix package anyway.
+That was rather easy for a notoriously difficult gem! And it looks
+like we can formalize this in a Guix package. Note that I cheated a
+little. Since /usr/bin is still in the path I am (probably) still
+using some of the build tools of the underlying distribution. I could
+aim to fix that, but it will come out when we add a proper guix
+package anyway.
 
 One interesting check is to see what the nokogiri.so shared library
 that we built links against, e.g.
@@ -177,7 +194,7 @@ as well as
 
 But none of these were needed here.
 
-** GNU Guix: bundler install of Nokogiri
+** 'bundle install'
 
 Running bundler naively 
 
@@ -199,8 +216,8 @@ starting to build the libxml2. This should not happen with the
 :
 : Set for your local app (app/.bundle/config): "--use-system-libraries --with-xml2-include=$HOME/.guix-profile/include/libxml2 --with-xslt-include=$HOME/.guix-profile/include/libxslt --with-xml2-lib=$HOME/.guix-profile/lib --with-xslt-lib=$HOME/.guix-profile/lib"
 
-But somehow these do not get honoured by extconf.rb. After some trying inside the 
-build dir 
+But somehow these do not get honoured by extconf.rb. After reading the
+source and some trying inside the build dir I found the environment variable
 
 : ~/.gems/bundler/ruby/2.1.0/gems/nokogiri-1.6.1/ext/nokogiri$ env NOKOGIRI_USE_SYSTEM_LIBRARIES=1 ruby extconf.rb  --with-xml2-include=/home/pjotrp/.guix-profile/include/libxml2 --with-xslt-include=/home/pjotrp/.guix-profile/include/libxslt --with-xml2-lib=/home/pjotrp/.guix-profile/lib --with-xslt-lib=/home/pjotrp/.guix-profile/lib
 
@@ -208,9 +225,11 @@ resulted in
 
 : /usr/include/features.h:323:26: fatal error: bits/predefs.h: No such file or directory
 
-predefs is part of the GNU C library, so it is kinda strange it does
-not get picked up. Adding --with-opt-include=/usr/include/x86_64-linux-gnu does find it.
-Added that to bundler's config 
+predefs is part of the GNU C library (libc6), so it is kinda strange it does
+not get picked up (well, Guix even isolates away the native system -
+go the Guix gcc compiler does not see /usr/include). Adding
+--with-opt-include=/usr/include/x86_64-linux-gnu does find it.  Added
+that to bundler's config
 
 : BUNDLE_PATH: /home/pjotrp/.gems/bundler/
 : BUNDLE_DISABLE_SHARED_GEMS: '1'
@@ -223,9 +242,84 @@ and ran
 and the thing builds. Better even, also Cucumber builds and all the
 test pass for bio-vcf (the tool I want to ultimately package).
 
-** GNU Guix: creating the nokogiri package
-** Notes
+Note we should have used predefs.h from the store
+glibc-2.21/include/stdc-predef.h instead. It looks like Nokogiri is using
+an older include. [[http://pastebin.com/HfJcVB4Q][This]] suggests what needs to be done: 
 
-*** Why is bundler installing in .gems?
+: error: #error "Never use <bits/predefs.h> directly; include <stdc-predef.h> instead."
+
+** IN PROGRESS Creating the tgz-derived package
+
+Now we now how gem/bundler builds Nokogiri we have a chance at building the 
+package from source and bundling it into GNU Guix. The tar ball can be found
+on [[https://github.com/sparklemotion/nokogiri/releases]].
+
+Unpack the tar ball and extconf.rb builds with
+
+: cd ext\nokogiri
+: env LD_LIBRARY_PATH=$HOME/.guix-profile/lib LIBRARY_PATH=$HOME/.guix-profile/lib \
+:   NOKOGIRI_USE_SYSTEM_LIBRARIES=1 ruby extconf.rb \
+:   --with-xml2-include=$HOME/.guix-profile/include/libxml2 \
+:   --with-xslt-include=$HOME/.guix-profile/include/libxslt \
+:   --with-xml2-lib=$HOME/.guix-profile/lib --with-xslt-lib=$HOME/.guix-profile/lib \
+:   --with-opt-include=/usr/include/x86_64-linux-gnu \
+:   --with-opt-include=$HOME/.guix-profile/include
+
+and make
+
+: env LIBRARY_PATH=$HOME/.guix-profile/lib  make
+
+check the linked paths
+
+
+#+begin_src sh   :lang bash
+  ldd nokogiri.so
+        linux-vdso.so.1 (0x00007ffc9f3e1000)
+        libexslt.so.0 => /home/pjotrp/.guix-profile/lib/libexslt.so.0 (0x00007fb6c45aa000)
+        libxslt.so.1 => /home/pjotrp/.guix-profile/lib/libxslt.so.1 (0x00007fb6c436b000)
+        libxml2.so.2 => /home/pjotrp/.guix-profile/lib/libxml2.so.2 (0x00007fb6c4006000)
+        libpthread.so.0 => /home/pjotrp/.guix-profile/lib/libpthread.so.0 (0x00007fb6c3de9000)
+        libdl.so.2 => /home/pjotrp/.guix-profile/lib/libdl.so.2 (0x00007fb6c3be4000)
+        libcrypt.so.1 => /home/pjotrp/.guix-profile/lib/libcrypt.so.1 (0x00007fb6c39ad000)
+        libm.so.6 => /home/pjotrp/.guix-profile/lib/libm.so.6 (0x00007fb6c36ab000)
+        libc.so.6 => /home/pjotrp/.guix-profile/lib/libc.so.6 (0x00007fb6c330a000)
+        libgcc_s.so.1 => /gnu/store/76afr0pfbnimz7rdad35y5yd753myjhk-gcc-4.9.2-lib/lib/libgcc_s.so.1 (0x00007fb6c30f4000)
+        liblzma.so.5 => /gnu/store/h86jd7lyd6lny3yz30d44gi4b0mz73in-xz-5.0.4/lib/liblzma.so.5 (0x00007fb6c2ed1000)
+        libz.so.1 => /gnu/store/yx7c449ds3psyrn40h4nfvsb7xqqzziy-zlib-1.2.7/lib/libz.so.1 (0x00007fb6c2cb8000)
+        libgcrypt.so.20 => /gnu/store/r16v30hlw2d6n232rm37p53qy8rpr7f2-libgcrypt-1.6.3/lib/libgcrypt.so.20 (0x00007fb6c29db000)
+        libgpg-error.so.0 => /gnu/store/63lp72xz64axrbrlvpyln449v42h0zbh-libgpg-error-1.18/lib/libgpg-error.so.0 (0x00007fb6c27ca000)
+        /gnu/store/wiqbxcvzj3r35hd55yxzz919b1dv1hnv-glibc-2.21/lib/ld-linux-x86-64.so.2 (0x00007fb6c49de000)
+#+end_src sh   :lang bash
+
+as it should be - though with the GNU Guix package the .guix-profile's will point to
+proper store locations.
+
+nokogiri.so is the C-part of the gem. The Ruby part sits in ./bin and
+./lib in the tarball. These can simply be copied into the
+GEM_HOME. But reading the current implementation of the GNU Guix
+ruby-build-system, it creates a gem first using a gemspec
+
+: rake gem:spec
+
+create the gem
+
+: gem build nokogiri.gemspec 
+
+install using our earlier trick
+
+: env C_INCLUDE_PATH=$HOME/.guix-profile/include gem install --local nokogiri-1.6.6.2.20150629081149.gem -- --use-system-libraries --with-xml2-include=$HOME/.guix-profile/include/libxml2 --with-xslt-include=$HOME/.guix-profile/include/libxslt --with-xml2-lib=$HOME/.guix-profile/lib --with-xslt-lib=$HOME/.guix-profile/lib --with-opt-include=$HOME/.guix-profile/include
+
+which (now) fails with
+
+: 38:26: fatal error: linux/limits.h: No such file or directory
+:  #include <linux/limits.h>
+
+** TODO Creating the gem-derived package
+** TODO GNU Guix: import gem
+* Notes
+** Why is bundler installing in .gems?
 
 It says so in the ./bundle/config file.
+** TODO Add GNU Guix to the Nokogiri installation page
+
+Nokogiri lists many solutions [[http://www.nokogiri.org/tutorials/installing_nokogiri.html][here]]. We should add ours.
