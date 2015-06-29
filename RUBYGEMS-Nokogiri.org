@@ -250,6 +250,8 @@ an older include. [[http://pastebin.com/HfJcVB4Q][This]] suggests what needs to 
 
 ** IN PROGRESS Creating the tgz-derived package
 
+*** Fetch and unpack the tar ball
+
 Now we now how gem/bundler builds Nokogiri we have a chance at building the 
 package from source and bundling it into GNU Guix. The tar ball can be found
 on [[https://github.com/sparklemotion/nokogiri/releases]].
@@ -270,7 +272,6 @@ and make
 : env LIBRARY_PATH=$HOME/.guix-profile/lib  make
 
 check the linked paths
-
 
 #+begin_src sh   :lang bash
   ldd nokogiri.so
@@ -294,6 +295,8 @@ check the linked paths
 as it should be - though with the GNU Guix package the .guix-profile's will point to
 proper store locations.
 
+*** Create the gem from source
+
 nokogiri.so is the C-part of the gem. The Ruby part sits in ./bin and
 ./lib in the tarball. These can simply be copied into the
 GEM_HOME. But reading the current implementation of the GNU Guix
@@ -313,6 +316,11 @@ which (now) fails with
 
 : 38:26: fatal error: linux/limits.h: No such file or directory
 :  #include <linux/limits.h>
+
+Actually, this is not so bad. The environment gets picked up in a GNU Guix package, so
+let's move on. The install path (mostly) works.
+
+*** TODO Write the GNU Guix package
 
 ** TODO Creating the gem-derived package
 ** TODO GNU Guix: import gem
