@@ -110,7 +110,6 @@ Bundler works in GNU Guix, both installed though Guix and through
 gems. See the Nokogiri example below.
 
 * Nokogiri
-
 ** Introduction 
 
 Nokogiri is a great test case because the gem contains both Ruby and C
@@ -249,7 +248,6 @@ an older include. [[http://pastebin.com/HfJcVB4Q][This]] suggests what needs to 
 : error: #error "Never use <bits/predefs.h> directly; include <stdc-predef.h> instead."
 
 ** IN PROGRESS Creating the tgz-derived package
-
 *** Fetch and unpack the tar ball
 
 Now we now how gem/bundler builds Nokogiri we have a chance at building the 
@@ -321,6 +319,164 @@ Actually, this is not so bad. The environment gets picked up in a GNU Guix packa
 let's move on. The install path (mostly) works.
 
 *** TODO Write the GNU Guix package
+
+In the next step we start with an existing GNU Guix package so we can just fill
+in the missing pieces. First I synchronized the Guix source and checked out a new
+branch named nokogiri
+
+: git pull --recurse-submodules guix master
+: git checkout -b nokogiri
+
+now we need to make sure the environment is correct (as described in ./HACKING.org)
+
+: make
+
+make sure gnutls is installed
+
+: guix package -i gnutls
+: guix download  https://github.com/sparklemotion/nokogiri/archive/v1.6.6.2.tar.gz
+
+which gives
+
+: /gnu/store/v2hc2imgzgar4srfh64svkvas4ha07xz-v1.6.6.2.tar.gz
+: 1dpmmxr8azbyvhhmw9hpyk3dds577vsd6c312gh2s7kgjd98nd9j
+
+Then I copied an existing package from gnu/packages/ruby.scm and started filling in
+
+#+begin_src scheme
+(define-public ruby-nokogiri
+  (package
+    (name "ruby-nokogiri")
+    (version "1.6.6.2")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append
+		    "https://github.com/sparklemotion/nokogiri/archive/v"
+                    version ".tar.gz"))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1dpmmxr8azbyvhhmw9hpyk3dds577vsd6c312gh2s7kgjd98nd9j"))))
+    (build-system ruby-build-system)
+    (arguments
+     `(#:tests? #f)) ; no test suite
+    (synopsis "Nokogiri (鋸) is an HTML, XML, SAX, and Reader parser")
+    (description "Nokogiri parses and searches XML/HTML very quickly, and also has correctly implemented CSS3 selector support as well as XPath 1.0 support.")
+    (home-page "http://www.nokogiri.org/")
+    (license license:x11)))
+#+end_src
+
+Note the MIT license is also known as the X11 license. Now we have the package
+let's see if it is there
+
+: ./pre-inst-env guix package -A ruby-nokogiri
+: ruby-nokogiri   1.6.6.2 out     gnu/packages/ruby.scm:504:2
+
+now build it
+
+: ./pre-inst-env guix package -K -i ruby-nokogiri 
+
+the -K switch will keep the unpacked build directory. The first error pops up 
+
+: ERROR: No files matching pattern:  "\\.gemspec$"
+
+which makes sense, because earlier we had to run first
+
+: rake gem:spec
+
+the builder says that it kept build directory `/tmp/nix-build-ruby-nokogiri-1.6.6.2.drv-0'. 
+So in a different terminal do
+
+: cd /tmp/nix-build-ruby-nokogiri-1.6.6.2.drv-0
+: . environment-variables
+
+and you are at the state of the error (with environment). Running 
+
+: rake gem:spec
+
+it complains Gem::LoadError: Could not find 'hoe' (>= 0) among 9 total
+gem(s). It is interesting to note that the build is completely
+isolated from the rest of the system, so any dependencies not
+explicitely added will *fail*. And when you do add it, it will be
+visible to the package forever and reproducible.
+
+We have to add the hoe dependency first.
+
+:    (native-inputs
+:     `(("ruby-hoe" ,ruby-hoe)))
+
+and retry the build. Now the new build is in
+/tmp/nix-build-ruby-nokogiri-1.6.6.2.drv-1.  This way we keep
+reiterating until the package works. One of the interesting errors was
+LoadError: cannot load such file -- rake/extensioncompiler since 
+we had not seen that earlier. That is part of the rake-compiler gem.
+The gems are listed in the Rakefile as
+
+#+begin_src ruby
+    ["hoe-bundler",     ">= 1.1"],
+    ["hoe-debugging",   "~> 1.2.0"],
+    ["hoe-gemspec",     ">= 1.0"],
+    ["hoe-git",         ">= 1.4"],
+    ["minitest",        "~> 2.2.2"],
+    ["rake",            ">= 0.9"],
+    ["rake-compiler",   "~> 0.9.2"],
+    ["racc",            ">= 1.4.6"],
+    ["rexical",         ">= 1.0.5"]
+#+end_src
+
+We have to add the necessary missing package(s) to GNU Guix. The rake-compiler package
+became:
+
+#+begin_src scheme
+(define-public ruby-rake-compiler
+  (package
+    (name "ruby-rake-compiler")
+    (version "0.9.5")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "https://github.com/rake-compiler/rake-compiler/archive/v"
+                                  version ".tar.gz"))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "07lk1vl0jqcaqwjjhmg0qshqwcxdyr5kscc9xxm13m03835xgpf3"))
+    (snippet
+     '(begin
+	;; Remove test files (dependencies do not resolve right now)
+	(delete-file "tasks/cucumber.rake")
+	(delete-file "tasks/rspec.rake")))))
+    (build-system ruby-build-system)
+    (arguments
+     '(
+       #:tests? #f
+       #:phases (alist-replace
+                 'build
+                 (lambda _ (zero? (system* "rake" "gem")))
+                 %standard-phases))
+
+     )
+    (synopsis "Building and packaging of Ruby extensions")
+    (description "A productivity tool for Ruby developers. Its goal is
+to make the busy developer's life easier by simplifying the building
+and packaging of Ruby extensions by simplifying code and reducing
+duplication.")
+    (home-page "https://github.com/rake-compiler/rake-compiler")
+    (license license:x11)))
+#+end_src scheme
+
+Note it needs to remove tasks/rspec.rake and tasks/cucumber.rake to
+prevent those tasks from running. Also we override the build system
+because this package runs
+
+: rake gem
+
+to create the gem instead of the default 'gem build $package.gemspec'
+as defined in ./guix/build/ruby-build-system.scm. After successfully
+installing that package we simply add the input to the nokogiri
+package.
+
+
+
 
 ** TODO Creating the gem-derived package
 ** TODO GNU Guix: import gem

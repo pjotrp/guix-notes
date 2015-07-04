@@ -342,7 +342,7 @@ The daemon runs ar root, the actual build processes run as unprivileged users.
 
 ** Checkout Guix from git
 
-Clone the Guix git repository.
+Clone the Guix git repository with submodules (see ./INSTALL.org)
 
 ** Build Guix (current)
 

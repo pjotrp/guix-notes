@@ -316,10 +316,12 @@ Choose one from
 Alternatively set the LOCPATH to that of your underlying distribution
 
 * Other installation routes
-
 ** Install repository from git
 
-Use one of https://savannah.gnu.org/git/?group=guix
+Use one of https://savannah.gnu.org/git/?group=guix and clone with
+sub modules:
+
+: git pull --recurse-submodules git-URI
 
 ** Bootstrap from source
 
@@ -432,7 +434,7 @@ repository. Make can do parallel builds so for 4 cores
 : make -j 4 
 
 You may want to avoid "make install" since it will probably install the guix
-binaries in /usr and you can just run it in the source dir with
+binaries in /usr and you can run it in the source dir with
 
 #+begin_src sh   :lang bash
     ./pre-inst-env guix package -A ruby
