@@ -117,6 +117,11 @@ files (that need to be compiled into shared library nokogiri.so) and
 it depends on external C libraries which are not always on a system
 (libxml2 and libxslt, for example).
 
+But first a tip: because the build is reproducible you don't have to
+fix a package in one go. Personally, I like to work incrementally at
+fixing dependencies. One at a time. GNU Guix always stops where you
+were last.
+
 ** Set up the environment
 
 First using [[https://github.com/pjotrp/guix-notes/blob/master/scripts/ruby-guix-env][the script]] I set up the Guix environment so it looks like
@@ -320,7 +325,7 @@ let's move on. The install path (mostly) works.
 
 *** IN PROGRESS Write the GNU Guix package
 
-**** Update the source
+**** Update and build the GNU Guix source
 
 In the next step we start with an existing GNU Guix package so we can just fill
 in the missing pieces. First I synchronized the Guix source and checked out a new
@@ -333,6 +338,8 @@ now we need to make sure the environment is correct (as described in ./HACKING.o
 
 : make
 
+**** Download the Nokogiri tar ball
+
 make sure gnutls is installed
 
 : guix package -i gnutls
@@ -342,6 +349,8 @@ which gives
 
 : /gnu/store/v2hc2imgzgar4srfh64svkvas4ha07xz-v1.6.6.2.tar.gz
 : 1dpmmxr8azbyvhhmw9hpyk3dds577vsd6c312gh2s7kgjd98nd9j
+
+**** Start writing the GNU Guix Nokogiri package 
 
 Then I copied an existing package from gnu/packages/ruby.scm and started filling in
 
@@ -365,11 +374,14 @@ Then I copied an existing package from gnu/packages/ruby.scm and started filling
     (synopsis "Nokogiri (鋸) is an HTML, XML, SAX, and Reader parser")
     (description "Nokogiri parses and searches XML/HTML very quickly, and also has correctly implemented CSS3 selector support as well as XPath 1.0 support.")
     (home-page "http://www.nokogiri.org/")
-    (license license:x11)))
+    (license license:expat)))
 #+end_src
 
-Note the MIT license is also known as the X11 license. Now we have the package
-let's see if it is there
+Note the MIT license is also known as the X11 or expat license. 
+
+**** Test run the package
+
+Now we have the package let's see if it is there
 
 : ./pre-inst-env guix package -A ruby-nokogiri
 : ruby-nokogiri   1.6.6.2 out     gnu/packages/ruby.scm:504:2
@@ -386,7 +398,9 @@ which makes sense, because earlier we had to run first
 
 : rake gem:spec
 
-the builder says that it kept build directory `/tmp/nix-build-ruby-nokogiri-1.6.6.2.drv-0'. 
+**** Check out the build by hand
+
+The builder says that it kept build directory `/tmp/nix-build-ruby-nokogiri-1.6.6.2.drv-0'. 
 So in a different terminal do
 
 : cd /tmp/nix-build-ruby-nokogiri-1.6.6.2.drv-0
@@ -401,6 +415,13 @@ gem(s). It is interesting to note that the build is completely
 isolated from the rest of the system, so any dependencies not
 explicitely added will *fail*. And when you do add it, it will be
 visible to the package forever and reproducible.
+
+Note: you may need to change the permissions of the build directory to
+try stuff by hand. As root 
+
+: chown user -R /tmp/nix-build-ruby-nokogiri-1.6.6.2.drv-*
+
+**** Fix dependencies
 
 We have to add the hoe dependency first.
 
@@ -470,11 +491,65 @@ runs
 
 to create the gem instead of the default 'gem build $package.gemspec'
 as defined in ./guix/build/ruby-build-system.scm. After successfully
-installing that package we simply add the input to the nokogiri
+installing that package we simply add the dependency to the nokogiri
 package.
 
+Next phase the build complains that Errno::ENOENT: No such file or
+directory @ rb_sysopen - ports/archives/libxml2-2.9.2.tar.gz. This is
+because Nokogiri build wants to find the source and patch libxml2 for
+itself. Previously we used rake gem:spec, but that is no longer
+available with this later version, check rake task options with
 
+: rake -T
 
+Running the Nokogiri build with
+
+: rake newb
+
+results in a mini_portile (LoadError). Now mini-portile we don't need
+(it is another packaging system). But I found out that running
+
+: rake gem
+
+twice will generate the gem. Now the install phase fails on mini-portile.
+That means we need to replicate the earlier gem install command with its
+switches. First we need to add libxml2 and libxslt as dependencies.
+
+This requires adding at the top of ruby.scm
+
+: #:use-module (gnu packages xml)
+
+and inside the nokogiri package definition
+
+:    (inputs
+:     `(("zlib" ,zlib)
+:       ("libxml2" ,libxml2)
+:       ("libxslt" ,libxslt)))
+
+resulting in a build with
+
+: The following files will be downloaded:
+:    /gnu/store/s4vwk3f0ainazh2czl5k5gsainpiby6i-libxml2-2.9.2
+:    /gnu/store/sprxqr56hm7p9wcy17bm2vj99k1mr779-libxslt-1.1.28
+
+Nice. The build fails (of course), but now inside the build directory you can find
+the settings. E.g.
+
+: cat environment-variables
+
+shows build variables, such as 
+
+: export LIBRARY_PATH=(...):/gnu/store/s4vwk3f0ainazh2czl5k5gsainpiby6i-libxml2-2.9.2/lib
+
+where dependencies can be found. To reference such a dependency you can add variables
+in the package. One example could be
+
+: (let ((libxml2 (assoc-ref inputs "libxml2"))
+:   do something
+
+So the earlier --with-xml2-include switch can become something like
+
+: (string-append "--with-xml2-include=" libxml2 "/include/libxml2")
 
 ** TODO Creating the gem-derived package
 ** TODO GNU Guix: import gem
