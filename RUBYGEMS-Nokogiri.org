@@ -6,12 +6,12 @@
      - [[#gnu-guix-installed-gem][GNU Guix installed gem]]
      - [[#gem-in-home][Gem in $HOME]]
      - [[#bundler][Bundler]]
- - [[#nokogiri][Nokogiri]]
+ - [[#package-nokogiri][Package Nokogiri]]
      - [[#introduction-][Introduction ]]
      - [[#set-up-the-environment][Set up the environment]]
      - [[#gem-install-nokogiri]['gem install nokogiri']]
      - [[#bundle-install]['bundle install']]
-     - [[#in-progress-creating-the-tgz-derived-package][IN PROGRESS Creating the tgz-derived package]]
+     - [[#creating-the-tgz-derived-package][Creating the tgz-derived package]]
      - [[#todo-creating-the-gem-derived-package][TODO Creating the gem-derived package]]
      - [[#todo-gnu-guix-import-gem][TODO GNU Guix: import gem]]
  - [[#notes][Notes]]
@@ -109,7 +109,7 @@ infamous Nokogiri example.
 Bundler works in GNU Guix, both installed though Guix and through
 gems. See the Nokogiri example below.
 
-* Nokogiri
+* Package Nokogiri
 ** Introduction 
 
 Nokogiri is a great test case because the gem contains both Ruby and C
@@ -247,7 +247,7 @@ an older include. [[http://pastebin.com/HfJcVB4Q][This]] suggests what needs to 
 
 : error: #error "Never use <bits/predefs.h> directly; include <stdc-predef.h> instead."
 
-** IN PROGRESS Creating the tgz-derived package
+** Creating the tgz-derived package
 *** Fetch and unpack the tar ball
 
 Now we now how gem/bundler builds Nokogiri we have a chance at building the 
@@ -318,7 +318,9 @@ which (now) fails with
 Actually, this is not so bad. The environment gets picked up in a GNU Guix package, so
 let's move on. The install path (mostly) works.
 
-*** TODO Write the GNU Guix package
+*** IN PROGRESS Write the GNU Guix package
+
+**** Update the source
 
 In the next step we start with an existing GNU Guix package so we can just fill
 in the missing pieces. First I synchronized the Guix source and checked out a new
@@ -425,7 +427,7 @@ The gems are listed in the Rakefile as
 #+end_src
 
 We have to add the necessary missing package(s) to GNU Guix. The rake-compiler package
-became:
+becomes something like:
 
 #+begin_src scheme
 (define-public ruby-rake-compiler
@@ -434,39 +436,35 @@ became:
     (version "0.9.5")
     (source (origin
               (method url-fetch)
-              (uri (string-append "https://github.com/rake-compiler/rake-compiler/archive/v"
-                                  version ".tar.gz"))
+              (uri (string-append
+                    "https://github.com/rake-compiler/rake-compiler/archive/v"
+                    version ".tar.gz"))
               (file-name (string-append name "-" version ".tar.gz"))
               (sha256
                (base32
-                "07lk1vl0jqcaqwjjhmg0qshqwcxdyr5kscc9xxm13m03835xgpf3"))
-    (snippet
-     '(begin
-	;; Remove test files (dependencies do not resolve right now)
-	(delete-file "tasks/cucumber.rake")
-	(delete-file "tasks/rspec.rake")))))
+                "07lk1vl0jqcaqwjjhmg0qshqwcxdyr5kscc9xxm13m03835xgpf3"))))
     (build-system ruby-build-system)
     (arguments
-     '(
-       #:tests? #f
-       #:phases (alist-replace
-                 'build
-                 (lambda _ (zero? (system* "rake" "gem")))
-                 %standard-phases))
-
-     )
-    (synopsis "Building and packaging of Ruby extensions")
-    (description "A productivity tool for Ruby developers. Its goal is
-to make the busy developer's life easier by simplifying the building
-and packaging of Ruby extensions by simplifying code and reducing
-duplication.")
+     '(#:tests? #f ; needs cucumber
+       #:phases (modify-phases %standard-phases
+                  (add-before 'build 'remove-cucumber-rake-task
+                    (lambda _
+                      ;; Remove cucumber test file because the
+                      ;; dependencies are not available right now.
+                      (delete-file "tasks/cucumber.rake")))
+                  (replace 'build
+                    (lambda _ (zero? (system* "rake" "gem")))))))
+    (synopsis "Building and packaging helper for Ruby native extensions")
+    (description "Rake-compiler proivides a framework for building and
+packaging native C and Java extensions in Ruby.")
     (home-page "https://github.com/rake-compiler/rake-compiler")
-    (license license:x11)))
+    (license license:expat)))
+
 #+end_src scheme
 
-Note it needs to remove tasks/rspec.rake and tasks/cucumber.rake to
-prevent those tasks from running. Also we override the build system
-because this package runs
+Note it needs to remove tasks/cucumber.rake to prevent those tasks
+from running. Also we override the build system because this package
+runs
 
 : rake gem
 
