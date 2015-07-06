@@ -551,6 +551,71 @@ So the earlier --with-xml2-include switch can become something like
 
 : (string-append "--with-xml2-include=" libxml2 "/include/libxml2")
 
+Note: At some point the guile REPL may come in handy to see what is
+happening. See the guix-notes HACKING guide for more information.
+
+It is interesting to see what other packages implement. The ruby-git
+package adds an absolute path for the git binary with
+
+#+begin_src scheme
+    (arguments
+     '(#:phases (modify-phases %standard-phases
+                  (add-before 'build 'patch-git-binary
+                    (lambda* (#:key inputs #:allow-other-keys)
+                      ;; Make the default git binary an absolute path to the
+                      ;; store.
+                      (let ((git (string-append (assoc-ref inputs "git")
+                                                "/bin/git")))
+                        (substitute* '("lib/git/config.rb")
+                          (("'git'")
+                           (string-append "'" git "'")))
+                        ;; Fix a test that expects the binary to be simply
+                        ;; 'git'.
+                        (substitute* '("tests/units/test_logger.rb")
+                          (("def test_logger")
+                           (string-append
+                            "def test_logger\n"
+                            "Git::Base.config.binary_path = 'git'")))
+                        #t)))
+                  (add-before 'check 'create-fake-home
+                    (lambda _
+                      ;; The test suite runs 'git config --global' commands,
+                      ;; so a fake home directory is needed for them to
+                      ;; succeed.
+                      (let ((fake-home (string-append (getcwd) "/fake-home")))
+                        (mkdir fake-home)
+                        (setenv "HOME" fake-home)))))))
+#+end_src scheme
+
+After patching out the 'mini_portile' dependency from the Rakefile and
+adapting the gem install --local the next error was ERROR: While
+executing gem ... (Gem::FilePermissionError) You don't have write
+permissions for the
+/gnu/store/9iifw37m8vd5bkj0fh67ndc5f2da46wb-ruby-2.2.2/lib/ruby/gems/2.2.0
+directory.
+
+Great! We do not want the library installed inside Ruby, but in its
+own store. Thanks GNU Guix for pointing that out! We need to override the
+install-dir. 
+
+Inside the build directory the following worked after disabling the libxml2 check in 
+extconf.rb (so another patch is required).
+
+: gem install --install-dir /tmp --local pkg/nokogiri-1.6.6.2.gem --
+:   --use-system-libraries
+:   --with-xml2-include=/gnu/store/s4vwk3f0ainazh2czl5k5gsainpiby6i-libxml2-2.9.2/include/libxml2
+
+Note that the libxml2 include file is in a non-standard place, so it
+needs to be defined. Even so, less configuration is needed than the
+earlier build-by-hand exercise. Remember we had to specify
+
+: env C_INCLUDE_PATH=$HOME/.guix-profile/include gem install --local nokogiri-1.6.6.2.20150629081149.gem -- --use-system-libraries --with-xml2-include=$HOME/.guix-profile/include/libxml2 --with-xslt-include=$HOME/.guix-profile/include/libxslt --with-xml2-lib=$HOME/.guix-profile/lib --with-xslt-lib=$HOME/.guix-profile/lib --with-opt-include=$HOME/.guix-profile/include
+
+GNU Guix' input variable resolves the standard
+library and include paths. Rather then using /tmp, we also use the targetdir out.
+
+Next thing we know the ruby-nokogiri package installs!
+
 ** TODO Creating the gem-derived package
 ** TODO GNU Guix: import gem
 * Notes
