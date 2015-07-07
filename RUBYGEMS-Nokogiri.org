@@ -616,6 +616,166 @@ library and include paths. Rather then using /tmp, we also use the targetdir out
 
 Next thing we know the ruby-nokogiri package installs!
 
+**** Fix the runtime gem path
+
+After installing Nokogiri 
+
+: ./pre-inst-env guix package -i ruby-nokogiri 
+:   The following package will be upgraded:
+:   ruby-nokogiri        1.6.6.2 → 1.6.6.2       /gnu/store/ynwfr9mfs5w3xhbxn1sgbcqrq0mh4gdx-ruby-nokogiri-1.6.6.2
+
+the binary complains
+
+: /home/wrk/.guix-profile/bin/nokogiri
+: /gnu/store/9iifw37m8vd5bkj0fh67ndc5f2da46wb-ruby-2.2.2/lib/ruby/2.2.0/rubygems/dependency.rb:315:in `to_specs': Could not find 'nokogiri' (>= 0) among 9 total gem(s) (Gem::LoadError)
+: Checked in 'GEM_PATH=/home/wrk/.gem/ruby/2.2.0:/gnu/store/9iifw37m8vd5bkj0fh67ndc5f2da46wb-ruby-2.2.2/lib/ruby/gems/2.2.0', execute `gem env` for more information
+:         from /gnu/store/9iifw37m8vd5bkj0fh67ndc5f2da46wb-ruby-2.2.2/lib/ruby/2.2.0/rubygems/dependency.rb:324:in `to_spec'
+:         from /gnu/store/9iifw37m8vd5bkj0fh67ndc5f2da46wb-ruby-2.2.2/lib/ruby/2.2.0/rubygems/core_ext/kernel_gem.rb:64:in `gem'
+:         from /home/wrk/.guix-profile/bin/nokogiri:22:in `<main>'
+
+which means the nokogiri module is not found. Doing a 
+
+: find ~/.guix-profile/lib/ruby/ -name nokogiri*
+
+finds nothing. That is disappointing. The binary nokogiri wants to run the module 
+as a gem from a GEM_PATH. In the store we find
+
+: /gnu/store/ynwfr9mfs5w3xhbxn1sgbcqrq0mh4gdx-ruby-nokogiri-1.6.6.2/gems/nokogiri-1.6.6.2/lib/nokogiri.rb
+
+On my underlying Debian system the gem path is:
+
+#+begin_src sh
+selinunte:~$ gem env
+  RubyGems Environment:
+  - RUBYGEMS VERSION: 1.8.23
+  - RUBY VERSION: 1.9.3 (2012-04-20 patchlevel 194) [x86_64-linux]
+  - INSTALLATION DIRECTORY: /var/lib/gems/1.9.1
+  - RUBY EXECUTABLE: /usr/bin/ruby1.9.1
+  - EXECUTABLE DIRECTORY: /usr/local/bin
+  - GEM PATHS:
+     - /var/lib/gems/1.9.1
+     - /home/wrk/.gem/ruby/1.9.1
+#+end_src 
+
+which means we need a system-wide path for gems - which does not exist
+in Guix.  The Guix way is to create symlinks in a profile (usually
+./guix-profile/), so the logical thing is to either symlink
+/gnu/store/ynwfr(...)-ruby-nokogiri-1.6.6.2/gems/nokogiri-1.6.6.2/lib
+onto ~/.guix-profile/lib/ruby/2.2.2/ or symlink a gems directory and
+add ~/.guix-profile/lib/gems/2.2.2/ to the GEM_PATH. Since this is
+clearly a gem path, I favour the latter. So we have to add that
+gem support to GNU Guix.
+
+When I look into a standard bundler install it has the identical
+shared library 3x in
+
+: ./bundler/ruby/2.1.0/gems/nokogiri-1.6.1/lib/nokogiri/nokogiri.so
+: ./bundler/ruby/2.1.0/gems/nokogiri-1.6.1/ext/nokogiri/nokogiri.so
+: ./bundler/ruby/2.1.0/extensions/x86_64-linux/2.1.0-static/nokogiri-1.6.1/nokogiri/nokogiri.so
+
+not sure why that is - probably an artifact of nokogiri's build system
+(can we now state it is a mess?). Only the first one is probably required.
+
+**** TODO Adding gem support to Guix profiles
+
+Interestingly I find gems (and other directories) are symlinked in
+./guix-profile! But they are at the root of the profile. To fix this
+all we need to do is 'hoist' the relevant directories inside the
+package into ./lib/gems/#{version}.
+
+The ruby-rspec-core package does that. And reading the ruby-build system it does 
+that (we overrode that with ruby-nokogiri):
+
+#+begin_src scheme
+(define* (install #:key source inputs outputs #:allow-other-keys)
+  (let* ((ruby-version
+          (match:substring (string-match "ruby-(.*)\\.[0-9]$"
+                                         (assoc-ref inputs "ruby"))
+                           1))
+         (out (assoc-ref outputs "out"))
+         (gem-home (string-append out "/lib/ruby/gems/" ruby-version ".0")))
+    (setenv "GEM_HOME" gem-home)
+    (mkdir-p gem-home)
+    (zero? (system* "gem" "install" "--local"
+                    (first-matching-file "\\.gem$")
+                    ;; Executables should go into /bin, not /lib/ruby/gems.
+                    "--bindir" (string-append out "/bin")))))
+#+end_src
+
+So, rather than overriding the install phase, we would be better of
+adding the one option it introduces for finding the libxml2 include!
+You can see the install phase has #:allow-other-keys, so we can modify
+the ruby-build-system to allow for an option we can name
+#:gem-install-option. The xpdf package does something similar
+
+#+begin_src scheme
+      #:phases
+       (alist-replace
+        'install
+        (lambda* (#:key outputs inputs #:allow-other-keys #:rest args)
+         (let* ((install (assoc-ref %standard-phases 'install))
+                (out (assoc-ref outputs "out"))
+                (xpdfrc (string-append out "/etc/xpdfrc"))
+                (gs-fonts (assoc-ref inputs "gs-fonts")))
+               (apply install args)
+               (substitute* xpdfrc
+                (("/usr/local/share/ghostscript/fonts")
+                 (string-append gs-fonts "/share/fonts/type1/ghostscript"))
+                (("#fontFile") "fontFile"))))
+        %standard-phases)))
+#+end_src
+
+Note the 'apply install' calling back into the build-system.
+
+Fixing it for Nokogiri is also a simplification because the underlying
+install method is used. We pass in the extra gem-flags parameter.
+
+#+begin_src scheme
+		 (alist-replace
+		  'install
+		  (lambda* (#:key inputs outputs #:allow-other-keys #:rest args)
+			   (let* ((out (assoc-ref outputs "out"))
+				  (libxml2 (assoc-ref inputs "libxml2"))
+				  (gem-flags (string-append
+					      "--use-system-libraries --with-xml2-include="
+					      libxml2 "/include/libxml2"))
+				  (install (assoc-ref %standard-phases 'install)))
+			     (apply install #:gem-flags gem-flags args)))
+#+end_src scheme
+
+Now we can install Nokogiri and run it after the GEM_PATH is set:
+
+#+begin_src shell
+export GEM_PATH=/home/wrk/.guix-profile/lib/ruby/gems/2.2.0/
+nokogiri
+
+    Nokogiri: an HTML, XML, SAX, and Reader parser
+    Usage: nokogiri <uri|path> [options]
+
+    Examples:
+      nokogiri http://www.ruby-lang.org/
+      nokogiri ./public/index.html
+      curl -s http://nokogiri.org | nokogiri -e'p $_.css("h1").length'
+
+    Options:
+	    --type type                  Parse as type: xml or html (default: auto)
+	-C file                          Specifies initialization file to load (default /home/wrk/.nokogirirc)
+	-E, --encoding encoding          Read as encoding (default: none)
+	-e command                       Specifies script from command-line.
+	    --rng <uri|path>             Validate using this rng file.
+	-?, --help                       Show this message
+	-v, --version                    Show version
+
+#+end_src shell
+
+Success!!
+
+**** TODO Isolation of rubies
+
+One interesting point of note is that nokogiri is using ruby 2.2.2
+while I have ruby 2.1.6 in my profile. We'll look into that later because
+we don't want to mix the two.
+
 ** TODO Creating the gem-derived package
 ** TODO GNU Guix: import gem
 * Notes
