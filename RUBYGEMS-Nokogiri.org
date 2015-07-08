@@ -676,7 +676,7 @@ shared library 3x in
 not sure why that is - probably an artifact of nokogiri's build system
 (can we now state it is a mess?). Only the first one is probably required.
 
-**** TODO Adding gem support to Guix profiles
+**** Adding gem support to Guix profiles
 
 Interestingly I find gems (and other directories) are symlinked in
 ./guix-profile! But they are at the root of the profile. To fix this
@@ -743,6 +743,8 @@ install method is used. We pass in the extra gem-flags parameter.
 			     (apply install #:gem-flags gem-flags args)))
 #+end_src scheme
 
+**** We got a build!
+
 Now we can install Nokogiri and run it after the GEM_PATH is set:
 
 #+begin_src shell
@@ -769,6 +771,12 @@ nokogiri
 #+end_src shell
 
 Success!!
+
+**** Feedback
+
+After sending the patch around I got feedback from others. Most
+importantly, rather than overriding the install phase I should be
+using arguments.
 
 **** TODO Isolation of rubies
 
