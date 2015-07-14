@@ -778,11 +778,22 @@ After sending the patch around I got feedback from others. Most
 importantly, rather than overriding the install phase I should be
 using arguments.
 
-**** TODO Isolation of rubies
+**** Isolation of rubies
 
 One interesting point of note is that nokogiri is using ruby 2.2.2
-while I have ruby 2.1.6 in my profile. We'll look into that later because
-we don't want to mix the two.
+while I have ruby 2.1.6 in my profile. We'll look into that later
+because we don't want to mix the two. The resolution will be similar
+to that of Dave's 'gem-with-ruby' procedure hanging around somewhere
+that does something like:
+
+#+begin_src scheme
+    (define-public ruby1.9-nokogiri
+      (gem-with-ruby ruby-nokogiri ruby-1.9))
+#+end_src
+
+It recursively overrides the Ruby version used for packages that use
+the Ruby build system.
+
 
 ** TODO Creating the gem-derived package
 ** TODO GNU Guix: import gem
