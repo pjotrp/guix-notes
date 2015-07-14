@@ -65,22 +65,22 @@ GEM_PATH, e.g.,
 
 : env GEM_PATH=~/.guix-profile/lib/ruby/gems/2.2.0 sow
 
-*** TODO Make the GNU Guix gem path automatically available
+*** Make the GNU Guix gem path automatically available
 
-At this point the GEM_PATH is not set properly. Guix prints the PATH
-after installing a package so you can add it to you environment. For end-users 
-we may want to automate that.
+At this point the GEM_PATH is not set automatically. Guix prints the PATH
+after installing a package so you can add it to you environment. You can view the
+recommended paths for your profile with
+
+: guix package --search-paths
+
+For end-users we may want to automate that.
 
 To see the actual paths and libraries that a Ruby uses, check
 
 : guix environment ruby-2.1 --search-paths
 
-To see the environment paths, check
-
-: guix package --search-paths
-
-
-Currently you have to set the GEM_PATH by hand. I use a [[https://github.com/pjotrp/guix-notes/blob/master/scripts/ruby-guix-env][script]] for this.
+Currently, to find gems, you have to set the GEM_PATH. I use a [[https://github.com/pjotrp/guix-notes/blob/master/scripts/ruby-guix-env][script]]
+for this.
 
 *** TODO Provide a build system that uses simple gem descriptions
 
@@ -362,7 +362,7 @@ Then I copied an existing package from gnu/packages/ruby.scm and started filling
     (source (origin
               (method url-fetch)
               (uri (string-append
-		    "https://github.com/sparklemotion/nokogiri/archive/v"
+                    "https://github.com/sparklemotion/nokogiri/archive/v"
                     version ".tar.gz"))
               (file-name (string-append name "-" version ".tar.gz"))
               (sha256

@@ -786,21 +786,44 @@ directory and running
 #+end_src
 
 Then you can just run make to see if everything builds fine.  If it
-does, make a commit with an appropriate commit message (see Pjotr's
-email for an example) and use
+does, make a commit with an appropriate commit message, e.g. by using
+git rebase (see the guix manual) or by creating a diff between
+branches (useful when there are conflicts etc.)
 
-#+begin_src scheme
+#+begin_src bash
+git diff master > intermediate.patch
+git checkout master
+git checkout -b submit_branch
+patch -p1 < intermediate.patch
+git commit -a
+#+end_src
+
+and use
+
+#+begin_src bash
     git format-patch -1
 #+end_src
 
 to generate a patch file, which you can then send to the Guix-devel
-mailing list (guix-devel@gnu.org).
+mailing list (guix-devel@gnu.org). To generate the last 2 patches use -2.
 
 To change the last commit message do
 
 : git commit --amend
 
-See also the official HACKING document in the Guix git repo.
+Make sure tabs are turned into spaces. The emacs commands are
+[[http://www.emacswiki.org/emacs/NoTabs][here]]. Lines should be broken (use M-q in emacs). And use the Emacs TAB
+to find the right LISP indendation. 
+
+To change credentials for the patch use the [[https://help.github.com/articles/setting-your-email-in-git/][git config]] command.
+
+Initially you can mail the patch as an attachment to the mailing
+list. But better is to mail it as it is with something like:
+
+: mail
+
+For more information see the official HACKING document in the Guix git
+repo.
 
 ** Using git branches
 
