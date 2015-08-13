@@ -373,7 +373,6 @@ should be such that module (gnu packages foo) is located in
 ./pre-inst-env automatically adds the right paths to access the
 packages within ./gnu/packages/*.scm.
 
-
 * Creating a package
 ** Updating the version
 

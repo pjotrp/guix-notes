@@ -107,7 +107,52 @@ infamous Nokogiri example.
 ** Bundler
 
 Bundler works in GNU Guix, both installed though Guix and through
-gems. See the Nokogiri example below.
+gems. See the Nokogiri example below. I prefer, however, not to use
+bundler at all, see the section on that below.
+
+** Important packages
+
+GNU Guix provides a number of native gems. On my system I use
+
+#+begin_src scheme
+bigdecimal (1.2.6)
+hoe (3.13.1)
+i18n (0.6.11)
+io-console (0.4.3)
+json (1.8.1)
+log4r (1.1.10)
+minitest (5.4.3)
+nokogiri (1.6.6.2)
+power_assert (0.2.2)
+psych (2.0.8)
+rake (10.4.2)
+rake-compiler (0.9.5)
+rdoc (4.2.0)
+rspec (3.2.0)
+rspec-core (3.2.3)
+rspec-expectations (3.2.1)
+rspec-mocks (3.2.1)
+rspec-support (3.2.2)
+test-unit (3.0.8)
+#+end_src
+
+Note the notoriously difficult to support nokogiri gem. It was added
+through the exercise below.
+
+The local gem installer (after setting paths) installs other gems, including the
+natively building cucumber gems. E.g.
+
+#+begin_src scheme
+builder (3.2.2)
+cucumber (2.0.2)
+cucumber-core (1.2.0)
+diff-lcs (1.2.5)
+gherkin (2.12.2)
+io-console (0.4.3)
+json (1.8.1)
+multi_json (1.11.2)
+multi_test (0.1.2)
+#+end_src
 
 * Package Nokogiri
 ** Introduction 
@@ -245,6 +290,10 @@ and ran
 
 and the thing builds. Better even, also Cucumber builds and all the
 test pass for bio-vcf (the tool I want to ultimately package).
+
+You may want to check config settings with
+
+: bundle config
 
 Note we should have used predefs.h from the store
 glibc-2.21/include/stdc-predef.h instead. It looks like Nokogiri is using
@@ -778,7 +827,7 @@ After sending the patch around I got feedback from others. Most
 importantly, rather than overriding the install phase I should be
 using arguments.
 
-**** Isolation of rubies
+**** IN PROGRESS Isolation of rubies
 
 One interesting point of note is that nokogiri is using ruby 2.2.2
 while I have ruby 2.1.6 in my profile. We'll look into that later
@@ -794,13 +843,123 @@ that does something like:
 It recursively overrides the Ruby version used for packages that use
 the Ruby build system.
 
+* IN PROGRESS Creating the gem-derived package
 
-** TODO Creating the gem-derived package
-** TODO GNU Guix: import gem
+In the next phase we are going to modify the build system. In the Nokogiri
+exercise we were working from a downloaded tar-ball not native to rubygems.
+
+Because nokogiri is such a complex beast, let's try first with a simpler
+gem that has only a few dependencies.
+
+** Gem install log4r
+
+Log4r is a long standing popular Ruby gem with few dependencies. Doing 
+a simple 
+
+:  gem install log4r
+
+on my GNU Guix ruby install rapidly with 
+
+: Fetching: log4r-1.1.10.gem (100%)
+: Successfully installed log4r-1.1.10
+: Parsing documentation for log4r-1.1.10
+: Installing ri documentation for log4r-1.1.10
+: Done installing documentation for log4r after 0 seconds
+
+That looks promising. Now we want to make it into a proper GNU Guix package 
+for posterity. The command line steps 
+
+: wget https://rubygems.org/downloads/log4r-1.1.10.gem
+: gem install --ignore-dependencies --install-dir ~/tmp/gems log4r-1.1.10.gem
+
+With Guix the destination will be ~/.guix-profile/lib/ruby/gems/2.2.0 or similar.
+
+The ignore-dependencies switch is important because it prevents gem
+from fetching dependencies on its own. The GNU Guix rubygem packages
+we are going to create should take care of that.
+
+** Create a new rubygem-build-system
+
+Basically I copied the existing ruby-build-system to facilitate gem
+installs. I'll probably have to make one later again, but this is a
+good strategy for testing new things.
+
+* TODO GNU Guix: import gem
+
+* IN PROGRESS Getting rid of Bundler
+
+Bundler solves a problem that Guix solves - i.e.  dependencies. The
+good thing about bundler is that it creates an environment which can
+be replicated for continuous integration (Travis CI). But it is not as
+robust as Guix can do - still, and a surprising amount of tooling
+depends on bundler. Checking an average bundler managed Gemfile of one
+of my projects it lists over 70 lines of dependencies. Seriously, that
+is the full gem dependency graph (but not the actual graph because it
+does not list lower depencies, such as the Ruby interpreter itself and
+glibc, which are indeed part of the more robust Guix graph).
+
+The whole Ruby developer community uses bundler. With Guix, however,
+we have profiles and bundler can and should be thrown out.
+
+To get rid of bundler in an existing project, remove the .bundler dir,
+the Gemfile and Gemfile.lock and remove bundler binary from the path.
+
+: gem uninstall bundler
+: guix package -r bundler (maybe ruby-bundler later)
+
+Make sure it is gone
+
+: gem list
+: which bundle
+: bundle
+:   command not found
+
+Next start removing bundler dependencies in the files. I had some in
+my test initialisation - make sure it is removed from all sources!
+Note, to get decent errors you may want to (temporarily) remove the
+exception catching in the cucumber source
+gems/cucumber-2.0.2/lib/cucumber/cli/main.rb.
+
+After the fixes I could run cucumber without bundler (without the
+cucumber modification)! Make a note of the gems you need to pull in by
+'hand'.
+
+Annoyingly bundler gets pulled in by some other gems (jeweler for
+one). So every time you run gem install locally make sure it is not
+there.
+
+Note at any time you can remove the local gems and run gem list to see
+what Guix gives us:
+
+: rm -rf ~/.gem/p3vzqwxavyfchwjw2bxnq365sr1ap99b-ruby-2.2.2/
+: gem list
+
+without jeweler, bundler and dependencies the list became quite a bit
+shorter.
+
+* TODO Continuous integration (CI)
+
+** Travis CI without Guix
+
+To test Rubygems in Travis with bundler, simply provide the Gemfile. Alternatively
+pull in dependending gems separately with gem in the .travis.yml file:
+
+: install: 
+:   - gem install cucumber rspec regressiontest
+
+This has the advantage of being faster and purer. Even better go the Guix way:
+
+** The Guix way
+
+Guix has a build farm with CI. It even provides build logs, e.g.,
+http://hydra.gnu.org/build/573030/log/raw
+
+
 * Notes
 ** Why is bundler installing in .gems?
 
 It says so in the ./bundle/config file.
+
 ** TODO Add GNU Guix to the Nokogiri installation page
 
 Nokogiri lists many solutions [[http://www.nokogiri.org/tutorials/installing_nokogiri.html][here]]. We should add ours.

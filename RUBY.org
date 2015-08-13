@@ -14,14 +14,17 @@
 
 * Introduction
 
+(life without bundler)
+
 The GNU software packaging project is packaging done right. Ruby
 deployment with rubygems used to be pretty good, years ago, but over
-time it has turned into a nightmare of dependencies. Tools like RVM
-and rbenv try to bring some level of control for running multiple
-versions of Ruby, but over the last years they are showing their
-limitations clearly. Every time I need to work with RVM I start
-throwing things at my computer. So when should you look at GNU Guix?
-You should look at Guix when you 
+time it has turned into a nightmare of dependencies. Tools like RVM,
+rbenv and bundler try to bring some level of control for running
+multiple versions of Ruby, but over the last years they are showing
+their limitations clearly. Every time I need to work with RVM I start
+throwing things at my computer. 
+
+So when should you look at GNU Guix?  You should look at Guix when you
 
 1. are serious about software deployment
 2. need to handle multiple versions of Ruby
@@ -29,7 +32,7 @@ You should look at Guix when you
 4. want clean separation of gems
 5. want a reproducible environment
 
-GNU Guix allows you to define a software package once with all its
+GNU Guix allows you to define a software package once with *all* its
 dependencies. Every time you install the package it gets reproduced
 *exactly* with its exact dependency graph, all the way down to
 glibc. Whether you are a sysadmin who needs to deploy an exact Rails
@@ -43,10 +46,10 @@ Guix is the solution you require. Use cases are
 5. run multiple versions of the same gem against one ruby
 6. run multiple versions of openssl dependencies
 
-Use your imagination. The point is that you control the *full* dependency
-graph. Always. You can even give users rights to install and share software because
-the underlying system is 'immutable'. Existing graphs can not be overwritten
-by others.
+Use your imagination. The point is that you control the *full*
+dependency graph. Always. You can even give users rights to install
+and share software because the underlying system is
+'immutable'. Existing graphs can not be overwritten by others.
 
 GNU Guix is a next generation software package installer with a range
 of features, including sane dependency handling, transactional and
@@ -60,16 +63,23 @@ packages. In this document I explain what the philosophy is of Ruby
 questions and contribute ideas. There are multiple possible tactics
 for sane dependency handling that GNU Guix could support.
 
-* TODO GNU Guix installation
+* Getting rid of RVM, rbenv and bundler
 
-The Achilles heel of introducing GNU Guix at this point (2015)
-is that it is not standard in Linux distributions. That support will
-come because GNU Guix is the official packaging system of the GNU
-project and is orthogonal to existing software packaging systems (everything
+Ruby gems are natively supported from GNU Guix. This means we can get
+rid of the RVM-rbenv-bundler trinity. GNU Guix has its own build farm
+and continuous integration. We'll also add GNU Guix support to Travis
+CI soon.
+
+* GNU Guix installation
+
+The Achilles heel of introducing GNU Guix at this point (2015) is that
+it is not standard in Linux distributions. That support will come
+because GNU Guix is the official packaging system of the GNU project
+and is orthogonal to existing software packaging systems (everything
 is installed in /gnu). It will happen.
 
-Currently there are two ways of installing GNU Guix. See the [[https://github.com/pjotrp/guix-notes/blob/master/INSTALL.org][INSTALL]]
-document in this repository. Soon we'll add a binary installer, which
+Currently there are multiple ways of installing GNU Guix. See the
+[[https://github.com/pjotrp/guix-notes/blob/master/INSTALL.org][INSTALL]] document in this repository. There is a binary installer which
 should make things easier. Note that if you have Guix installed and
 running from /guix/store you can just transfer the setup to another
 machine! The only dependency is the Linux kernel. To add packages see
@@ -158,10 +168,10 @@ ldd ~/.guix-profile/bin/ruby
         /gnu/store/hy2hi0zj5hrqkmkhpdxf04c9bcnlnsf9-glibc-2.21/lib/ld-linux-x86-64.so.2 (0x00007efe20d75000)
 #+end_src
 
-* TODO Adding Gems in user land
+* Adding Gems in user land
 
-Ruby comes with gem support out of the box. The gem tool also is symlinked
-in ~/.guix-profile/bin. When we run `gem env' it says
+GNU Guix Ruby comes with gem support out of the box. The gem tool also
+is symlinked in ~/.guix-profile/bin. When we run `gem env' it says
 
 #+begin_src sh
   export PATH=~/.guix-profile/bin/:$PATH
@@ -188,9 +198,12 @@ installation. This way there is clear isolation between different
 installed versions of Ruby. Unlike RVM and rbenv, there is NO
 (accidental) sharing between different Ruby installations!
 
-To achieve clean separation we can patch Ruby and gem to make use of the new
-GEM_PATHs, or we can create a wrapper script which presets the PATH. At this
-point I favour the patching because Ruby gem has these paths built-in.
+To achieve clean separation we can patch Ruby and gem to make use of
+the new GEM_PATHs or we can create a wrapper script which presets the
+PATH. At this point I favour the patching because Ruby gem has these
+paths built-in. In practice we use a script to modify the environment.
+I wrote a bash script which does this can be found as
+[[https://github.com/pjotrp/guix-notes/blob/master/scripts/ruby-guix-env][./scripts/ruby-guix-env]] (more on that below).
 
 ** User land gems with GEM_HOME and GEM_PATH
 
@@ -262,6 +275,7 @@ and run
   bundle exec rake
 #+end_src
 
+
 When there is a problem with your gems, simply clean up
 $HOME/.gem/ziy7a6zib846426kprc7fgimggh8bz97-ruby-2.1.3 and start from
 scratch with a clean Ruby installation. Or, more rigorously, start writing
@@ -290,7 +304,10 @@ e.g.,
 
 Check with `gem env' and try to `run bundle'.
 
-* TODO Adding system shared gems
+Bundle may have trouble building native extension. For this see the writeup
+in ./RUBY-NOKOGIRI.org
+
+* Adding system shared gems
 
 System shared gems are GNU Guix packages (unless you start explicitly overriding above 
 GEM_PATHs). The advantage of using GNU Guix is that the dependency graph is explicit
@@ -304,9 +321,11 @@ its own HASH dir, e.g.
 This means (again) you can support multiple versions of gems. Under GNU Guix gems become
 first-rate citizens in a software stack.
 
-* TODO Generating GNU Guix Gem packages
+* Generating GNU Guix Gem packages
 
-The Gem specification is pretty straightforward. The great problem with rubygems is
-that they are not designed for clear isolation of installations. With GNU Guix it
-should be possible to generate installation packages from Gem definitions.
+The Gem specification is pretty straightforward. The great problem
+with rubygems is that they are not designed for clear isolation of
+installations. With GNU Guix it should be possible to generate
+installation packages from Gem definitions.
 
+See RUBY-NOKOGIRI.org for more information.
