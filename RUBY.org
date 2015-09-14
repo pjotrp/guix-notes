@@ -384,13 +384,13 @@ value:
 ** Step 2 Write expression
 
 Now we add the following package to guix/gnu/ruby.scm (it may make sense
-to create a new git branch)
+to create a new git branch) using [[https://www.gnu.org/software/guix/manual/html_node/Packaging-Guidelines.html][guidelines]].
 
 : cd guix
 : git checkout -b bio-locus
 
 #+begin_src scheme 
-(define-public ruby-locus
+(define-public ruby-bio-locus
   (package
     (name "ruby-bio-locus")
     (version "0.0.6")
@@ -436,7 +436,14 @@ more stuff to remove. The final version is pretty clean.
 
 ** Step 4 Submit the expression to the mailing list
 
+First check the syntax:
 
+: ./pre-inst-env guix lint ruby-bio-locus
+
+Next make a single patch following the [[https://github.com/pjotrp/guix-notes/blob/master/HACKING.org#making-a-patch-to-submit-to-the-mailing-list][guidelines]] and submit 
+it to the mailing list after
+
+: git format-patch -1
 
 * TODO Generating GNU Guix Gem packages
 
@@ -444,5 +451,7 @@ The Gem specification is pretty straightforward. The great problem
 with rubygems is that they are not designed for clear isolation of
 installations. With GNU Guix it should be possible to generate
 installation packages from Gem definitions. That is coming soon.
+
+* More on Ruby packages
 
 See RUBY-NOKOGIRI.org for more information.
