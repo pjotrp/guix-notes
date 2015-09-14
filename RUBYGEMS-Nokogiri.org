@@ -45,6 +45,37 @@ of supporting a complex gem we use the example of Nokogiri which has
 over 1,000 installation related questions on Stack Overflow.
 
 * Current state
+
+GNU Guix has native gem support through the rubygems-uri procedure!
+That means you can create a simple package description which can
+install a native gem:
+
+#+begin_src scheme
+(define-public ruby-json
+  (package
+    (name "ruby-json")
+    (version "1.8.3")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (rubygems-uri "json" version))
+       (sha256
+        (base32
+         "1nsby6ry8l9xg3yw4adlhk2pnc7i0h0rznvcss4vk3v74qg0k8lc"))))
+    (build-system ruby-build-system)
+    (arguments '(#:tests? #f)) ; dependency cycle with sdoc
+    (synopsis "JSON library for Ruby")
+    (description "This Ruby library provides a JSON implementation written as
+a native C extension.")
+    (home-page "http://json-jruby.rubyforge.org/")
+    (license (list license:ruby license:gpl2)))) ; GPL2 only
+#+end_src scheme
+
+More examples can be found [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/packages/ruby.scm][here]]
+
+The rest of this document describes the discovery path of building the nokogiri
+software through GNU Guix. The final package description is fairly simple!
+
 ** GNU Guix installed gem
 
 GNU Guix now build gems from a tar-ball using a Ruby build
@@ -843,7 +874,7 @@ that does something like:
 It recursively overrides the Ruby version used for packages that use
 the Ruby build system.
 
-* IN PROGRESS Creating the gem-derived package
+* Creating the gem-derived package
 
 In the next phase we are going to modify the build system. In the Nokogiri
 exercise we were working from a downloaded tar-ball not native to rubygems.
@@ -886,7 +917,7 @@ good strategy for testing new things.
 
 * TODO GNU Guix: import gem
 
-* IN PROGRESS Getting rid of Bundler
+* Getting rid of Bundler
 
 Bundler solves a problem that Guix solves - i.e.  dependencies. The
 good thing about bundler is that it creates an environment which can
@@ -937,7 +968,7 @@ what Guix gives us:
 without jeweler, bundler and dependencies the list became quite a bit
 shorter.
 
-* TODO Continuous integration (CI)
+* Continuous integration (CI)
 
 ** Travis CI without Guix
 
@@ -954,6 +985,46 @@ This has the advantage of being faster and purer. Even better go the Guix way:
 Guix has a build farm with CI. It even provides build logs, e.g.,
 http://hydra.gnu.org/build/573030/log/raw
 
+
+* The final nokogiri package description
+
+#+begin_src scheme
+(define-public ruby-nokogiri
+  (package
+    (name "ruby-nokogiri")
+    (version "1.6.6.2")
+    (source (origin
+              (method url-fetch)
+              (uri (rubygems-uri "nokogiri" version))
+              (sha256
+               (base32
+                "1j4qv32qjh67dcrc1yy1h8sqjnny8siyy4s44awla8d6jk361h30"))))
+    (build-system ruby-build-system)
+    (arguments
+     ;; Tests fail because Nokogiri can only test with an installed extension,
+     ;; and also because many test framework dependencies are missing.
+     '(#:tests? #f
+       #:gem-flags (list "--" "--use-system-libraries"
+                         (string-append "--with-xml2-include="
+                                        (assoc-ref %build-inputs "libxml2")
+                                        "/include/libxml2" ))))
+    (native-inputs
+     `(("ruby-hoe" ,ruby-hoe)
+       ("ruby-rake-compiler", ruby-rake-compiler)))
+    (inputs
+     `(("zlib" ,zlib)
+       ("libxml2" ,libxml2)
+       ("libxslt" ,libxslt)))
+    (propagated-inputs
+     `(("ruby-mini-portile" ,ruby-mini-portile)))
+    (synopsis "HTML, XML, SAX, and Reader parser for Ruby")
+    (description "Nokogiri (鋸) parses and searches XML/HTML, and features
+both CSS3 selector and XPath 1.0 support.")
+    (home-page "http://www.nokogiri.org/")
+    (license license:expat)))
+#+end_src scheme
+
+The latest version you can find in [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/packages/ruby.scm][git]].
 
 * Notes
 ** Why is bundler installing in .gems?
