@@ -14,30 +14,32 @@
 
 * Introduction
 
-(life without bundler)
+Or life without bundler, rvm etc. Yes, you can still use these tools
+but there really is no longer a *need* because GNU Guix supports native
+Ruby gems!
 
 The GNU software packaging project is packaging done right. Ruby
 deployment with rubygems used to be pretty good, years ago, but over
 time it has turned into a nightmare of dependencies. Tools like RVM,
 rbenv and bundler try to bring some level of control for running
-multiple versions of Ruby, but over the last years they are showing
-their limitations clearly. Every time I need to work with RVM I start
-throwing things at my computer. 
+multiple versions of Ruby and gems, but over the last years they are
+showing their limitations clearly. Every time I needed to work with
+RVM I started throwing things at my computer.
 
 So when should you look at GNU Guix?  You should look at Guix when you
 
-1. are serious about software deployment
-2. need to handle multiple versions of Ruby
-3. want clear isolation of dependencies
-4. want clean separation of gems
-5. want a reproducible environment
+1. are serious about software *deployment*
+2. need to handle multiple *versions* of Ruby or gems
+3. want clear isolation of *dependencies*
+4. want clean *separation* of gems
+5. want a *reproducible* environment
 
 GNU Guix allows you to define a software package once with *all* its
 dependencies. Every time you install the package it gets reproduced
 *exactly* with its exact dependency graph, all the way down to
-glibc. Whether you are a sysadmin who needs to deploy an exact Rails
-stack or you are a developer and need to support user environment, GNU
-Guix is the solution you require. Use cases are
+glibc. See this [[http://lists.gnu.org/archive/html/guix-devel/2015-08/msg00628.html][figure]]. Whether you are a sysadmin who needs to deploy
+an exact Rails stack or you are a developer and need to support user
+environment, GNU Guix is the solution you require. Use cases are
 
 1. test gems using multiple versions of Ruby 
 2. install concurrent rubies with or without linked openssl support
@@ -79,11 +81,12 @@ and is orthogonal to existing software packaging systems (everything
 is installed in /gnu). It will happen.
 
 Currently there are multiple ways of installing GNU Guix. See the
-[[https://github.com/pjotrp/guix-notes/blob/master/INSTALL.org][INSTALL]] document in this repository. There is a binary installer which
-should make things easier. Note that if you have Guix installed and
-running from /guix/store you can just transfer the setup to another
-machine! The only dependency is the Linux kernel. To add packages see
-[[https://github.com/pjotrp/guix-notes/blob/master/HACKING.org][HACKING]].
+[[https://github.com/pjotrp/guix-notes/blob/master/INSTALL.org][INSTALL]] document in this repository. There is a binary installer (i.e.
+unpack tarball in root) which should make things easier. Note that if
+you have Guix installed and running from /guix/store you can just
+transfer the setup to another machine! Make sure to copy the database
+in /var too. The only actual dependency is the Linux kernel. To add
+packages see [[https://github.com/pjotrp/guix-notes/blob/master/HACKING.org][HACKING]].
 
 * Ruby
 
@@ -321,11 +324,41 @@ its own HASH dir, e.g.
 This means (again) you can support multiple versions of gems. Under GNU Guix gems become
 first-rate citizens in a software stack.
 
-* Generating GNU Guix Gem packages
+To install nokogiri:
+
+: guix package -i ruby-nokogiri
+
+or, if running in the source directory
+
+:  ./pre-inst-env guix package -i ruby-nokogiri
+
+Note that this install dependencies ruby, libxml2 and libxslt if not already installed!
+
+#+begin_src sh
+The following files will be downloaded:
+   /gnu/store/7vbz3h82hh11wmaxfvxswsld24ljwhz9-ruby-nokogiri-1.6.6.2
+   /gnu/store/grd4vpgp6cbxfcwmp5n1gssv8svpgrvf-ruby-mini-portile-0.6.2
+   /gnu/store/476b4vab2x5ryccwfhy839v5c6vmz59x-glibc-utf8-locales-2.21
+   /gnu/store/2x8w06phz69hq7yr457xy0n46vws0wpl-texinfo-6.0
+   /gnu/store/b16xqps0fxgkx5ffw7r549h1gy53rj63-gzip-1.6
+   /gnu/store/c158g4fki606z1g0l240kknprfwdls0a-coreutils-8.24
+   /gnu/store/f033flfhq0qlzxpicbmq8b4x09y4h148-ncurses-5.9
+   /gnu/store/gjs5zk5366a4bdwyy6vv1x8cfx7b092m-perl-5.16.1
+   /gnu/store/6gkslyn4iprga0w78d57g3dzsks38sia-libxslt-1.1.28
+   /gnu/store/famqzp3sb1mldklv6m18r4v8nq0baf2j-libxml2-2.9.2
+   /gnu/store/ippi1rw3869rzv21v3ixvzrim40r2s02-ruby-2.2.3
+#+begin_src sh
+
+So, unlike with rubygems on its own, this is the full dependency
+stack. Perl is installed because it is a build dependency somewhere in
+the build system. Likewise, if you install ruby-pg, postgresql and
+dependencies will also get installed.
+
+* TODO Generating GNU Guix Gem packages
 
 The Gem specification is pretty straightforward. The great problem
 with rubygems is that they are not designed for clear isolation of
 installations. With GNU Guix it should be possible to generate
-installation packages from Gem definitions.
+installation packages from Gem definitions. That is coming soon.
 
 See RUBY-NOKOGIRI.org for more information.
