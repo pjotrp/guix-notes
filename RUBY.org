@@ -413,6 +413,32 @@ store this chr+pos or chr+pos+alt information in a fast database.")
 
 Note the HASH is the same as the one we got with guix download.
 
+Actually, guix can also give you an example expression for a gem with
+
+: ./pre-inst-env guix import gem bio-locus
+
+#+begin_src scheme 
+(package
+  (name "ruby-bio-locus")
+  (version "0.0.7")
+  (source
+    (origin
+      (method url-fetch)
+      (uri (rubygems-uri "bio-locus" version))
+      (sha256
+        (base32
+          "02vmrxyimkj9sahsp4zhfhnmbvz6dbbqz1y01vglf8cbwvkajfl0"))))
+  (build-system ruby-build-system)
+  (synopsis
+    "A tool for fast querying and filtering of genome locations in VCF and other formats")
+  (description
+    "A tool for fast querying and filtering of genome locations in VCF and other formats")
+  (home-page "http://github.com/pjotrp/bio-locus")
+  (license expat))
+#+end_src scheme 
+
+which can help you get started!
+
 ** Step 3 Test the package
 
 Install the package with
