@@ -72,6 +72,8 @@ rid of the RVM-rbenv-bundler trinity. GNU Guix has its own build farm
 and continuous integration. We'll also add GNU Guix support to Travis
 CI soon.
 
+And, running tests with cucumber is also much faster without bundler exec!
+
 * GNU Guix installation
 
 The Achilles heel of introducing GNU Guix at this point (2015) is that
@@ -208,7 +210,7 @@ The following files will be downloaded:
    /gnu/store/6gkslyn4iprga0w78d57g3dzsks38sia-libxslt-1.1.28
    /gnu/store/famqzp3sb1mldklv6m18r4v8nq0baf2j-libxml2-2.9.2
    /gnu/store/ippi1rw3869rzv21v3ixvzrim40r2s02-ruby-2.2.3
-#+begin_src sh
+#+end_src sh
 
 So, unlike with rubygems on its own, this is the full dependency
 stack. Perl is installed because it is a build dependency somewhere in
@@ -360,6 +362,81 @@ Check with `gem env' and try to `run bundle'.
 
 Bundle may have trouble building native extension. For this see the writeup
 in ./RUBY-NOKOGIRI.org
+
+* Adding a Ruby gem to Guix
+
+So, now you ask, 'Now, HOW do I add a Guix gem'? The good news is that
+it is easy because Guix can install Ruby gems *natively*. Still, a
+package description (guix expression) is required to have the gem
+added to the GNU Guix distribution. Once it is there in git, it will
+get built on the build farm (continuous integration) and be available
+in binary form for all GNU Guix users!
+
+** Step 1 Download Ruby gem with guix and get HASH value
+
+Find your gem on http://rubygems.org/ and download the gem to get the HASH 
+value:
+
+: guix download https://rubygems.org/downloads/bio-locus-0.0.6.gem
+:   /gnu/store/5ddsb4k6g9pn66klfw1d42jb90yz2iqf-bio-locus-0.0.6.gem
+:   0l303w5kzsriqs5gvcbgx5l236hajj5bf76fpv1yymiwnjp7d97k
+
+** Step 2 Write expression
+
+Now we add the following package to guix/gnu/ruby.scm (it may make sense
+to create a new git branch)
+
+: cd guix
+: git checkout -b bio-locus
+
+#+begin_src scheme 
+(define-public ruby-locus
+  (package
+    (name "ruby-bio-locus")
+    (version "0.0.6")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (rubygems-uri "bio-locus" version))
+       (sha256
+        (base32
+         "0l303w5kzsriqs5gvcbgx5l236hajj5bf76fpv1yymiwnjp7d97k"))))
+    (build-system ruby-build-system)
+    (arguments
+     '(#:tests? #t)) ; no tests
+    (synopsis "Bio-locus is a tool for fast querying of genome locations")
+    (description "This tabix-like tool essentially allows your to
+store this chr+pos or chr+pos+alt information in a fast database.")
+    (home-page "https://github.com/pjotrp/bio-locus")
+    (license license:expat)))
+#+end_src
+
+Note the HASH is the same as the one we got with guix download.
+
+** Step 3 Test the package
+
+Install the package with
+
+: ./pre-inst-env guix package -i ruby-bio-locus
+:   (...)
+:   LoadError: cannot load such file -- bundler
+
+Oops, it gave an error. That is because there is a bundler dependency
+for some reason. We can add the dependency or update the gem to remove
+it. The great thing is that guix builds packages in isolation -
+missing build or runtime depencies are *always* caught. So we add
+
+#+begin_src scheme
+    (native-inputs
+     `(("bundler" ,bundler)))
+#+end_src
+
+That would work, but I ended up updating the gem because there was some
+more stuff to remove. The final version is pretty clean.
+
+** Step 4 Submit the expression to the mailing list
+
+
 
 * TODO Generating GNU Guix Gem packages
 
