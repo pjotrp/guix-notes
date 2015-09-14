@@ -171,6 +171,57 @@ ldd ~/.guix-profile/bin/ruby
         /gnu/store/hy2hi0zj5hrqkmkhpdxf04c9bcnlnsf9-glibc-2.21/lib/ld-linux-x86-64.so.2 (0x00007efe20d75000)
 #+end_src
 
+* Adding system shared gems
+
+System shared gems are GNU Guix packages (unless you start explicitly overriding above 
+GEM_PATHs). The advantage of using GNU Guix is that the dependency graph is explicit
+and people can easily share installations. A gem gets installed with its version under
+its own HASH dir, e.g.
+
+#+begin_src sh
+  /gnu/store/HASH-rspec-1.0.0
+#+end_src
+
+This means (again) you can support multiple versions of gems. Under GNU Guix gems become
+first-rate citizens in a software stack.
+
+To install nokogiri:
+
+: guix package -i ruby-nokogiri
+
+or, if running in the source directory
+
+:  ./pre-inst-env guix package -i ruby-nokogiri
+
+Note that this install dependencies ruby, libxml2 and libxslt if not already installed!
+
+#+begin_src sh
+The following files will be downloaded:
+   /gnu/store/7vbz3h82hh11wmaxfvxswsld24ljwhz9-ruby-nokogiri-1.6.6.2
+   /gnu/store/grd4vpgp6cbxfcwmp5n1gssv8svpgrvf-ruby-mini-portile-0.6.2
+   /gnu/store/476b4vab2x5ryccwfhy839v5c6vmz59x-glibc-utf8-locales-2.21
+   /gnu/store/2x8w06phz69hq7yr457xy0n46vws0wpl-texinfo-6.0
+   /gnu/store/b16xqps0fxgkx5ffw7r549h1gy53rj63-gzip-1.6
+   /gnu/store/c158g4fki606z1g0l240kknprfwdls0a-coreutils-8.24
+   /gnu/store/f033flfhq0qlzxpicbmq8b4x09y4h148-ncurses-5.9
+   /gnu/store/gjs5zk5366a4bdwyy6vv1x8cfx7b092m-perl-5.16.1
+   /gnu/store/6gkslyn4iprga0w78d57g3dzsks38sia-libxslt-1.1.28
+   /gnu/store/famqzp3sb1mldklv6m18r4v8nq0baf2j-libxml2-2.9.2
+   /gnu/store/ippi1rw3869rzv21v3ixvzrim40r2s02-ruby-2.2.3
+#+begin_src sh
+
+So, unlike with rubygems on its own, this is the full dependency
+stack. Perl is installed because it is a build dependency somewhere in
+the build system. Likewise, if you install ruby-pg, postgresql and
+dependencies will also get installed.
+
+Note that guix installs in ~/.guix-profile/lib/ruby/gems/2.2.0/gems/
+(well, actually symlinks). The version numbering 2.2.0 follows the gem
+convention to share gems on major numbers. Updading a minor version
+number will keep the gems. If this is not what you want (i.e. true
+version isolation) make sure to use guix profiles for individual
+Rubies and use only that GEM_PATH.
+
 * Adding Gems in user land
 
 GNU Guix Ruby comes with gem support out of the box. The gem tool also
@@ -309,50 +360,6 @@ Check with `gem env' and try to `run bundle'.
 
 Bundle may have trouble building native extension. For this see the writeup
 in ./RUBY-NOKOGIRI.org
-
-* Adding system shared gems
-
-System shared gems are GNU Guix packages (unless you start explicitly overriding above 
-GEM_PATHs). The advantage of using GNU Guix is that the dependency graph is explicit
-and people can easily share installations. A gem gets installed with its version under
-its own HASH dir, e.g.
-
-#+begin_src sh
-  /gnu/store/HASH-rspec-1.0.0
-#+end_src
-
-This means (again) you can support multiple versions of gems. Under GNU Guix gems become
-first-rate citizens in a software stack.
-
-To install nokogiri:
-
-: guix package -i ruby-nokogiri
-
-or, if running in the source directory
-
-:  ./pre-inst-env guix package -i ruby-nokogiri
-
-Note that this install dependencies ruby, libxml2 and libxslt if not already installed!
-
-#+begin_src sh
-The following files will be downloaded:
-   /gnu/store/7vbz3h82hh11wmaxfvxswsld24ljwhz9-ruby-nokogiri-1.6.6.2
-   /gnu/store/grd4vpgp6cbxfcwmp5n1gssv8svpgrvf-ruby-mini-portile-0.6.2
-   /gnu/store/476b4vab2x5ryccwfhy839v5c6vmz59x-glibc-utf8-locales-2.21
-   /gnu/store/2x8w06phz69hq7yr457xy0n46vws0wpl-texinfo-6.0
-   /gnu/store/b16xqps0fxgkx5ffw7r549h1gy53rj63-gzip-1.6
-   /gnu/store/c158g4fki606z1g0l240kknprfwdls0a-coreutils-8.24
-   /gnu/store/f033flfhq0qlzxpicbmq8b4x09y4h148-ncurses-5.9
-   /gnu/store/gjs5zk5366a4bdwyy6vv1x8cfx7b092m-perl-5.16.1
-   /gnu/store/6gkslyn4iprga0w78d57g3dzsks38sia-libxslt-1.1.28
-   /gnu/store/famqzp3sb1mldklv6m18r4v8nq0baf2j-libxml2-2.9.2
-   /gnu/store/ippi1rw3869rzv21v3ixvzrim40r2s02-ruby-2.2.3
-#+begin_src sh
-
-So, unlike with rubygems on its own, this is the full dependency
-stack. Perl is installed because it is a build dependency somewhere in
-the build system. Likewise, if you install ruby-pg, postgresql and
-dependencies will also get installed.
 
 * TODO Generating GNU Guix Gem packages
 
