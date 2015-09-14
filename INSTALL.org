@@ -71,6 +71,8 @@ package, create the build group and permissions.
 
 ** The one-step tarball installation
 
+Ricardo has written a nice [[http://elephly.net/posts/2015-06-21-getting-started-with-guix.html][introduction]].
+
 Fetch the TAR ball 
 
 : http://www.fdn.fr/~lcourtes/software/guix/guix-tarball-0.8.1.1140.tar.lz
@@ -382,24 +384,24 @@ You can view the environment variable definitions Guix recommends with
 Mine are (general)
 
 #+begin_src sh   :lang bash
-    export PKG_CONFIG_PATH="/home/pjotr/.guix-profile/lib/pkgconfig"
-    export GUILE_LOAD_PATH="/home/pjotr/.guix-profile/share/guile/site/2.0"
-    export GUILE_LOAD_COMPILED_PATH="/home/pjotr/.guix-profile/share/guile/site/2.0"
-    export CPATH="/home/pjotr/.guix-profile/include"
-    export LIBRARY_PATH="/home/pjotr/.guix-profile/lib"
-    export ACLOCAL_PATH="/home/pjotr/.guix-profile/share/aclocal"
-    export CMAKE_PREFIX_PATH="/home/pjotr/.guix-profile/"
-    export PYTHONPATH="/home/pjotr/.guix-profile/lib/python2.7/site-packages"
+    export PKG_CONFIG_PATH="$HOME/.guix-profile/lib/pkgconfig"
+    export GUILE_LOAD_PATH="$HOME/.guix-profile/share/guile/site/2.0"
+    export GUILE_LOAD_COMPILED_PATH="$HOME/.guix-profile/share/guile/site/2.0"
+    export CPATH="$HOME/.guix-profile/include"
+    export LIBRARY_PATH="$HOME/.guix-profile/lib"
+    export ACLOCAL_PATH="$HOME/.guix-profile/share/aclocal"
+    export CMAKE_PREFIX_PATH="$HOME/.guix-profile/"
+    export PYTHONPATH="$HOME/.guix-profile/lib/python2.7/site-packages"
 #+end_src sh   :lang bash
 
 Or (for the build system)
 
 #+begin_src sh   :lang bash
-   export PATH="/home/pjotrp/opt/guix-build-system/bin:/usr/bin:/bin"
-   export PKG_CONFIG_PATH="/home/pjotrp/opt/guix-build-system/lib/pkgconfig"
-   export CPATH="/home/pjotrp/opt/guix-build-system/include"
-   export LIBRARY_PATH="/home/pjotrp/opt/guix-build-system/lib"
-   export ACLOCAL_PATH="/home/pjotrp/opt/guix-build-system/share/aclocal"
+   export PATH="$HOME/opt/guix-build-system/bin:/usr/bin:/bin"
+   export PKG_CONFIG_PATH="$HOME/opt/guix-build-system/lib/pkgconfig"
+   export CPATH="$HOME/opt/guix-build-system/include"
+   export LIBRARY_PATH="$HOME/opt/guix-build-system/lib"
+   export ACLOCAL_PATH="$HOME/opt/guix-build-system/share/aclocal"
 #+end_src sh   :lang bash
 	
 Re-run the 'configure' script passing it the option

@@ -89,7 +89,7 @@ creates a symlink to the executable sow in
 
 and the libraries are available through the symlink in
 
-: /home/pjotrp/.guix-profile/lib/ruby/gems/2.2.0/gems/hoe-3.13.1/ -> /gnu/store/ccx2ri5l8y6qbrzkw4p0gq8l647kxn0g-ruby-hoe-3.13.1/lib/ruby/gems/2.2.0/gems/hoe-3.13.1
+: $HOME/.guix-profile/lib/ruby/gems/2.2.0/gems/hoe-3.13.1/ -> /gnu/store/ccx2ri5l8y6qbrzkw4p0gq8l647kxn0g-ruby-hoe-3.13.1/lib/ruby/gems/2.2.0/gems/hoe-3.13.1
 
 Running sow means you'll need to add the GNU Guix gem locations to the
 GEM_PATH, e.g.,
@@ -204,16 +204,16 @@ First using [[https://github.com/pjotrp/guix-notes/blob/master/scripts/ruby-guix
 
 #+begin_src sh   :lang bash
 set|grep guix
-ACLOCAL_PATH=/home/pjotrp/.guix-profile/share/aclocal
-BASH=/home/pjotrp/.guix-profile/bin/bash
-CPATH=/home/pjotrp/.guix-profile/include
-GEM_PATH=/home/pjotrp/.gem/c13v73jxmj2nir2xjqaz5259zywsa9zi-ruby-2.1.6/2.1.0:/home/pjotrp/.guix-profile/lib/ruby/gems/2.1.0/
-GUILE_LOAD_COMPILED_PATH=/home/pjotrp/.guix-profile/share/guile/site/2.0
-GUILE_LOAD_PATH=/home/pjotrp/.guix-profile/share/guile/site/2.0
-LIBRARY_PATH=/home/pjotrp/.guix-profile/lib
-LOCPATH=/home/pjotrp/.guix-profile/lib/locale
-PATH=/home/pjotrp/.gem/c13v73jxmj2nir2xjqaz5259zywsa9zi-ruby-2.1.6/2.1.0/bin:/home/pjotrp/.guix-profile/bin:/home/pjotrp/.guix-profile/sbin:/usr/bin:/bin
-PKG_CONFIG_PATH=/home/pjotrp/.guix-profile/lib/pkgconfig
+ACLOCAL_PATH=$HOME/.guix-profile/share/aclocal
+BASH=$HOME/.guix-profile/bin/bash
+CPATH=$HOME/.guix-profile/include
+GEM_PATH=$HOME/.gem/c13v73jxmj2nir2xjqaz5259zywsa9zi-ruby-2.1.6/2.1.0:$HOME/.guix-profile/lib/ruby/gems/2.1.0/
+GUILE_LOAD_COMPILED_PATH=$HOME/.guix-profile/share/guile/site/2.0
+GUILE_LOAD_PATH=$HOME/.guix-profile/share/guile/site/2.0
+LIBRARY_PATH=$HOME/.guix-profile/lib
+LOCPATH=$HOME/.guix-profile/lib/locale
+PATH=$HOME/.gem/c13v73jxmj2nir2xjqaz5259zywsa9zi-ruby-2.1.6/2.1.0/bin:$HOME/.guix-profile/bin:$HOME/.guix-profile/sbin:/usr/bin:/bin
+PKG_CONFIG_PATH=$HOME/.guix-profile/lib/pkgconfig
 #+end_src sh   :lang bash
 
 Note the PATH still contains /usr/bin for convenience.
@@ -299,7 +299,7 @@ starting to build the libxml2. This should not happen with the
 But somehow these do not get honoured by extconf.rb. After reading the
 source and some trying inside the build dir I found the environment variable
 
-: ~/.gems/bundler/ruby/2.1.0/gems/nokogiri-1.6.1/ext/nokogiri$ env NOKOGIRI_USE_SYSTEM_LIBRARIES=1 ruby extconf.rb  --with-xml2-include=/home/pjotrp/.guix-profile/include/libxml2 --with-xslt-include=/home/pjotrp/.guix-profile/include/libxslt --with-xml2-lib=/home/pjotrp/.guix-profile/lib --with-xslt-lib=/home/pjotrp/.guix-profile/lib
+: ~/.gems/bundler/ruby/2.1.0/gems/nokogiri-1.6.1/ext/nokogiri$ env NOKOGIRI_USE_SYSTEM_LIBRARIES=1 ruby extconf.rb  --with-xml2-include=$HOME/.guix-profile/include/libxml2 --with-xslt-include=$HOME/.guix-profile/include/libxslt --with-xml2-lib=$HOME/.guix-profile/lib --with-xslt-lib=$HOME/.guix-profile/lib
 
 resulted in 
 
@@ -311,9 +311,9 @@ go the Guix gcc compiler does not see /usr/include). Adding
 --with-opt-include=/usr/include/x86_64-linux-gnu does find it.  Added
 that to bundler's config
 
-: BUNDLE_PATH: /home/pjotrp/.gems/bundler/
+: BUNDLE_PATH: $HOME/.gems/bundler/
 : BUNDLE_DISABLE_SHARED_GEMS: '1'
-: BUNDLE_BUILD__NOKOGIRI: " --with-xml2-include=/home/pjotrp/.guix-profile/include/libxml2 --with-xslt-include=/home/pjotrp/.guix-profile/include/libxslt --with-xml2-lib=/home/pjotrp/.guix-profile/lib --with-xslt-lib=/home/pjotrp/.guix-profile/lib --with-opt-include=/usr/include/x86_64-linux-gnu"
+: BUNDLE_BUILD__NOKOGIRI: " --with-xml2-include=$HOME/.guix-profile/include/libxml2 --with-xslt-include=$HOME/.guix-profile/include/libxslt --with-xml2-lib=$HOME/.guix-profile/lib --with-xslt-lib=$HOME/.guix-profile/lib --with-opt-include=/usr/include/x86_64-linux-gnu"
 
 and ran
 
@@ -359,14 +359,14 @@ check the linked paths
 #+begin_src sh   :lang bash
   ldd nokogiri.so
         linux-vdso.so.1 (0x00007ffc9f3e1000)
-        libexslt.so.0 => /home/pjotrp/.guix-profile/lib/libexslt.so.0 (0x00007fb6c45aa000)
-        libxslt.so.1 => /home/pjotrp/.guix-profile/lib/libxslt.so.1 (0x00007fb6c436b000)
-        libxml2.so.2 => /home/pjotrp/.guix-profile/lib/libxml2.so.2 (0x00007fb6c4006000)
-        libpthread.so.0 => /home/pjotrp/.guix-profile/lib/libpthread.so.0 (0x00007fb6c3de9000)
-        libdl.so.2 => /home/pjotrp/.guix-profile/lib/libdl.so.2 (0x00007fb6c3be4000)
-        libcrypt.so.1 => /home/pjotrp/.guix-profile/lib/libcrypt.so.1 (0x00007fb6c39ad000)
-        libm.so.6 => /home/pjotrp/.guix-profile/lib/libm.so.6 (0x00007fb6c36ab000)
-        libc.so.6 => /home/pjotrp/.guix-profile/lib/libc.so.6 (0x00007fb6c330a000)
+        libexslt.so.0 => $HOME/.guix-profile/lib/libexslt.so.0 (0x00007fb6c45aa000)
+        libxslt.so.1 => $HOME/.guix-profile/lib/libxslt.so.1 (0x00007fb6c436b000)
+        libxml2.so.2 => $HOME/.guix-profile/lib/libxml2.so.2 (0x00007fb6c4006000)
+        libpthread.so.0 => $HOME/.guix-profile/lib/libpthread.so.0 (0x00007fb6c3de9000)
+        libdl.so.2 => $HOME/.guix-profile/lib/libdl.so.2 (0x00007fb6c3be4000)
+        libcrypt.so.1 => $HOME/.guix-profile/lib/libcrypt.so.1 (0x00007fb6c39ad000)
+        libm.so.6 => $HOME/.guix-profile/lib/libm.so.6 (0x00007fb6c36ab000)
+        libc.so.6 => $HOME/.guix-profile/lib/libc.so.6 (0x00007fb6c330a000)
         libgcc_s.so.1 => /gnu/store/76afr0pfbnimz7rdad35y5yd753myjhk-gcc-4.9.2-lib/lib/libgcc_s.so.1 (0x00007fb6c30f4000)
         liblzma.so.5 => /gnu/store/h86jd7lyd6lny3yz30d44gi4b0mz73in-xz-5.0.4/lib/liblzma.so.5 (0x00007fb6c2ed1000)
         libz.so.1 => /gnu/store/yx7c449ds3psyrn40h4nfvsb7xqqzziy-zlib-1.2.7/lib/libz.so.1 (0x00007fb6c2cb8000)
@@ -706,12 +706,12 @@ After installing Nokogiri
 
 the binary complains
 
-: /home/wrk/.guix-profile/bin/nokogiri
+: $HOME/.guix-profile/bin/nokogiri
 : /gnu/store/9iifw37m8vd5bkj0fh67ndc5f2da46wb-ruby-2.2.2/lib/ruby/2.2.0/rubygems/dependency.rb:315:in `to_specs': Could not find 'nokogiri' (>= 0) among 9 total gem(s) (Gem::LoadError)
-: Checked in 'GEM_PATH=/home/wrk/.gem/ruby/2.2.0:/gnu/store/9iifw37m8vd5bkj0fh67ndc5f2da46wb-ruby-2.2.2/lib/ruby/gems/2.2.0', execute `gem env` for more information
+: Checked in 'GEM_PATH=$HOME/.gem/ruby/2.2.0:/gnu/store/9iifw37m8vd5bkj0fh67ndc5f2da46wb-ruby-2.2.2/lib/ruby/gems/2.2.0', execute `gem env` for more information
 :         from /gnu/store/9iifw37m8vd5bkj0fh67ndc5f2da46wb-ruby-2.2.2/lib/ruby/2.2.0/rubygems/dependency.rb:324:in `to_spec'
 :         from /gnu/store/9iifw37m8vd5bkj0fh67ndc5f2da46wb-ruby-2.2.2/lib/ruby/2.2.0/rubygems/core_ext/kernel_gem.rb:64:in `gem'
-:         from /home/wrk/.guix-profile/bin/nokogiri:22:in `<main>'
+:         from $HOME/.guix-profile/bin/nokogiri:22:in `<main>'
 
 which means the nokogiri module is not found. Doing a 
 
@@ -734,7 +734,7 @@ selinunte:~$ gem env
   - EXECUTABLE DIRECTORY: /usr/local/bin
   - GEM PATHS:
      - /var/lib/gems/1.9.1
-     - /home/wrk/.gem/ruby/1.9.1
+     - $HOME/.gem/ruby/1.9.1
 #+end_src 
 
 which means we need a system-wide path for gems - which does not exist
@@ -828,7 +828,7 @@ install method is used. We pass in the extra gem-flags parameter.
 Now we can install Nokogiri and run it after the GEM_PATH is set:
 
 #+begin_src shell
-export GEM_PATH=/home/wrk/.guix-profile/lib/ruby/gems/2.2.0/
+export GEM_PATH=$HOME/.guix-profile/lib/ruby/gems/2.2.0/
 nokogiri
 
     Nokogiri: an HTML, XML, SAX, and Reader parser
@@ -841,7 +841,7 @@ nokogiri
 
     Options:
 	    --type type                  Parse as type: xml or html (default: auto)
-	-C file                          Specifies initialization file to load (default /home/wrk/.nokogirirc)
+	-C file                          Specifies initialization file to load (default $HOME/.nokogirirc)
 	-E, --encoding encoding          Read as encoding (default: none)
 	-e command                       Specifies script from command-line.
 	    --rng <uri|path>             Validate using this rng file.
