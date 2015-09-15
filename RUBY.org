@@ -65,22 +65,28 @@ packages. In this document I explain what the philosophy is of Ruby
 questions and contribute ideas. There are multiple possible tactics
 for sane dependency handling that GNU Guix could support.
 
+In addition GNU Guix has its own build farm and continuous integration
+for submitted guix expressions (packages). We'll also add GNU Guix
+support to Travis CI soon.
+
+And, as a thrown in benefit, running tests with cucumber is also much
+faster without bundler wrapping!
+
 * Getting rid of RVM, rbenv and bundler
 
 Ruby gems are natively supported from GNU Guix. This means we can get
-rid of the RVM-rbenv-bundler trinity. GNU Guix has its own build farm
-and continuous integration. We'll also add GNU Guix support to Travis
-CI soon.
-
-And, running tests with cucumber is also much faster without bundler exec!
+rid of the RVM-rbenv-bundler trinity. All we use here is the *ruby* interpreter with 
+the accompanying *gem* tool.
 
 * GNU Guix installation
 
-The Achilles heel of introducing GNU Guix at this point (2015) is that
+The achilles heel of introducing GNU Guix at this point (2015) is that
 it is not standard in Linux distributions. That support will come
 because GNU Guix is the official packaging system of the GNU project
 and is orthogonal to existing software packaging systems (everything
-is installed in /gnu). It will happen.
+is installed in /gnu). It will happen. And even without distribution
+support, guix is easy to support and install on any Linux system (and
+soon other targets).
 
 Currently there are multiple ways of installing GNU Guix. See the
 [[https://github.com/pjotrp/guix-notes/blob/master/INSTALL.org][INSTALL]] document in this repository. There is a binary installer (i.e.
@@ -224,7 +230,7 @@ number will keep the gems. If this is not what you want (i.e. true
 version isolation) make sure to use guix profiles for individual
 Rubies and use only that GEM_PATH.
 
-* Adding Gems in user land
+* Adding Gems in user land ($HOME)
 
 GNU Guix Ruby comes with gem support out of the box. The gem tool also
 is symlinked in ~/.guix-profile/bin. When we run `gem env' it says
@@ -248,9 +254,9 @@ is symlinked in ~/.guix-profile/bin. When we run `gem env' it says
      - /home/user/.gem/ziy7a6zib846426kprc7fgimggh8bz97-ruby-2.1.3/2.1.0
 #+end_src
 
-The general idea is that we allow users to install their own gems, but
-cleanly separated against the HASH dir that comes with the Ruby
-installation. This way there is clear isolation between different
+The general idea here is that we allow users to install their own
+gems, but cleanly separated against the HASH dir that comes with the
+Ruby installation. This way there is clear isolation between different
 installed versions of Ruby. Unlike RVM and rbenv, there is NO
 (accidental) sharing between different Ruby installations!
 

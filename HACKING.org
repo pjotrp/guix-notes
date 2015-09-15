@@ -812,6 +812,8 @@ To change the last commit message do
 
 : git commit --amend
 
+Which creates a file 0001-gnu-patchname.patch.
+
 Make sure tabs are turned into spaces. The emacs commands are
 [[http://www.emacswiki.org/emacs/NoTabs][here]]. Lines should be broken (use M-q in emacs). And use the Emacs TAB
 to find the right LISP indendation. 
@@ -821,7 +823,19 @@ To change credentials for the patch use the [[https://help.github.com/articles/s
 Initially you can mail the patch as an attachment to the mailing
 list. But better is to mail it as it is with something like:
 
-: mail
+: cat 0001-gnu-patchname.patch |formail -s mail -t
+
+after making sure the header contains something like
+
+: From: Pjotr Prins <my.email>
+: To: guix-devel <guix-devel@gnu.org>
+: Subject: [PATCH]     gnu: Add ruby-libxml.
+: 
+:    * gnu/packages/ruby.scm (ruby-libxml): New variable.
+: ---
+: etc.
+
+Note that guix wants one patch per variable.
 
 For more information see the official HACKING document in the Guix git
 repo.
