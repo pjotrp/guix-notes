@@ -823,7 +823,8 @@ To change credentials for the patch use the [[https://help.github.com/articles/s
 Initially you can mail the patch as an attachment to the mailing
 list. But better is to mail it as it is with something like:
 
-: cat 0001-gnu-patchname.patch |formail -s mail -t
+: cat 0001-gnu-patchname.patch |formail -t -I "To: guix-devel@gnu.org" -I "From: pjotr.public12@thebird.nl">mail.msg
+: cat test.msg|formail -s mail -t 
 
 after making sure the header contains something like
 
