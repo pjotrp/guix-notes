@@ -466,6 +466,9 @@ missing build or runtime depencies are *always* caught. So we add
 That would work, but I ended up updating the gem because there was some
 more stuff to remove. The final version is pretty clean.
 
+Hint: use the -K switch if you want to keep the unpacked build repository
+to see where the error occurred.
+
 ** Step 4 Submit the expression to the mailing list
 
 First check the syntax:

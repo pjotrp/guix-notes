@@ -71,9 +71,10 @@ package, create the build group and permissions.
 
 ** The one-step tarball installation
 
-Ricardo has written a nice [[http://elephly.net/posts/2015-06-21-getting-started-with-guix.html][introduction]].
+Ricardo has written a nice [[http://elephly.net/posts/2015-06-21-getting-started-with-guix.html][introduction]]. Also the [[https://www.gnu.org/software/guix/download/][guix documentation]]
+may be more up-to-date. There may also be Docker images
 
-Fetch the TAR ball 
+In principle, fetch the TAR ball 
 
 : http://www.fdn.fr/~lcourtes/software/guix/guix-tarball-0.8.1.1140.tar.lz
 : http://www.fdn.fr/~lcourtes/software/guix/guix-tarball-0.8.1.1140.tar.lz.sig

@@ -821,10 +821,11 @@ to find the right LISP indendation.
 To change credentials for the patch use the [[https://help.github.com/articles/setting-your-email-in-git/][git config]] command.
 
 Initially you can mail the patch as an attachment to the mailing
-list. But better is to mail it as it is with something like:
+list. But better is to mail it as it is with something like (I use two steps
+to validate the mail and send it from a different mail server)
 
-: cat 0001-gnu-patchname.patch |formail -t -I "To: guix-devel@gnu.org" -I "From: pjotr.public12@thebird.nl">mail.msg
-: cat test.msg|formail -s mail -t 
+: cat 0001-*.patch |formail -t -I "To: guix-devel@gnu.org" -I "From: Pjotr Prins <pjotr.public12@thebird.nl>"> mail.msg
+: cat ~/tmp/mail.msg|formail -s mail -t ; rm ~/tmp/mail.msg
 
 after making sure the header contains something like
 
@@ -933,6 +934,52 @@ packages and add them to the GUIX_PACKAGE_PATH:
 
 this is also useful for packages that are in Guix but that you would
 like to customize, for instance with a different set of dependencies
-or different build flags.
+or different build flags. Make sure it is a full module, a simple
+module would be:
+
+#+begin_src scheme
+(define-module (pylmm)
+  #:use-module ((guix licenses) #:prefix license:)
+  #:use-module (gnu packages)
+  #:use-module (gnu packages python)
+  #:use-module (guix download)
+  #:use-module (guix packages)
+  #:use-module (guix git-download)
+  #:use-module (guix utils)
+  #:use-module (guix build-system gnu)
+  #:use-module (guix build-system python)
+  #:use-module (guix build-system trivial)
+  #:use-module (srfi srfi-1))
+
+(define-public python-pylmm
+  (package
+    (name "python-pylmm")
+    (version "1.0.0")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             "https://pypi.python.org/packages/source/p/pylmm/pylmm-"
+             version ".tar.gz"))
+       (sha256
+        (base32 "0bzl9f9g34dlhwf09i3fdv7dqqzf2iq0w7d6c2bafx1nla98qfbh"))))
+    (build-system python-build-system)
+    (arguments '(#:tests? #f))
+    (native-inputs
+     `(("python-setuptools" ,python-setuptools)))
+    (home-page "https://github.com/genenetwork/pylmm_gn2")
+    (synopsis "Python LMM resolver")
+    (description
+      "Python LMM resolver")
+    (license license:gpl-3)))
+
+(define-public python2-pylmm
+  (package-with-python2 python-pylmm))
+#+end_src scheme
+
+Save it as a file named pylmm.scm (the name of the module!) and add the path
+
+: env GUIX_PACKAGE_PATH=~/python/pylmm_gn2/guix guix package -A python-pylmm 
+:   python-pylmm    1.0.0   out     ~/python/pylmm_gn2/guix/pylmm.scm:15:2
 
 * TODO Create a caching server
