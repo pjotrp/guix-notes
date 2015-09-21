@@ -435,6 +435,20 @@ prints out
   (license #f))
 #+end_src scheme
 
+** Dependencies
+
+All software (except for the Linux kernel) depends on other software to build
+or to run. Guix keeps track of them and by adding a dependency all underlying
+dependencies get pulled in too. The build systems will pull in the usual dependencies,
+but often you need to specify a few more. Guix understands the following inputs
+
+1. *native-inputs*: required for building but not runtime - installing a
+   package through a substitute won't install these inputs
+2. *inputs*: installed in the store but not in the profile, as well as being
+   present at build time
+3. *propagated-inputs*: installed in the store and in the profile, as
+   well as being present at build time
+
 * Building the package
 
 From a prebuilt guix in the source tree one can start with
@@ -456,7 +470,6 @@ the destination
 #+end_src
 
 * Debugging the package
-
 ** Environment
 
 Before debugging it is important to have a clean environment. 
@@ -480,11 +493,15 @@ set|grep guix
   PKG_CONFIG_PATH=/home/pjotr/.guix-profile/lib/pkgconfig
 #+end_src
 
-
 ** Inside Guile (REPL)
 
 With most packaging systems the only way to debug them is by sprinkling print
-statements, using a debugger or hoping for the best (TM). 
+statements, using a debugger or hoping for the best (TM). The equivalent in
+a guix expression would be, for example
+
+#+begin_src scheme
+ (pk 'ECHO (which "echo"))
+#+end_src scheme
 
 GNU Guix is written in scheme lisp with the GNU Guile interpreter/compiler. This means
 code can be run and data can be inspected in the REPL.
@@ -767,7 +784,11 @@ And nowadays one can also use --search-paths=suffix or
 Check the Guix guidelines [[https://www.gnu.org/software/guix/manual/html_node/Submitting-Patches.html#Submitting-Patches][first]].
 
 A patch can be sent to the mailing list. Use git rebase --interactive
-to merge and [[http://gitready.com/advanced/2009/02/10/squashing-commits-with-rebase.html][squash patches]] into one. Next use the GNU ChangeLog
+to merge and [[http://gitready.com/advanced/2009/02/10/squashing-commits-with-rebase.html][squash patches]] into one. E.g., 
+
+: git rebase -i HEAD~4
+
+Next use the GNU ChangeLog
 format which is a header with a filewise change description:
 
 #+begin_src scheme
@@ -820,12 +841,14 @@ to find the right LISP indendation.
 
 To change credentials for the patch use the [[https://help.github.com/articles/setting-your-email-in-git/][git config]] command.
 
+** Mail the patch
+
 Initially you can mail the patch as an attachment to the mailing
 list. But better is to mail it as it is with something like (I use two steps
 to validate the mail and send it from a different mail server)
 
-: cat 0001-*.patch |formail -t -I "To: guix-devel@gnu.org" -I "From: Pjotr Prins <pjotr.public12@thebird.nl>"> mail.msg
-: cat ~/tmp/mail.msg|formail -s mail -t ; rm ~/tmp/mail.msg
+: cat 0001-*.patch |formail -t -I "To: guix-devel@gnu.org" -I "From: Pjotr Prins <pjotr.public12@thebird.nl>"> mail.patch
+: cat ~/tmp/mail.patch|formail -s mail -t ; rm ~/tmp/mail.patch
 
 after making sure the header contains something like
 
@@ -837,7 +860,8 @@ after making sure the header contains something like
 : ---
 : etc.
 
-Note that guix wants one patch per variable.
+Note that GNU Guix wants one patch per variable. So submit packages
+one at a time.
 
 For more information see the official HACKING document in the Guix git
 repo.
@@ -858,6 +882,28 @@ Now to creat a patch to send to the mailing list do
 
 Squash the commits into one
 
+** Dealing with the review process
+
+When you write many patches that potentially depend on each other and
+the review system get choked (the reviewers can't allways keep up) I
+resort to a system where I develop patches in a separate source
+repository. The patches I feed to the reviewers one at a time, so that
+only when a patch gets accepted (or fully rejected) I send in the next
+one. This is the most relaxed way of dealing with the GNU Guix patch
+submission protocol. Remember that reviewers are people who put in
+their spare time to to make sure GNU Guix is great. It can be annoying
+when you disagree with a reviewer, but stay calm, be nice and try to
+discuss the underlying issue. One example is the R-qtl thread.
+
+One great advantage of handling one patch at a time is that it is much
+easier to keep track with git and the mailing list. And because I have
+a separate git tree, I can still use my own patches. For the separate
+tree is makes sense to use a different name space (not the gnu
+directory) and give the packages different names too - so that when
+you overlap with the GNU Guix package tree there is no packaging
+conflict. With the GeneNetwork tree we use the gn directory and
+prepend package names with gn- so r-qtl becomes gn-r-qtl.
+
 * Hints
 
 Read the HACKING documentation in the Guix source tree.
@@ -873,7 +919,6 @@ Emacs has powerful support for editing LISP (unsurprisingly, perhaps).
 + C-M-f and C-M-b move to forward/backward to matching braces
 
 * The Ruby package
-
 ** Ruby Gems
 
 The first Ruby gem support by GNU Guix is ruby-i18n (internationalization). The 
@@ -983,3 +1028,5 @@ Save it as a file named pylmm.scm (the name of the module!) and add the path
 :   python-pylmm    1.0.0   out     ~/python/pylmm_gn2/guix/pylmm.scm:15:2
 
 * TODO Create a caching server
+
+The Guix daemon contains a build server. It also can distribute built binaries.

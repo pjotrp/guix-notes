@@ -120,15 +120,6 @@ mount it with kpartx
     mv tmp/gnu/ /
 #+end_src sh   :lang bash
 
-* Set the store permissions
-
-This part is done automatically by the guix-daemon
-
-#+begin_src sh   :lang bash
-    chgrp guix-builder -R /gnu/store
-    chmod 1775 /gnu/store
-#+end_src sh   :lang bash
-
 * Create build group and users
 
 Now we have the /gnu/store in place we need to create a group and
@@ -150,6 +141,15 @@ users with build permissions for the Guix daemon. In bash
 Also the store comes with meta-data in the form of a sqlite
 database. This sits in /var/guix. Copy also this directory to the new
 system before running guix.
+
+* Set the store permissions
+
+This part is normally done automatically by the guix-daemon
+
+#+begin_src sh   :lang bash
+    chgrp guix-builder -R /gnu/store
+    chmod 1775 /gnu/store
+#+end_src sh   :lang bash
 
 * Start the GNU Guix daemon
 
@@ -196,8 +196,16 @@ you may want to restart the daemon after a successful upgrade.
 
 As a normal user you can now install software (see below install the
 hello package). Guix will ask you to install a dir for the user in
-/var/guix/profiles/per-user/. You can add mkdir
-/var/guix/profiles/per-user/pjotr/guix-profile/bin and link guix from there.
+/var/guix/profiles/per-user/. As root
+
+: mkdir /var/guix/profiles/per-user/pjotr
+: chown pjotr /var/guix/profiles/per-user/pjotr
+
+Now run guix the first time from the store (using the path that the
+root version of guix has) and install guix client itself
+
+: su pjotr
+: /root/.guix-profile/bin/guix package -i guix
 
 * Install the hello package
 
@@ -213,8 +221,9 @@ hello package). Guix will ask you to install a dir for the user in
     http://hydra.gnu.org/nar/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9       43.0 KiB transferred2 packages in profile
 #+end_src sh   :lang bash
 
-did a binary install of the hello package. A symlink was created in ~/.guix-profile/bin/ pointing to
-/gnu/store/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9/bin/hello. 
+did a binary install of the hello package. A symlink was created in
+~/.guix-profile/bin/ pointing to
+/gnu/store/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9/bin/hello.
 
 Note that you have the great luxury of interrupting GNU Guix at any
 point during build and installation. That is because it is TRANSACTION
