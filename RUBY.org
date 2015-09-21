@@ -419,6 +419,8 @@ store this chr+pos or chr+pos+alt information in a fast database.")
 
 Note the HASH is the same as the one we got with guix download.
 
+** Step 2-bis Alternatively generate the package definition
+
 Actually, guix can also give you an example expression for a gem with
 
 : ./pre-inst-env guix import gem bio-locus
@@ -443,7 +445,7 @@ Actually, guix can also give you an example expression for a gem with
   (license expat))
 #+end_src scheme 
 
-which can help you get started!
+which can help to get started!
 
 ** Step 3 Test the package
 
@@ -480,13 +482,12 @@ it to the mailing list after
 
 : git format-patch -1
 
-* TODO Generating GNU Guix Gem packages
+* Generating GNU Guix Gem packages
 
-The Gem specification is pretty straightforward. The great problem
-with rubygems is that they are not designed for clear isolation of
-installations. With GNU Guix it should be possible to generate
-installation packages from Gem definitions. That is coming soon.
+Take a gem name and try
 
-* More on Ruby packages
+: guix import gem bioruby
 
-See RUBY-NOKOGIRI.org for more information.
+* More on creating Ruby packages
+
+If you are hungry for more internals, see the file RUBY-NOKOGIRI.org for more information.

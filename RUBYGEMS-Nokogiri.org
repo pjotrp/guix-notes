@@ -46,7 +46,9 @@ over 1,000 installation related questions on Stack Overflow.
 
 * Current state
 
-GNU Guix has native gem support through the rubygems-uri procedure!
+GNU Guix has native gem support through the rubygems-uri procedure and
+ruby-build-system!
+
 That means you can create a simple package description which can
 install a native gem:
 
@@ -113,12 +115,6 @@ To see the actual paths and libraries that a Ruby uses, check
 Currently, to find gems, you have to set the GEM_PATH. I use a [[https://github.com/pjotrp/guix-notes/blob/master/scripts/ruby-guix-env][script]]
 for this.
 
-*** TODO Provide a build system that uses simple gem descriptions
-
-We could extract Gem information from Rubygems - something Nix was
-capable of doing - and create expressions from those (even on the
-fly). GNU Guix has an 'import' command just for this.
-
 ** Gem in $HOME
 
 The gem tool comes with the GNU Guix Ruby installation. This means you can run
@@ -139,7 +135,8 @@ infamous Nokogiri example.
 
 Bundler works in GNU Guix, both installed though Guix and through
 gems. See the Nokogiri example below. I prefer, however, not to use
-bundler at all, see the section on that below.
+bundler at all. GNU Guix makes bundler obsolete. See the section on
+that below.
 
 ** Important packages
 
@@ -216,7 +213,8 @@ PATH=$HOME/.gem/c13v73jxmj2nir2xjqaz5259zywsa9zi-ruby-2.1.6/2.1.0/bin:$HOME/.gui
 PKG_CONFIG_PATH=$HOME/.guix-profile/lib/pkgconfig
 #+end_src sh   :lang bash
 
-Note the PATH still contains /usr/bin for convenience.
+Note the PATH still contains /usr/bin for convenience, though you should be
+able to do without.
 
 ** 'gem install nokogiri'
 
@@ -224,10 +222,11 @@ Trying a naive
 
 : gem install nokogiri 
 
-results in 'ERROR: Failed to build gem native extension' due to a failing libxml2
-build. Nokogiri packages its own version of libxml2. One way to solve this error
-is by fixing the compile problem (the logs say it is libtool related), the other way
-is to install libxml2 in Guix and tell nokogiri where to find it.
+results in 'ERROR: Failed to build gem native extension' due to a
+failing libxml2 build. Nokogiri packages its own version of libxml2
+and tries to compile that. One way to solve this error is by fixing
+the compile problem (the logs say it is libtool related), the other
+way is to install libxml2 in Guix and tell nokogiri where to find it.
 
 : guix package -i libxml2
 
@@ -236,8 +235,9 @@ so we tell nokogiri where to find them
 
 : gem install nokogiri -- --use-system-libraries --with-xml2-include=$HOME/.guix-profile/include/libxml2 --with-xml2-lib=$HOME/.guix-profile/lib
 
-First Nokogiri complains 'libxml2 version 2.9.2 or later is highly recommended, but proceeding anyway' - we can fix that later.
-Next error is missing libxslt, but now we know what to do
+First Nokogiri complains 'libxml2 version 2.9.2 or later is highly
+recommended, but proceeding anyway' - we can fix that later.  Next
+error is missing libxslt, but now we know what to do
 
 : guix package -i libxslt
 
@@ -253,9 +253,10 @@ and now the build succeeded
 That was rather easy for a notoriously difficult gem! And it looks
 like we can formalize this in a Guix package. Note that I cheated a
 little. Since /usr/bin is still in the path I am (probably) still
-using some of the build tools of the underlying distribution. I could
-aim to fix that, but it will come out when we add a proper guix
-package anyway.
+using some of the build tools of the underlying distribution (running
+gem on its own does not isolate the build). I could aim to fix that,
+but it will come out when we add a proper guix package anyway (guix
+builds are fully isolated).
 
 One interesting check is to see what the nokogiri.so shared library
 that we built links against, e.g.
@@ -263,8 +264,9 @@ that we built links against, e.g.
 : ldd $HOME/.gem/c13v73jxmj2nir2xjqaz5259zywsa9zi-ruby-2.1.6/2.1.0/extensions/x86_64-linux/2.1.0-static/nokogiri-1.6.6.2/nokogiri/nokogiri.so
 
 and validate all the paths are pointing at the GNU Guix store. You
-don't want to mix in libraries that are non-guix. Note that the
-Nokigiri documentation also suggests gem path options for
+don't want to mix in libraries that are non-guix because it suggests
+things are missing. Note that the Nokigiri documentation also suggests
+gem path options for
 
 : --with-iconv-dir=/path/to/dir --with-zlib-dir=/path/to/dir 
 
@@ -305,9 +307,9 @@ resulted in
 
 : /usr/include/features.h:323:26: fatal error: bits/predefs.h: No such file or directory
 
-predefs is part of the GNU C library (libc6), so it is kinda strange it does
-not get picked up (well, Guix even isolates away the native system -
-go the Guix gcc compiler does not see /usr/include). Adding
+predefs is part of the GNU C library (libc6), so it is perhaps strange
+it does not get picked up (well, Guix even isolates away the native
+system - go the Guix gcc compiler does not see /usr/include). Adding
 --with-opt-include=/usr/include/x86_64-linux-gnu does find it.  Added
 that to bundler's config
 
@@ -403,7 +405,7 @@ which (now) fails with
 Actually, this is not so bad. The environment gets picked up in a GNU Guix package, so
 let's move on. The install path (mostly) works.
 
-*** IN PROGRESS Write the GNU Guix package
+*** Write the GNU Guix package
 
 **** Update and build the GNU Guix source
 
@@ -493,8 +495,12 @@ and you are at the state of the error (with environment). Running
 it complains Gem::LoadError: Could not find 'hoe' (>= 0) among 9 total
 gem(s). It is interesting to note that the build is completely
 isolated from the rest of the system, so any dependencies not
-explicitely added will *fail*. And when you do add it, it will be
-visible to the package forever and reproducible.
+explicitely added will *fail*. To check run
+
+: set
+
+And when you do add it, it will be visible to the package *forever*
+and this is key to the build being reproducible.
 
 Note: you may need to change the permissions of the build directory to
 try stuff by hand. As root 
@@ -914,8 +920,6 @@ we are going to create should take care of that.
 Basically I copied the existing ruby-build-system to facilitate gem
 installs. I'll probably have to make one later again, but this is a
 good strategy for testing new things.
-
-* TODO GNU Guix: import gem
 
 * Getting rid of Bundler
 
