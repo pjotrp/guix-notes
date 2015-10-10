@@ -1,0 +1,118 @@
+#+TITLE: Pjotr's hacking guide to GNU Guix
+
+* Table of Contents                                                     :TOC:
+ - [[#arvados-introduction-][Arvados Introduction ]]
+ - [[#creating-a-debian-base-install-][Creating a Debian base install ]]
+   - [[#choice-of-ext4-vs-xfs][Choice of ext4 vs XFS]]
+   - [[#usb-based-server-installation][USB-based server installation]]
+
+* Arvados Introduction 
+
+With Arvados+GNU Guix we aim to crack two bioinformatics problems
+at the same time (well, maybe even more, but these are our two main
+problems):
+
+1. Get rid of the central FS bottleneck
+2. Create shareable pipelines
+
+Arvados provides an answer to both, so in this document I'll try and
+install Arvados on a small compute cluster. For this we will create a
+number of GNU Guix packages.
+
+* Creating a Debian base install 
+
+
+The developers of Arvados use Debian Wheezy as a base install with an
+XFS file system. Wheezy also misses out on the systemd split. So
+Wheezy it is this time. Next time I do a cluster install it may be a
+native GUIX distribution which probably will miss out on systemd
+altogether (note I have systemd running on my desktop, I may change my
+mind about servers at some point).
+
+** Choice of ext4 vs XFS
+
+In general, storing data on Linux should be
+considered `unsafe'. Arvados, however, promises redundancy across
+nodes, so we ought to be not too concerned with the underlying storage. 
+Also, most of the jobs on this cluster will be transient.
+
+Taking a look at these [[http://www.ilsistemista.net/index.php/virtualization/47-zfs-btrfs-xfs-ext4-and-lvm-with-kvm-a-storage-performance-comparison.html?limitstart=0][benchmarks]] I decided to go for ext4
+initially. We use 1TB drives and ext4 is (still) the standard on
+Linux. File writing and reading is mostly linear with Arvados FS and
+most bioinformatics tools, so it won't make a huge difference. We can
+try XFS later.
+
+** USB-based server installation
+
+*** Create bootable USB
+
+Not all servers have a CDROM reader, so we need to create a bootable
+[[https://wiki.debian.org/BootUsb][USB stick]] with a bootable partition. Debian instructions are
+[[https://wiki.debian.org/BootUsb][here]]. Arvados requires amd64. So, basically, download an image (I
+usually take CD1 only) and dd it to the USB drive (directly; not to a
+partition):
+
+: dd if=imagefile of=/dev/sdxx bs=4M; sync
+:   679477248 bytes (679 MB) copied, 96.5819 s, 7.0 MB/s
+
+Now it should boot and we can start server installs. This is a manual
+job. An automated install will be interesting once we scale up, but
+for now I only have to install some 10 machines and can't be bothered.
+
+*** Install server
+
+It needed a little bios nudging, but the installation was easy. 
+I just select the defaults for a minimal install (select ssh 
+server, not the full desktop). I installed
+
+: fedor311: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 3TB
+: fedor312: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 3TB
+
+*** File system
+
+The partitioning I opt for is usually sda1 root 10GB (for Debian),
+sda2 8GB swap, sda3 root2 (for upgrades) and LVM for the rest. GUIX
+will get a partition in there, as well as the home directories etc.
+At installation time only the first two need to be defined.
+
+*** Post install
+
+After logging in for the first time I create an arvados user and
+disable root ssh
+
+: PermitRootLogin no
+: PasswordAuthentication yes
+
+followed by setting stronger passwords for root and the user.
+PasswordAutenthication should be disabled later.
+
+*** Docker
+
+Docker should be latest (>1.5) and requires a Kernel upgrade.
+
+**** Update the Linux kernel
+
+To /etc/apt/sources.list add the line 
+
+: deb http://http.debian.net/debian wheezy-backports main contrib non-free
+
+and
+
+: apt-get update
+: apt-cache search linux-image
+
+will give the kernel to install, and
+
+: apt-get install -t wheezy-backports linux-image-amd64 linux-headers-amd64
+
+will install the kernel + headers and update grub2 (boot).
+
+At this stage it probably makes sense to add a few more packages
+
+: apt-get install lvm2 ssh vim pigz bzip2 screen unzip  \
+          sudo locales lynx mc rsync make ncurses-bin \
+          git-core tzdata htop iftop gnupg \
+          tree psmisc ntpdate pciutils 
+: dpkg-reconfigure locales
+
+and select the en_UK, en_GB en nl_NL options.
