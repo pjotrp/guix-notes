@@ -1,4 +1,4 @@
-#+TITLE: Pjotr's hacking guide to GNU Guix
+#+TITLE: Installing ARVADOS on Debian + GNU Guix
 
 * Table of Contents                                                     :TOC:
  - [[#arvados-introduction-][Arvados Introduction ]]
@@ -63,28 +63,37 @@ for now I only have to install some 10 machines and can't be bothered.
 
 It needed a little bios nudging, but the installation was easy. 
 I just select the defaults for a minimal install (select ssh 
-server, not the full desktop). I installed
+server, not the full desktop). I installed machines
 
 : fedor311: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 3TB
 : fedor312: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 3TB
+: fedor313: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 3TB
+: fedor314: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 3TB
+: fedor315: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 1TB
 
-*** File system
+*** Partitioning the file system
 
 The partitioning I opt for is usually sda1 root 10GB (for Debian),
 sda2 8GB swap, sda3 root2 (for upgrades) and LVM for the rest. GUIX
 will get a partition in there, as well as the home directories etc.
 At installation time only the first two need to be defined.
 
-*** Post install
+: fdisk -l 
+:   /dev/sda1   *        2048    20965375    10481664   83  Linux
+:   /dev/sda2        20965376    36589567     7812096   82  Linux swap / Solaris
 
-After logging in for the first time I create an arvados user and
-disable root ssh
+*** Automate, automate
 
-: PermitRootLogin no
-: PasswordAuthentication yes
+When working on the 3rd server I decided I needed to automate things.
+In the past I have worked with Cfengine and Chef (for example), but
+those tools are not exactly what I want out of installation control
+(though I like some of the philosophy in there). I'll write out what I
+want and start simple (KISS). Arguably installation control can be
+part of GNU Guix - and I know people are doing that (even for VMs) so
+you can say deploy my-webserver with all configuration included.
 
-followed by setting stronger passwords for root and the user.
-PasswordAutenthication should be disabled later.
+So, as these things go I created the [[https://github.com/pjotrp/deploy][deploy tool]] which is used later
+in the chain.
 
 *** Docker
 
@@ -95,6 +104,8 @@ Docker should be latest (>1.5) and requires a Kernel upgrade.
 To /etc/apt/sources.list add the line 
 
 : deb http://http.debian.net/debian wheezy-backports main contrib non-free
+
+and disable the CDROM ref in the file, while you are at it.
 
 and
 
@@ -109,10 +120,33 @@ will install the kernel + headers and update grub2 (boot).
 
 At this stage it probably makes sense to add a few more packages
 
-: apt-get install lvm2 ssh vim pigz bzip2 screen unzip  \
-          sudo locales lynx mc rsync make ncurses-bin \
-          git-core tzdata htop iftop gnupg \
-          tree psmisc ntpdate pciutils 
-: dpkg-reconfigure locales
+#+begin_src sh
+apt-get install -t wheezy-backports linux-image-amd64 \
+        linux-headers-amd64 lvm2 ssh vim pigz bzip2 screen unzip  \
+        sudo locales lynx mc rsync ncurses-bin \
+        tzdata htop iftop gnupg \
+        tree psmisc ntpdate pciutils screen
+# (answer questions, doh!)
+dpkg-reconfigure locales
+#+end_src
 
-and select the en_UK, en_GB en nl_NL options.
+and select the en_UK, en_GB en nl_NL options (arguably this step is
+not needed). Make sure ssh still works after
+
+#+begin_src sh
+/etc/init.d/ssh reload
+#+end_src sh
+
+And test kernel reboot and ssh login before moving the box to a remote
+location (no kiddin').
+
+*** Post install
+
+After logging in for the first time I create an arvados user and
+disable root ssh
+
+: PermitRootLogin no
+: PasswordAuthentication yes
+
+followed by setting stronger passwords for root and the user.
+PasswordAutenthication should be disabled later.
