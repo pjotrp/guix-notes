@@ -21,7 +21,6 @@ number of GNU Guix packages.
 
 * Creating a Debian base install 
 
-
 The developers of Arvados use Debian Wheezy as a base install with an
 XFS file system. Wheezy also misses out on the systemd split. So
 Wheezy it is this time. Next time I do a cluster install it may be a
@@ -59,6 +58,10 @@ Now it should boot and we can start server installs. This is a manual
 job. An automated install will be interesting once we scale up, but
 for now I only have to install some 10 machines and can't be bothered.
 
+With one machine the USB and CDROM boot did not work. I used
+debootstrap instead (the latter if you have a Debian login as root on
+the machine already).
+
 *** Install server
 
 It needed a little bios nudging, but the installation was easy. 
@@ -70,6 +73,10 @@ server, not the full desktop). I installed machines
 : fedor313: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 3TB
 : fedor314: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 3TB
 : fedor315: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 1TB
+: fedor316: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 1TB
+: fedor317: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 3TB
+: fedor318: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 3TB
+: dellR410: 8 x Intel 2.16Hz (2Mb, ????bogomips), 24G RAM, 1TB
 
 *** Partitioning the file system
 
@@ -126,12 +133,12 @@ apt-get install -t wheezy-backports linux-image-amd64 \
         sudo locales lynx mc rsync ncurses-bin \
         tzdata htop iftop gnupg \
         tree psmisc ntpdate pciutils screen
-# (answer questions, doh!)
+# (downloads 316Mb and answer two stupid questions, doh!)
 dpkg-reconfigure locales
 #+end_src
 
 and select the en_UK, en_GB en nl_NL options (arguably this step is
-not needed). Make sure ssh still works after
+not needed, Guix comes with its own). Make sure ssh still works after
 
 #+begin_src sh
 /etc/init.d/ssh reload
@@ -139,6 +146,13 @@ not needed). Make sure ssh still works after
 
 And test kernel reboot and ssh login before moving the box to a remote
 location (no kiddin').
+
+At this point we have an installed system. It takes about 15 minutes
+of working time assuming the hardware behaves (it is worth checking
+BIOS settings, at least check what the machine should do on power
+failure).
+
+From this point on the installation should be automated.
 
 *** Post install
 
@@ -150,3 +164,8 @@ disable root ssh
 
 followed by setting stronger passwords for root and the user.
 PasswordAutenthication should be disabled later.
+
+*** Check
+
+: apt-get install firmware-linux
+
