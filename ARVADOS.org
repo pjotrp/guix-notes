@@ -76,7 +76,7 @@ server, not the full desktop). I installed machines
 : fedor316: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 1TB
 : fedor317: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 3TB
 : fedor318: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 3TB
-: dellR410: 8 x Intel 2.16Hz (2Mb, ????bogomips), 24G RAM, 1TB
+: dellR410: 8 x Intel 2.16Hz (2Mb, 4255bogomips), 24G RAM, 500GB
 
 *** Partitioning the file system
 
@@ -134,11 +134,12 @@ apt-get install -t wheezy-backports linux-image-amd64 \
         tzdata htop iftop gnupg \
         tree psmisc ntpdate pciutils screen
 # (downloads 316Mb and answer two stupid questions, doh!)
-dpkg-reconfigure locales
+locale-gen en_US.UTF-8 en_GB.UTF-8 nl_NL.UTF-8
+# dpkg-reconfigure locales
 #+end_src
 
-and select the en_UK, en_GB en nl_NL options (arguably this step is
-not needed, Guix comes with its own). Make sure ssh still works after
+Arguably the last step is not needed, Guix comes with its own locale
+support. Make sure ssh still works after
 
 #+begin_src sh
 /etc/init.d/ssh reload
@@ -152,7 +153,9 @@ of working time assuming the hardware behaves (it is worth checking
 BIOS settings, at least check what the machine should do on power
 failure).
 
-From this point on the installation should be automated.
+From this point on the installation should be [[https://github.com/pjotrp/deploy/blob/master/doc/design.org][automated]]. For
+development and testing of automation I use a KVM virtual machine as
+described [[https://github.com/pjotrp/cloudbiolinux/blob/master/doc/linux_kvm.md][here]].
 
 *** Post install
 
