@@ -91,7 +91,7 @@ and unpack it in the root directory
 Add the guix-profile to the path
 
 #+begin_src sh   :lang bash
-    export ~/.guix-profile/bin:$PATH
+    export PATH=~/.guix-profile/bin:$PATH
 #+end_src sh   :lang bash
 	
 Set the store permissions and start the daemon after creating the
