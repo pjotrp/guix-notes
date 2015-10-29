@@ -1,7 +1,11 @@
 GNU Guile — the official extension language for the GNU Project
 
-The FOSDEM Call for Proposals for the GNU Guile devroom
-on January 30, 2016 is open!
+The FOSDEM Call for Proposals for the first ever GNU Guile devroom on
+January 30, 2016 is open! Important members of the GNU Guile and GNU
+Guix community will attend. FOSDEM is hosted at [Université libre de
+Bruxelles in Brussels,
+Belgium](https://fosdem.org/2016/practical/transportation/); the
+devroom will host 80 people.
 
 FOSDEM Submissions are due on December 1, 2015. If you submitted a
 talk to a previous FOSDEM, you should already have an account in
@@ -14,8 +18,10 @@ incorrect devroom will not be included!
 
 Submit here: https://penta.fosdem.org/submission/FOSDEM16
 
-Talks of 15 or 30 minutes (please notify in the application your
-preference) on GNU Guile related projects.
+Talks of 15 or 30 minutes (including Q&A; please notify in the
+application your preference) on GNU Guile related projects. Also note
+that
+
 
 Topic Description:
 
@@ -23,7 +29,10 @@ GNU Guile is the preferred extension system for the GNU Project which
 features an implementation of the Scheme programming language, a
 dialect of Lisp. Technical talks are invited on technical topics on
 GNU Guile and applications that use Guile (such as GNU Guix and
-Gnucash). Examples are
+Lilypond and Gnucash). In the talks both experienced Guile
+programmers, bringing them up to date, and newbies should be
+addressed. FOSDEM is a great opportunity to attract people interested
+in GNU Guile and LISP. Examples are
 
 - An introduction to GNU Guile
 - Guile Next: Latest developments in GNU Guile
@@ -41,6 +50,22 @@ Gnucash). Examples are
   + Software distribution using Gnunet
   + Paving a path to greater network freedom using Guix and Guile
 - The Guile community we could have (Or: solving Worse is More
-  Accessible)
-  
+  Accessible)  
+
+Please note that presenting at FOSDEM implies giving permission to be 
+recorded.  The recordings will be published under the same licence as all 
+FOSDEM content (CC-BY).
+
+Submit your proposal here: https://penta.fosdem.org/submission/FOSDEM16
+
+After you have your account configured (you will receive a confirmation
+email), create the event, and click on "Show all" in the top right corner
+to diplay the full form. When submitting your talk in
+pentabarf, make sure to select "Mozilla devroom" as track, and include the
+following information:
+
+  * The title and subtitle of your talk
+  * A short abstract of one paragraph
+  * A longer description if you wish to do so
+  * Links to related websites/blogs etc
 
