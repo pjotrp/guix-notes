@@ -3,10 +3,10 @@
 For the first time ever, we have a GNU Guile devroom at FOSDEM on January 30,
 2016. The call for talk proposals is open! Important members of the GNU Guile
 and GNU Guix community will attend. We are excited because FOSDEM is one of the
-most important FOSS conferences and is hosted annually at [Université libre de
+most important free software conferences and is hosted annually at [Université libre de
 Bruxelles in Brussels,
 Belgium](https://fosdem.org/2016/practical/transportation/); the devroom will
-host 80 people.
+host up to 80 people.
 
 Submissions for talks are due on November 30, 2015. 
 
@@ -23,15 +23,15 @@ Lisp. Examples of (already proposed) talks could be
 - Guile programming:
   + functors and monads in Guile
   + composable continuations in Guile
-  + posix programming in Guile and the FFI
+  + POSIX programming in Guile and the FFI
 - Web frameworks with GNU Guile
 - GNU Guix:
   + GNU/Hurd support in Guix
   + R, Perl, Python and Ruby support in GNU Guix
   + Reproducible pipelines for Guix
-  + Guix environments (VM, Docker)
+  + Guix environments (VM, containers etc.)
 - Guile and the network:
-  + Software distribution using Gnunet
+  + Software distribution using GNUnet
   + Paving a path to greater network freedom using Guix and Guile
 
 ## Submit talk
