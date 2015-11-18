@@ -127,9 +127,9 @@ users with build permissions for the Guix daemon. In bash
 
 #+begin_src sh   :lang bash
     builders=10
-    groupadd guix-builder
+    groupadd guix-build
     for i in `seq 1 $builders`; do
-        useradd -g guix-builder -G guix-builder       \
+        useradd -g guix-build -G guix-build           \
             -d /var/empty -s `which nologin`          \
             -c "Guix build user $i" --system          \
             guix-builder$i;
@@ -147,7 +147,7 @@ system before running guix.
 This part is normally done automatically by the guix-daemon
 
 #+begin_src sh   :lang bash
-    chgrp guix-builder -R /gnu/store
+    chgrp guix-build -R /gnu/store
     chmod 1775 /gnu/store
 #+end_src sh   :lang bash
 
@@ -156,7 +156,7 @@ This part is normally done automatically by the guix-daemon
 Now you should be able to run Guix with
 
 #+begin_src sh   :lang bash
-    ~/.guix-profile/bin/guix-daemon --build-users-group=guix-builder
+    ~/.guix-profile/bin/guix-daemon --build-users-group=guix-build
 
     /gnu/store/(...)-guix-0.8(...)/bin/guix --help
 #+end_src sh   :lang bash

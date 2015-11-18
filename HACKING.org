@@ -333,7 +333,7 @@ bin:
 Do not forget to start the daemon
 
 #+begin_src scheme
-  guix-daemon --build-users-group=guix-builder
+  guix-daemon --build-users-group=guix-build
 #+end_src
 
 The daemon runs ar root, the actual build processes run as unprivileged users.
