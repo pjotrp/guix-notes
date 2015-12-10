@@ -127,22 +127,24 @@ Set up LVM
 : pvcreate /dev/sda5
 : pvcreate /dev/sdb5
 
-*** Automate, automate, automate
+Create a partition for GNU Guix
 
-When working on the 3rd server I decided I needed to automate things.
-In the past I have worked with Cfengine and Chef (for example), but
-those tools are not exactly what I want out of installation control
-(though I like some of the philosophy in there). I'll write out what I
-want and start simple (KISS). Arguably installation control can be
-part of GNU Guix - and I know people are doing that (even for VMs) so
-you can say deploy my-webserver with all configuration included.
+: vgcreate volume_group1 /dev/sda5
+: vgcreate volume_group2 /dev/sdb5
+: vgchange -a y volume_group1
+: vgchange -a y volume_group2
+: lvcreate --size 64G -ngnu volume_group1
+: mkfs.ext4 /dev/volume_group1/gnu
 
-So, as these things go I created the [[https://github.com/pjotrp/deploy][deploy tool]] which is used later
-in the chain.
+And make sure it mounts on /gnu. In /etc/fstab
+
+: /dev/mapper/volume_group1-gnu  /gnu   ext4   defaults       0   2 
+
 
 *** Docker
 
-Docker should be latest (>1.5) and requires a Kernel upgrade.
+Docker is used by Arvados.  Docker should be latest (>1.5) and
+requires a Kernel upgrade.
 
 **** Update the Linux kernel
 
@@ -161,9 +163,8 @@ will give the kernel to install, and
 
 : apt-get install -t wheezy-backports linux-image-amd64 linux-headers-amd64
 
-will install the kernel + headers and update grub2 (boot).
-
-At this stage it probably makes sense to add a few more packages
+will install the kernel + headers and update grub2 (boot). In one go,
+at this stage, it probably makes sense to include a few more packages
 
 #+begin_src sh
 apt-get install -t wheezy-backports linux-image-amd64 \
@@ -210,6 +211,20 @@ PasswordAutenthication should be disabled later.
 
 : apt-get install firmware-linux
 
+*** Automate, automate, automate
+
+So far, it is pretty hard to automate things (though not impossible).
+
+When working on the 3rd server I decided I needed to automate things.
+In the past I have worked with Cfengine and Chef (for example), but
+those tools are not exactly what I want out of installation control
+(though I like some of the philosophy in there). I'll write out what I
+want and start simple (KISS). Arguably installation control can be
+part of GNU Guix - and I know people are doing that (even for VMs) so
+you can say deploy my-webserver with all configuration included. We
+aim to get there. But first Guix installation itself (which we can
+largely automate).
+
 ** GNU Guix
 
 So far, we have created a base Debian install. From here on we are
@@ -234,7 +249,5 @@ user profile, especially the PATH and GUIX_LOCPATH, e.g.
     export GUIX_LOCPATH=$HOME/.guix-profile/lib/locale
     export LC_ALL=en_US.UTF-8
 #+end_src sh   :lang bash
-
-
 
 

@@ -47,16 +47,22 @@ management.
 Here we list the fundamental Guix bootstrap options, and run through
 post-build installation.
 
+Note that GuixSD is a fully blown Linux distribution in its own right.
+I find, however, that at this point I prefer a hybrid Debian/Guix
+system. GNU GuixSD is maturing fast, so you may want to give that a
+shot instead.
+
 * Install in conjunction with another package manager
 
-It is to be expected that in 2016/17 the major package managers will
+It is to be expected that sometime the major package managers will
 install GNU Guix out of the box. Similar to allowing Docker, Perl or
 Python software packagers, there should be no exception for the GNU
 package manager. In fact, the GNU Guix is less intrusive than the
 others, since it does not install software in the same directories as
 the underlying package manager (such as apt or rpm). But, until the
 Linux distributions decide to include GNU Guix, we'll have to use one
-of the other following options.
+of the other following options to install Guix inside an existing
+distribution.
 
 * Binary installation
 
@@ -112,6 +118,7 @@ mount it with kpartx
     cp -vau mnt/gnu tmp
     mv tmp/gnu/ /
 #+end_src sh   :lang bash
+
 
 * Create build group and users
 
@@ -209,6 +216,12 @@ root version of guix has) and install guix client itself
 
 : su pjotr
 : /gnu/store/(...)guix(...)/bin/guix package -i guix
+
+and update the path
+
+: export PATH=$HOME/.guix-profile/bin:$PATH
+: which guix
+
 
 * Install the hello package
 
@@ -337,6 +350,61 @@ Choose one from
 
 Alternatively set the LOCPATH to that of your underlying
 distribution - though incompatibilities may exist.
+
+* SysV startup of Guix daemon
+
+Guix comes with a script for systemd. For SysV's startup I use /etc/init.d/guix-daemon which
+looks like
+
+#+begin_src sh   :lang bash
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          guix-daemon
+# Required-Start:    mountdevsubfs
+# Required-Stop:
+# Should-Start:      
+# Should-Stop:       
+# X-Start-Before:    
+# X-Stop-After:      
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+### END INIT INFO
+
+SCRIPTNAME=/etc/init.d/guix-daemon
+
+. /lib/lsb/init-functions
+
+[ -x /root/.guix-profile/bin/guix-daemon ] || exit 0
+
+do_start()
+{
+        # /root/.guix-profile/bin/guix-daemon --build-users-group=guix-build 2>/dev/null || return 2
+        /root/.guix-profile/bin/guix-daemon --build-users-group=guix-build 2> /var/log/guix.log &
+}
+
+case "$1" in
+  start)
+        log_action_begin_msg "Setting up GNU Guix daemon"
+        do_start
+        case "$?" in
+                0|1) log_action_end_msg 0 ;;
+                2) log_action_end_msg 1 ;;
+        esac
+        ;;
+  stop|restart|force-reload|status)
+        log_action_begin_msg "Killing GNU Guix daemon"
+        killall guix-daemon
+        ;;
+  *)
+        echo "Usage: $SCRIPTNAME start" >&2
+        exit 3
+        ;;
+esac
+#+end_src sh   :lang bash
+
+and (on Debian)
+
+: update-rc.d guix-daemon defaults
 
 * Other installation routes
 
