@@ -22,7 +22,7 @@ number of GNU Guix packages.
 * Creating a Debian base install 
 
 The developers of Arvados use Debian Wheezy as a base install with an
-XFS file system. Wheezy also misses out on the systemd split. So
+XFS file system. Wheezy also misses out on the systemd default. So
 Wheezy it is this time. Next time I do a cluster install it may be a
 native GUIX distribution which probably will miss out on systemd
 altogether (note I have systemd running on my desktop, I may change my
@@ -33,7 +33,9 @@ mind about servers at some point).
 In general, storing data on Linux should be
 considered `unsafe'. Arvados, however, promises redundancy across
 nodes, so we ought to be not too concerned with the underlying storage. 
-Also, most of the jobs on this cluster will be transient.
+Also, most of the jobs on this cluster will be transient. Similarly 
+GNU Guix is also resistant to disk failure because it is easy to copy
+across nodes.
 
 Taking a look at these [[http://www.ilsistemista.net/index.php/virtualization/47-zfs-btrfs-xfs-ext4-and-lvm-with-kvm-a-storage-performance-comparison.html?limitstart=0][benchmarks]] I decided to go for ext4
 initially. We use 1TB drives and ext4 is (still) the standard on
@@ -172,3 +174,15 @@ PasswordAutenthication should be disabled later.
 
 : apt-get install firmware-linux
 
+** GNU Guix
+
+So far, we have created a base Debian install. From here on we are
+going to use GNU Guix as the default package manager. In fact,
+everything on the system should be managed through Guix so as to
+create fully reproducible installs (whether it is on Debian, Centos,
+or Guix itself as a base distribution).
+
+*** Install GNU Guix
+
+We install the binary distribution (0.9) of Guix. And follow the procedure
+described in [[INSTALL.org#binary-installation]].

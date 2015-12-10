@@ -47,9 +47,9 @@ management.
 Here we list the fundamental Guix bootstrap options, and run through
 post-build installation.
 
-* Install with an existing package manager
+* Install in conjunction with another package manager
 
-It is to be expected that in 2015/16 the major package managers will
+It is to be expected that in 2016/17 the major package managers will
 install GNU Guix out of the box. Similar to allowing Docker, Perl or
 Python software packagers, there should be no exception for the GNU
 package manager. In fact, the GNU Guix is less intrusive than the
@@ -74,19 +74,12 @@ package, create the build group and permissions.
 Ricardo has written a nice [[http://elephly.net/posts/2015-06-21-getting-started-with-guix.html][introduction]]. Also the [[https://www.gnu.org/software/guix/download/][guix documentation]]
 may be more up-to-date. There may also be Docker images
 
-In principle, fetch the TAR ball 
-
-: http://www.fdn.fr/~lcourtes/software/guix/guix-tarball-0.8.1.1140.tar.lz
-: http://www.fdn.fr/~lcourtes/software/guix/guix-tarball-0.8.1.1140.tar.lz.sig
-: SHA1: afde62b3e9f97f9ae0c57eaccfaca842b157cd2f
-
-and unpack it in the root directory
+In principle, fetch the binary tar ball and unpack it in the root
+directory
 
 #+begin_src sh   :lang bash
-    tar -C / --lzip -xvf guix-tarball-0.8.1.1140.tar.lz 
+    tar -C / --xz -xvf guix-binary-0.9.0.x86_64-linux.tar.xz 
 #+end_src sh   :lang bash
-
-(on Debian you may need 'apt-get install lzip' first)
 
 Add the guix-profile to the path
 
@@ -94,7 +87,7 @@ Add the guix-profile to the path
     export PATH=~/.guix-profile/bin:$PATH
 #+end_src sh   :lang bash
 	
-Set the store permissions and start the daemon after creating the
+Start the daemon after creating the
 build users as described below. 
 
 ** From an existing GNU Guix installation
@@ -153,13 +146,23 @@ This part is normally done automatically by the guix-daemon
 
 * Start the GNU Guix daemon
 
-Now you should be able to run Guix with
+Now you should be able to run Guix daemon and client directly from the store
 
 #+begin_src sh   :lang bash
-    ~/.guix-profile/bin/guix-daemon --build-users-group=guix-build
-
-    /gnu/store/(...)-guix-0.8(...)/bin/guix --help
+    /gnu/store/(...)-guix-(...)/bin/guix-daemon --build-users-group=guix-build
 #+end_src sh   :lang bash
+
+and you should be able to use the client also from the store
+
+#+begin_src sh   :lang bash
+    /gnu/store/(...)-guix-(...)/bin/guix --help
+#+end_src sh   :lang bash
+
+Until /root/.guix-profile has been set, you may want to use this path directly.
+The Guix documentation suggests symlinking to /usr/local/bin, but this may confuse 
+later work. 
+
+I first set the key and do a guix pull as discussed below.
 
 * Set the key
 
@@ -176,7 +179,7 @@ Note that you can also call GNU Guix from its direct path, e.g.
   /gnu/store/8lays(...)-guix-0.8.47739f5/bin/guix archive --authorize < /gnu/store/8lay(...)-guix-0.8.47739f5/share/guix/hydra.gnu.org.pub
 #+end_src sh   :lang bash
 
-* Update the package list
+* Update the package list (guix pull)
 
 #+begin_src sh   :lang bash
    guix pull
@@ -312,22 +315,38 @@ it means your locale needs to be found. Guix comes with a locale database
    guix package -i glibc-utf8-locales
 #+end_src sh   :lang bash
 
-and set the LOCPATH
+and more locales with local glibc support
 
 #+begin_src sh   :lang bash
-   export LOCPATH=$HOME/.guix-profile/lib/locale
+   guix package -i glibc-locales
+#+end_src sh   :lang bash
+
+
+Set the GUIX_LOCPATH
+
+#+begin_src sh   :lang bash
+    export GUIX_LOCPATH=$HOME/.guix-profile/lib/locale
 #+end_src sh   :lang bash
 
 Choose one from
 
 #+begin_src sh   :lang bash
-   ls $LOCPATH
+   ls $GUIX_LOCPATH/2.22/
    export LC_ALL=en_US.UTF-8
 #+end_src sh   :lang bash
 
-Alternatively set the LOCPATH to that of your underlying distribution
+Alternatively set the LOCPATH to that of your underlying
+distribution - though incompatibilities may exist.
 
 * Other installation routes
+
+** Before you try, read this
+
+Note that above binary installation is by far the easiest if your
+package manager does not support Guix by default. Every distribution
+contains its own dependencies which may interfere with a Guix source
+install. But then, some of us are more adventurous than others.
+
 ** Install repository from git
 
 Use one of https://savannah.gnu.org/git/?group=guix and clone with
@@ -519,12 +538,15 @@ downloads.
 
 Docker allows isolation of packages. For installing Docker follow the
 instructions on http://www.docker.com/. Docker should play well with
-Guix, though I have not tried it (yet).
+Guix, though I have not tried it (yet). There is a description of a 
+Docker install [[https://github.com/wurmlab/Dockerfiles/tree/master/guix][online]].
 
 The store /gnu/store can be mounted inside a Docker image. This not
 only allows sharing packages between docker images, but also gives the
-perspective of using Docker for bootstrapping Guix. Until now there is
-no such Docker image download available.
+perspective of using Docker for bootstrapping Guix. 
+
+Note that Guix comes with its own container manager built-in. So you 
+may not need Docker after all.
 
 * Continue with Ruby installation and environment
 
