@@ -208,7 +208,7 @@ Now run guix the first time from the store (using the path that the
 root version of guix has) and install guix client itself
 
 : su pjotr
-: /root/.guix-profile/bin/guix package -i guix
+: /gnu/store/(...)guix(...)/bin/guix package -i guix
 
 * Install the hello package
 

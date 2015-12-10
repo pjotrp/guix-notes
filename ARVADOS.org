@@ -87,11 +87,47 @@ sda2 8GB swap, sda3 root2 (for upgrades) and LVM for the rest. GUIX
 will get a partition in there, as well as the home directories etc.
 At installation time only the first two need to be defined.
 
-: fdisk -l 
-:   /dev/sda1   *        2048    20965375    10481664   83  Linux
-:   /dev/sda2        20965376    36589567     7812096   82  Linux swap / Solaris
 
-*** Automate, automate
+#+begin_src sh   :lang bash
+fdisk -l 
+
+Disk /dev/sda: 1000.2 GB, 1000204886016 bytes
+255 heads, 63 sectors/track, 121601 cylinders, total 1953525168 sectors
+Units = sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disk identifier: 0x000739e6
+
+   Device Boot      Start         End      Blocks   Id  System
+/dev/sda1   *        2048    20965375    10481664   83  Linux
+/dev/sda2        20965376    36589567     7812096   82  Linux swap / Solaris
+/dev/sda3        36589568    57487359    10448896   83  Linux
+/dev/sda4        57487360  1953525167   948018904    5  Extended
+/dev/sda5        57489408  1953525167   948017880   8e  Linux LVM
+
+Disk /dev/sdb: 2000.4 GB, 2000398934016 bytes
+255 heads, 63 sectors/track, 243201 cylinders, total 3907029168 sectors
+Units = sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 4096 bytes
+I/O size (minimum/optimal): 4096 bytes / 4096 bytes
+Disk identifier: 0x00000000
+
+   Device Boot      Start         End      Blocks   Id  System
+/dev/sdb1            2048    20973567    10485760   83  Linux
+/dev/sdb2        20973568    37750783     8388608   83  Linux
+/dev/sdb3        37750784    58722303    10485760   83  Linux
+/dev/sdb4        58722304  3907029167  1924153432    5  Extended
+/dev/sdb5        58724352  3907029167  1924152408   8e  Linux LVM
+#+end_src sh   :lang bash
+
+To get lvm use 'apt-get install lvm2'.
+
+Set up LVM
+
+: pvcreate /dev/sda5
+: pvcreate /dev/sdb5
+
+*** Automate, automate, automate
 
 When working on the 3rd server I decided I needed to automate things.
 In the past I have worked with Cfengine and Chef (for example), but
@@ -185,4 +221,20 @@ or Guix itself as a base distribution).
 *** Install GNU Guix
 
 We install the binary distribution (0.9) of Guix. And follow the procedure
-described in [[INSTALL.org#binary-installation]].
+described in [[INSTALL.org#binary-installation]] and the sections after 
+that for creating user-level access to Guix.
+
+*** User settings
+
+Assuming you have access to guix, we can set the environment in the
+user profile, especially the PATH and GUIX_LOCPATH, e.g.
+
+#+begin_src sh   :lang bash
+    export PATH=$HOME/.guix-profile/bin:$PATH
+    export GUIX_LOCPATH=$HOME/.guix-profile/lib/locale
+    export LC_ALL=en_US.UTF-8
+#+end_src sh   :lang bash
+
+
+
+
