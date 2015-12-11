@@ -14,10 +14,10 @@ GNU Guix is more than a package manager. Its definition system is so
 powerful that it can be used for full system configuration in a
 functional way, i.e., with versions, roll-back and non-interference
 between configurations. These are attractive properties not matched by
-non-deterministic systems, such as Chef and Puppet (in computer
-science, a nondeterministic algorithm is an algorithm that, even for
-the same input, can exhibit different behaviors on different runs, as
-opposed to a deterministic algorithm).
+non-deterministic systems, such as Cfengine, Chef and Puppet (in
+computer science, a nondeterministic algorithm is an algorithm that,
+even for the same input, can exhibit different behaviors on different
+runs, as opposed to a deterministic algorithm).
 
 In this document we explore sudo configuration as it can be handled 
 by Guix. sudo is of particular interest since it requires setuid and
@@ -212,9 +212,10 @@ them).
 What goes into a package is the generic stuff - so any target can use
 it. Anything specific to a system has to go into the system
 configuration layer. User settings, typically, are part of system
-configuration.
+configuration. But - and this is important - they can still be in the
+/gnu/store.
 
-But, and this is the nice bit, you can create lighter-weight overrides
+This is the nice bit, you can create lighter-weight overrides
 of packages and put in some extra plumbing. E.g., the cheerful way of
 overriding a version of a package:
 
@@ -231,9 +232,18 @@ and then run:
 
 : guix package --install-from-file=that-file.scm
 
-allows for creating out-of-tree Guix expressions. Alternatively create 
+allows for creating new Guix expressions. Alternatively create 
 configuration modules that make use of the GUIX_PACKAGE_PATH. One such
 example lives [[https://github.com/genenetwork/guix-bioinformatics][here]].
+
+Essentially, you get new packages in the store that are specific for
+your purpose. Say we have the generic apache package, but we want to
+configure it for one type of webserver: simply create the packager
+'apache-myserver' which either inherits from apache, or has apache as
+a dependency.
+
+TODO: Small example of working configuration in /etc and /gnu/store
+
 
 * Deterministic system configuration and maintenance
 
