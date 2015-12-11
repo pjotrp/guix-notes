@@ -108,7 +108,7 @@ paths and does not create the /etc/sudoers file:
                       ;; Don't try to create /var/db/sudo.
                       "$(TMPDIR)/dummy")))
                  %standard-phases)
-+end_src scheme
+#+end_src scheme
 
 No need to understand the commands exactly, but you get the gist.
 
@@ -134,7 +134,7 @@ code looks like
                                         "audio" "video"))
                 (home-directory "/home/alice"))
                %base-user-accounts))
-+end_src scheme
+#+end_src scheme
 
 So, Guix knows how to set up sudo! The template is available in
 [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/system/examples/bare-bones.tmpl][gnu/system/examples/bare-bones.tmpl]] and can be used to set up a VM,
@@ -144,7 +144,7 @@ workhorse, however, is [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/syst
 In the last you can find that sudo is a required package, /etc/sudoers
 gets written and that setuid is set for the sudo command.
 
-+begin_src scheme
+#+begin_src scheme
 (sudoers-file operating-system-sudoers-file     ; file-like
                 (default %sudoers-specification)))
 
@@ -160,7 +160,7 @@ gets written and that setuid is set for the sudo command.
   (plain-file "sudoers" "\
 root ALL=(ALL) ALL
 %wheel ALL=(ALL) ALL\n"))
-+end_src scheme
+#+end_src scheme
 
 The role of setuid-programs is explained in the [[https://www.gnu.org/software/guix/manual/html_node/Setuid-Programs.html][Guix documentation]]
 where it states that the binaries are actually installed in
@@ -173,7 +173,7 @@ makes sense when you want determinism.
 
 Another intriguing file is [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/build/activation.scm][gnu/build/activation.scm]] which contains
 
-+begin_src scheme
+#+begin_src scheme
 ;; Things such as /etc/sudoers must be regular files, not
 ;; symlinks; furthermore, they could be modified behind our
 ;; back---e.g., with 'visudo'.  Thus, make a copy instead of
@@ -183,7 +183,7 @@ Another intriguing file is [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/
     (copy-file source target))
 (when (string=? (basename target) "sudoers")
   (chmod target #o440))))
-+end_src scheme
+#+end_src scheme
 
 where you can see sudo getting special treatment at build-time
 activation. First the file /etc/static/sudoers is created, next copied
