@@ -252,9 +252,9 @@ tools. There is no guarantee the resulting target system is
 consistent. These tools were invented out of the necessity of
 automating system administration, simply by overwriting packages and
 configuration files. The time and order of running these tools may
-result in different outcomes. With the next evolutionary step, with
-light-weight containers in conjunction with GNU Guix, system
-administration can avoid non-determinism. Light-weight containers on
+result in different outcomes. The next evolutionary step, light-weight
+containers in conjunction with GNU Guix, system administration can
+avoid non-determinism altogether. Note that light-weight containers on
 their own (such as Docker) are not enough to avoid non-determinism -
 though they can be a part of the solution.
 
@@ -266,4 +266,5 @@ running
 From the sudo example above it should also be noted that systems can
 be updated in the traditional way, but that you need to update
 /run/suid-programs after a sudo update to make use of the updated
-sudo. You can still work the old way if you want to.
+sudo. You can still work the old way if you want to. Determinism is
+not an enforced policy ;)
