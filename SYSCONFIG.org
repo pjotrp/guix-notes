@@ -254,8 +254,9 @@ automating system administration, simply by overwriting packages and
 configuration files. The time and order of running these tools may
 result in different outcomes. With the next evolutionary step, with
 light-weight containers in conjunction with GNU Guix, system
-administration can avoid non-determinism. Light-weight containers
-(such as Docker) are not enough.
+administration can avoid non-determinism. Light-weight containers on
+their own (such as Docker) are not enough to avoid non-determinism -
+though they can be a part of the solution.
 
 GNU Guix can also be configured to check its settings on reboot or when
 running 
