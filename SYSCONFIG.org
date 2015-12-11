@@ -1,0 +1,92 @@
+#+TITLE: System configuration with GNU Guix
+
+* Table of Contents                                                       :TOC:
+ - [[#introduction][Introduction]]
+ - [[#the-sudo-package][The sudo package]]
+ - [[#how-does-guix-configure-sudo][How does Guix configure sudo?]]
+
+* Introduction
+
+GNU Guix is more than a package manager. Its definition system is so
+powerful that it can be used for full system configuration in a
+functional way, i.e., with versions, roll-back and non-interference
+between configurations. These are attractive properties not matched by
+non-deterministic systems, such as Chef and Puppet (in computer
+science, a nondeterministic algorithm is an algorithm that, even for
+the same input, can exhibit different behaviors on different runs, as
+opposed to a deterministic algorithm).
+
+In this document we explore sudo configuration as it can be handled 
+by Guix.
+
+* The sudo package
+
+The sudo package can be installed with
+
+: guix package -i sudo
+
+This installs the sudo binary in /gnu/store and symlinks sudo and sudoers from
+~/.guix-profile/bin. Now trying to run either sudo or sudoedit results in
+
+: sudo: ~/.guix-profile/bin/sudo must be owned by uid 0 and have the setuid bit set
+
+also, if you check out the tree in /gnu/store there is no
+configuration file, though it includes documentation and examples.
+
+It all looks terrifically bare bones. The sudo package can be found in
+the file [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/packages/admin.scm][gnu/packages/admin.scm]]. There you can see sudo actually is
+configured to use system paths for logging, but avoids creating the
+paths and does not create the /etc/sudoers file:
+
+#+begin_src scheme
+    (arguments
+     `(#:configure-flags
+       (list "--with-logpath=/var/log/sudo.log"
+             "--with-rundir=/run/sudo"
+             "--with-vardir=/var/db/sudo"
+       #:phases (alist-cons-before
+                 'configure 'pre-configure
+                 (lambda _
+                   (substitute* (find-files "." "Makefile\\.in")
+                     (("-o [[:graph:]]+ -g [[:graph:]]+")
+                      ;; Allow installation as non-root.
+                      "")
+                     (("^install: (.*)install-sudoers(.*)" _ before after)
+                      ;; Don't try to create /etc/sudoers.
+                      (string-append "install: " before after "\n"))
+                     (("\\$\\(DESTDIR\\)\\$\\(rundir\\)")
+                      ;; Don't try to create /run/sudo.
+                      "$(TMPDIR)/dummy")
+                     (("\\$\\(DESTDIR\\)\\$\\(vardir\\)")
+                      ;; Don't try to create /var/db/sudo.
+                      "$(TMPDIR)/dummy")))
+                 %standard-phases)
++end_src scheme
+
+(no need to understand the commands exactly, but you get the gist).
+
+* How does Guix configure sudo?
+
+Guix already configures sudo for its software distribution version (GuixSD) as
+can be seen [[https://www.gnu.org/software/guix/manual/html_node/Using-the-Configuration-System.html#Using-the-Configuration-System][here]]. The example code looks like
+
+#+begin_src scheme
+  ;; This is where user accounts are specified.  The "root"
+  ;; account is implicit, and is initially created with the
+  ;; empty password.
+  (users (cons (user-account
+                (name "alice")
+                (comment "Bob's sister")
+                (group "users")
+
+                ;; Adding the account to the "wheel" group
+                ;; makes it a sudoer.  Adding it to "audio"
+                ;; and "video" allows the user to play sound
+                ;; and access the webcam.
+                (supplementary-groups '("wheel"
+                                        "audio" "video"))
+                (home-directory "/home/alice"))
+               %base-user-accounts))
++end_src scheme
+
+So, Guix knows how to set up sudo!
