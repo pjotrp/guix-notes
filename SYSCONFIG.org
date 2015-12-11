@@ -5,7 +5,8 @@
  - [[#gnu-guix-system-configuration][GNU Guix system configuration]]
  - [[#the-sudo-package][The sudo package]]
  - [[#how-does-guix-configure-sudo][How does Guix configure sudo?]]
- - [[#deterministic-system-maintenance][Deterministic system maintenance]]
+ - [[#system-configuration][System configuration]]
+ - [[#deterministic-system-configuration-and-maintenance][Deterministic system configuration and maintenance]]
 
 * Introduction
 
@@ -195,7 +196,46 @@ configuration. I.e. you need to regenerate the full system to make use
 of an updated package which, essentially, is the right thing to do
 with determinism.
 
-* Deterministic system maintenance
+* System configuration
+
+The above example shows that it is quite easy to install software in
+non /gnu/store directories. It should be stressed, however, that this
+should only be done when it has a clear purpose. Inside /gnu/store a
+package with its configuration it free from tampering because the
+store is immutable.
+
+sudo and passwd tools are a bit different because the require special
+permissions and are fussy about file location (well, you don't want to
+have passwd and group files in the store since many tools relate to
+them).
+
+What goes into a package is the generic stuff - so any target can use
+it. Anything specific to a system has to go into the system
+configuration layer. User settings, typically, are part of system
+configuration.
+
+But, and this is the nice bit, you can create lighter-weight overrides
+of packages and put in some extra plumbing. E.g., the cheerful way of
+overriding a version of a package:
+
+#+begin_src scheme
+    (use-modules (guix) (gnu packages emacs))
+
+    (package
+      (inherit emacs)
+      (name "emacs-snapshot")
+      (source "/path/to/some-file-or-directory.tar.gz"))
+#+end_src scheme
+
+and then run:
+
+: guix package --install-from-file=that-file.scm
+
+allows for creating out-of-tree Guix expressions. Alternatively create 
+configuration modules that make use of the GUIX_PACKAGE_PATH. One such
+example lives [[https://github.com/genenetwork/guix-bioinformatics][here]].
+
+* Deterministic system configuration and maintenance
 
 Cfengine, Chef and Puppet are non-deterministic system maintenance
 tools. There is no guarantee the resulting target system is
