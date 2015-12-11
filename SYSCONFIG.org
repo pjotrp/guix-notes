@@ -29,7 +29,7 @@ According to the GNU Guix [[https://www.gnu.org/software/guix/manual/html_node/S
 Distribution supports a consistent whole-system configuration
 mechanism. By that we mean that all aspects of the global system
 configuration—such as the available system services, timezone and
-locale settings, user accounts—are declared in a single place. Such a
+locale settings and user accounts—are declared in a single place. Such a
 system configuration can be instantiated—i.e., effected.
 
 One of the advantages of putting all the system configuration under
@@ -147,7 +147,7 @@ gets written and that setuid is set for the sudo command.
 
 #+begin_src scheme
 (sudoers-file operating-system-sudoers-file     ; file-like
-                (default %sudoers-specification)))
+                (default %sudoers-specification))
 
 (define %setuid-programs
   ;; Default set of setuid-root programs.
@@ -183,12 +183,12 @@ Another intriguing file is [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/
     (symlink source target)
     (copy-file source target))
 (when (string=? (basename target) "sudoers")
-  (chmod target #o440))))
+  (chmod target #o440))
 #+end_src scheme
 
 where you can see sudo getting special treatment at build-time
-activation. First the file /etc/static/sudoers is created, next copied
-to /etc and finally permissions are set.
+activation. First the file /etc/static/sudoers is created, next it is copied
+to /etc and finally its permissions are set.
 
 This happens every time you build a system. Note that on a running
 system when the sudo package gets updated nothing will happen to the
@@ -200,11 +200,11 @@ with determinism.
 
 The above example shows that it is quite easy to install software in
 non /gnu/store directories. It should be stressed, however, that this
-should only be done when it has a clear purpose. Inside /gnu/store a
-package with its configuration it free from tampering because the
+should only be done there is a good reason to do so. Inside /gnu/store a
+package with its configuration is free from tampering because the
 store is immutable.
 
-sudo and passwd tools are a bit different because the require special
+sudo and passwd tools are a bit different because they require special
 permissions and are fussy about file location (well, you don't want to
 have passwd and group files in the store since many tools relate to
 them).
@@ -232,13 +232,14 @@ and then run:
 
 : guix package --install-from-file=that-file.scm
 
-allows for creating new Guix expressions. Alternatively create 
+Alternatively create 
 configuration modules that make use of the GUIX_PACKAGE_PATH. One such
 example lives [[https://github.com/genenetwork/guix-bioinformatics][here]].
 
 Essentially, you get new packages in the store that are specific for
-your purpose. Say we have the generic apache package, but we want to
-configure it for one type of webserver: simply create the packager
+your purpose. These are building blocks for a full system
+configuration. Say we have the generic apache package, but we want to
+configure it for one type of webserver: simply create the package
 'apache-myserver' which either inherits from apache, or has apache as
 a dependency.
 
@@ -252,11 +253,12 @@ tools. There is no guarantee the resulting target system is
 consistent. These tools were invented out of the necessity of
 automating system administration, simply by overwriting packages and
 configuration files. The time and order of running these tools may
-result in different outcomes. The next evolutionary step, light-weight
-containers in conjunction with GNU Guix, system administration can
-avoid non-determinism altogether. Note that light-weight containers on
-their own (such as Docker) are not enough to avoid non-determinism -
-though they can be a part of the solution.
+result in different outcomes. The next evolutionary step in system
+administration is combining light-weight containers in conjunction
+with deterministic GNU Guix, so we can avoid non-determinism
+altogether. Note that light-weight containers on their own (such as
+Docker) are not enough to avoid non-determinism - though they can be a
+part of the solution.
 
 GNU Guix can also be configured to check its settings on reboot or when
 running 
