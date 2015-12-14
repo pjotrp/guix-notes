@@ -112,12 +112,16 @@ paths and does not create the /etc/sudoers file:
                  %standard-phases)
 #+end_src scheme
 
-No need to understand the commands exactly, but you get the gist.
+No need to understand the commands exactly, but you get the gist. It
+is important that sudo is configured to use /run/sudo.log, but it is
+not allowed to create this directory at build-time (FIXME: if it would
+try it would be wrong because the build happens in an isolated
+chroot).
 
 * How does Guix configure sudo?
 
-A GuixSD build already configures sudo as can be seen [[https://www.gnu.org/software/guix/manual/html_node/Using-the-Configuration-System.html#Using-the-Configuration-System][here]]. The example
-code looks like
+A GuixSD build already configures sudo as can be seen [[https://www.gnu.org/software/guix/manual/html_node/Using-the-Configuration-System.html#Using-the-Configuration-System][here]]. The
+example code (again) looks like
 
 #+begin_src scheme
   ;; This is where user accounts are specified.  The "root"
@@ -140,11 +144,12 @@ code looks like
 
 So, GuixSD knows how to set up sudo! Note that Guix, the package
 manager, is not the same as GuixSD, the system distribution, though
-the come in the same source code repository. Guix packages, such as
-that for sudo and ssh are building blocks for GuixSD, but can also be
-deployed independently.  Mentioned GuixSD template is available in
-[[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/system/examples/bare-bones.tmpl][gnu/system/examples/bare-bones.tmpl]] and can be used to set up a VM,
-for example. The system install is managed by
+the come currently in the same source code repository. 
+
+Guix packages, such as that for sudo and ssh are building blocks for
+GuixSD, but can also be deployed independently.  Mentioned GuixSD
+template is available in [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/system/examples/bare-bones.tmpl][gnu/system/examples/bare-bones.tmpl]] and can
+be used to set up a VM, for example. The system install is managed by
 [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/system/install.scm][gnu/system/install.scm]]. The workhorse, however, is [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/system.scm][gnu/system.scm]].
 
 In the last you can find that sudo is a required package, /etc/sudoers
@@ -170,7 +175,7 @@ root ALL=(ALL) ALL
 
 The role of setuid-programs is explained in the [[https://www.gnu.org/software/guix/manual/html_node/Setuid-Programs.html][Guix documentation]]
 where it states that the binaries are actually installed in
-/run/setuid-programs. It would be a security hazard to use setuid
+/run/setuid-programs. It would be a security hazard to allow setuid
 inside the /gnu/store.
 
 In short the configuration of sudo is not part of the sudo package
@@ -192,8 +197,8 @@ Another intriguing file is [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/
 #+end_src scheme
 
 where you can see sudo getting special treatment at GuixSD build-time
-activation. First the file /etc/static/sudoers is created, next it is copied
-to /etc and finally its permissions are set.
+activation. First the file /etc/static/sudoers is created, next it is
+copied to /etc and finally its permissions are set.
 
 This happens every time you build a system. Note that on a running
 system when the sudo package gets updated nothing will happen to the
@@ -203,12 +208,12 @@ with determinism.
 
 * System configuration
 
-The above example shows that it is quite easy to install software in
-non /gnu/store directories (FIXME: but not possible from a package
-install). It should be stressed, however, that this should only be
-done there is a good reason to do so. Inside /gnu/store a package with
-its configuration is free from tampering because the store is
-immutable.
+The above example shows that it is possible to install software
+outside /gnu/store directories (FIXME: but not possible from within a
+package install). It should be stressed, however, that this should
+only be done there is a good reason to do so. Inside /gnu/store a
+package with its configuration is free from tampering because the
+store is immutable.
 
 sudo and passwd tools are a bit different because they require special
 permissions and are fussy about file location (well, you don't want to
@@ -249,7 +254,11 @@ configure it for one type of webserver: simply create the package
 'apache-myserver' which either inherits from apache, or has apache as
 a dependency.
 
-TODO: Small example of working configuration in /etc and /gnu/store
+FIXME: Small example of working configuration in /etc and /gnu/store
+
+Example 1: 
+
+Example 2:
 
 * Deterministic system configuration and maintenance
 
