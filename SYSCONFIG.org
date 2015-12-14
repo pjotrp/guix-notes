@@ -23,7 +23,7 @@ runs, as opposed to a deterministic algorithm).
 
 In this document we explore sudo configuration as it can be handled 
 by Guix. sudo is of particular interest since it requires setuid and
-is prissy about its configuration file /etc/sudoers.
+is fussy about its configuration file /etc/sudoers.
 
 * GNU Guix system configuration
 
