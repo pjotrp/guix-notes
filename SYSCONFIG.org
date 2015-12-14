@@ -6,6 +6,8 @@
  - [[#the-sudo-package][The sudo package]]
  - [[#how-does-guix-configure-sudo][How does Guix configure sudo?]]
  - [[#system-configuration][System configuration]]
+   - [[#example-1-tell-guix-package-to-use-config-file-from-etc][Example 1: Tell Guix package to use config file from /etc]]
+   - [[#example-2-use-sudoers-from-the-store][Example 2: Use sudoers from the store]]
  - [[#deterministic-system-configuration-and-maintenance][Deterministic system configuration and maintenance]]
 
 * Introduction
@@ -114,9 +116,10 @@ paths and does not create the /etc/sudoers file:
 
 No need to understand the commands exactly, but you get the gist. It
 is important that sudo is configured to use /run/sudo.log, but it is
-not allowed to create this directory at build-time (FIXME: if it would
-try it would be wrong because the build happens in an isolated
-chroot).
+not allowed to create this directory at build-time (if it would try it
+would be wrong because the build happens in an isolated `chroot',
+i.e., standard directories, such as /etc and /var, are simply not
+available).
 
 * How does Guix configure sudo?
 
@@ -208,23 +211,23 @@ with determinism.
 
 * System configuration
 
-The above example shows that it is possible to install software
-outside /gnu/store directories (FIXME: but not possible from within a
-package install). It should be stressed, however, that this should
-only be done there is a good reason to do so. Inside /gnu/store a
-package with its configuration is free from tampering because the
-store is immutable.
+The above example shows that it is possible to install software with
+GuixSD outside /gnu/store directories (but not possible from within a
+Guix package install during the build phase). It should be stressed,
+however, that this should only be done there is a good reason to do
+so. Inside /gnu/store a package with its configuration is free from
+tampering because the store is immutable.
 
-sudo and passwd tools are a bit different because they require special
-permissions and are fussy about file location (well, you don't want to
-have passwd and group files in the store since many tools relate to
+sudo and passwd tools are special because they require special
+permissions and are fussy about file locations (well, you don't want
+to have passwd and group files in the store since many tools relate to
 them).
 
-What goes into a package is the generic stuff - so any target can use
-it. Anything specific to a system has to go into the system
+So, what goes into a package is the generic stuff - so any target can
+use it. Anything specific to a system has to go into the system
 configuration layer. User settings, typically, are part of system
 configuration. But - and this is important - they can still be in the
-/gnu/store.
+/gnu/store itself.
 
 This is the nice bit, you can create lighter-weight overrides
 of packages and put in some extra plumbing. E.g., the cheerful way of
@@ -254,11 +257,22 @@ configure it for one type of webserver: simply create the package
 'apache-myserver' which either inherits from apache, or has apache as
 a dependency.
 
-FIXME: Small example of working configuration in /etc and /gnu/store
+** Example 1: Tell Guix package to use config file from /etc
 
-Example 1: 
+In fact we have done this. In the sudo example above sudo uses
+/etc/sudoers for its configuration. If we don't use GuixSD to
+configure the system (in the next step) we could do the same by hand
+(or chef or puppet) in a non-deterministic fashion by adding the
+/etc/sudoers file and by providing a copy of the sudo binary outside
+the store and suid'ing it.
 
-Example 2:
+** Example 2: Use sudoers from the store
+
+Earlier we configured sudo by having the configuration system create
+/etc/sudoers. Another option would be to drop the configuration into
+the store itself. This is quite possible by configuring sudo to use
+$out/etc/sudoers instead and by writing $out/etc/sudoers from inside
+the package.
 
 * Deterministic system configuration and maintenance
 
