@@ -118,35 +118,34 @@ run a recent guix daemon.
 1. Generate a key pair for the guix-publish service
 2. Add the guix-publish service to your services (and reconfigure your system)
 3. Either build or pull all the packages you want:
+4. Get a git checkout of the guix repository as described in [[INSTALL.org]].
+5. Checkout the revision you want (check tags and branches)
+6. Build it
 
-  3.1] Get a git checkout of guix
+Then either (a)
 
-  3.2] Checkout the revision you want (check tags and branches)
+#+begin_src sh   :lang bash
+for n in `./pre-inst-env guix packages -A | cut -f1`; do
+  ./pre-inst-env guix build "$n"; done
+#+end_src
 
-  3.3] Build it
+or (b)
 
-  3.4] Then either:
+#+begin_src sh   :lang bash
+for n in `./pre-inst-env guix packages -A | cut -f1`; do
+  ./pre-inst-env guix --no-substitutes build "$n"; done
+#+end_src
 
-    3.4.a] for n in `./pre-inst-env guix packages -A | cut -f1`; do
-             ./pre-inst-env guix build "$n"; done
-
-    or
-
-    3.4.b] for n in `./pre-inst-env guix packages -A | cut -f1`; do
-             ./pre-inst-env guix --no-substitutes build "$n"; done
-
-You could do the last step (3.4.a or 3.4.b) directly from withing
-scheme, too, since the guix package management is just a scheme
-module, but I never got around to doing that.
-
-3.4.a just pulls all packages available from hydra, 3.4.b tries to
-rebuild them all. My machine has a mixture of both.
+(a) just pulls all packages available from hydra, (b) tries to
+rebuild them all. You can mix the two.
 
 These for-loops will fail altogether if a single build fails. This is
-probably not what you want :) So:
+probably not what you want. So:
 
-     3.4.a] for n in `./pre-inst-env guix packages -A | cut -f1`; do
-                        ./pre-inst-env guix build "$n" || true; done
+#+begin_src sh   :lang bash
+for n in `./pre-inst-env guix packages -A | cut -f1`; do
+  ./pre-inst-env guix build "$n" || true; done
+#+end_src
 
 And you might also want to look into the --cache-failures option for
 the guix-daemon. And instead of just using a for-loop you might
@@ -158,10 +157,12 @@ Example for http://fps.io:9999
 
 The public key is
 
+#+begin_src scheme
     (public-key
      (ecc
      (curve Ed25519)
       (q #AFF68C4E099401E85BE2D7375C1DB5E8A29F1DB83299038122AF5C0984099CF8#)))
+#+end_src
   
 Run 
 
