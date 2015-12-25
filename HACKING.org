@@ -18,9 +18,6 @@
    - [[#renaming-and-moving-files][Renaming and moving files]]
  - [[#starting-the-daemon][Starting the daemon]]
  - [[#install-guix-from-the-git-repository][Install Guix from the git repository]]
-   - [[#checkout-guix-from-git][Checkout Guix from git]]
-   - [[#build-guix-current][Build Guix (current)]]
-   - [[#from-the-command-line][From the command line]]
  - [[#creating-a-package][Creating a package]]
    - [[#updating-the-version][Updating the version]]
    - [[#updating-the-hash-value][Updating the HASH value]]
@@ -343,38 +340,7 @@ The daemon runs ar root, the actual build processes run as unprivileged users.
 
 * Install Guix from the git repository
 
-** Checkout Guix from git
-
-Clone the Guix git repository with submodules (see ./INSTALL.org)
-
-** Build Guix (current)
-
-First build Guix from source so you can run guix from the
-repository. See the section [[https://github.com/pjotrp/guix-notes/blob/master/INSTALL.org#building-gnu-guix-from-source-using-guix][Building GNU Guix from source]] in [[https://github.com/pjotrp/guix-notes/blob/master/INSTALL.org][INSTALL]].
-
-** From the command line
-
-Once you have Guix running you can pass it the path to the package repository:
-
-#+begin_src sh
-./pre-inst-env guix --load-path ./gnu 
-#+end_src 
- 
-Mark comments:
-        
-I'm not sure what you're trying to do there.  When I run that command,
-it says "unrecognized option '--load-path'".  Maybe you meant
-something like this:
-
-#+begin_src sh
-  ./pre-inst-env guix package --load-path=./gnu [...]
-#+end_src 
-
-but that's not right either, because the <DIR> passed to --load-path
-should be such that module (gnu packages foo) is located in
-<DIR>/gnu/packages/foo.scm.  Anyway, it's not needed because
-./pre-inst-env automatically adds the right paths to access the
-packages within ./gnu/packages/*.scm.
+See the section [[https://github.com/pjotrp/guix-notes/blob/master/INSTALL.org#building-gnu-guix-from-source-using-guix][Building GNU Guix from source]] in [[https://github.com/pjotrp/guix-notes/blob/master/INSTALL.org][INSTALL]].
 
 * Creating a package
 ** Updating the version
