@@ -121,7 +121,6 @@ mount it with kpartx
     mv tmp/gnu/ /
 #+end_src sh   :lang bash
 
-
 * Create build group and users
 
 Now we have the /gnu/store in place we need to create a group and
@@ -223,7 +222,6 @@ and update the path
 
 : export PATH=$HOME/.guix-profile/bin:$PATH
 : which guix
-
 
 * Install the hello package
 

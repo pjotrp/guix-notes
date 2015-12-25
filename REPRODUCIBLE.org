@@ -22,7 +22,17 @@ depending on the *order* of installation and the *time* of
 installation. Guix has none of that. You get what you expect. More
 can be read about this in [[SYSCONFIG.org]].
 
-Here we want to recreate a software stack every time.
+Out of the box, GNU Guix supports rolling upgrades. I.e., when you do
+a 'guix pull' it will install the latest and the greatest - matching
+the state of the build-farm at that point. Because GNU Guix packages
+are isolated, i.e., packages can not overwrite each other or their
+dependencies, it is perfectly safe.
+
+But, this is not always what we want. Especially for production-type
+systems and software development we need to control what versions of
+software are *exactly* running.
+
+Here we describe how to recreate the same software stack every time.
 
 * Reproducible software deployment 
 
@@ -67,6 +77,23 @@ With the archive option a package with all its dependencies can be
 copied from one machine to another. For rapid reproducible deployment
 this can be a useful method.
 
+First, as root, generate a key for the machine:
+
+: guix archive --generate-key
+
+Note this can take forever on a server without a [[https://bugs.launchpad.net/ubuntu/+source/gnupg/+bug/706011][keyboard]] so you may
+want to generate a key on a local machine and copy it across. The key
+is stored in /etc/guix/acl.
+
+Then create a signed tar ball with
+
+: guix archive --export -r ruby > guix_ruby.nar
+
+The NAR file contains Ruby *with* all its dependencies. Next on a new machine
+
+: guix archive --import < guix_ruby.nar
+
+
 * Caching server
 
 Thanks to Florian Paul Schmidt I now know how to set up a public
@@ -87,12 +114,12 @@ facing caching server for GNU Guix binaries.
   3.4] Then either:
 
     3.4.a] for n in `./pre-inst-env guix packages -A | cut -f1`; do
-             ./pre-inst-env guix package build "$n"; done
+             ./pre-inst-env guix build "$n"; done
 
     or
 
     3.4.b] for n in `./pre-inst-env guix packages -A | cut -f1`; do
-             ./pre-inst-env guix package --no-substitutes build "$n"; done
+             ./pre-inst-env guix --no-substitutes build "$n"; done
 
 You could do the last step (3.4.a or 3.4.b) directly from withing
 scheme, too, since the guix package management is just a scheme
@@ -105,7 +132,7 @@ These for-loops will fail altogether if a single build fails. This is
 probably not what you want :) So:
 
      3.4.a] for n in `./pre-inst-env guix packages -A | cut -f1`; do
-                        ./pre-inst-env guix package build "$n" || true; done
+                        ./pre-inst-env guix build "$n" || true; done
 
 And you might also want to look into the --cache-failures option for
 the guix-daemon. And instead of just using a for-loop you might
