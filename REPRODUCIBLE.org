@@ -6,6 +6,7 @@
    - [[#git-checkout-of-gnu-guix-repository][Git checkout of GNU Guix repository]]
    - [[#set-up-an-authoritative-git][Set up an authoritative git]]
  - [[#using-gnu-guix-archive][Using GNU Guix archive]]
+   - [[#generate-the-key][Generate the key]]
  - [[#caching-server][Caching server]]
    - [[#set-up-server][Set up server]]
    - [[#use-server][Use server]]
@@ -77,27 +78,40 @@ With the archive option a package with all its dependencies can be
 copied from one machine to another. For rapid reproducible deployment
 this can be a useful method.
 
+** Generate the key
+
 First, as root, generate a key for the machine:
 
 : guix archive --generate-key
 
 Note this can take forever on a server without a [[https://bugs.launchpad.net/ubuntu/+source/gnupg/+bug/706011][keyboard]] so you may
-want to generate a key on a local machine and copy it across. The key
-is stored in /etc/guix/acl.
+want to generate a key on a local machine and copy it
+across. Depending on how Guix was installed the key may be stored in
+/etc/guix/ or /usr/local/etc/guix/, e.g., cat
+/usr/local/etc/guix/signing-key.pub
+
+    (public-key 
+     (ecc 
+      (curve Ed25519)
+      (q #11217788B41ADC8D5B8E71BD87EF699C65312EC387752899FE9C888856F5C769#)
+     )
+    )
 
 Then create a signed tar ball with
 
 : guix archive --export -r ruby > guix_ruby.nar
 
-The NAR file contains Ruby *with* all its dependencies. Next on a new machine
+The NAR file is a 200Mb archive which contains the Ruby binary *with*
+all its runtime dependencies. Next on a new machine you can unpack
+it with
 
 : guix archive --import < guix_ruby.nar
-
 
 * Caching server
 
 Thanks to Florian Paul Schmidt I now know how to set up a public
-facing caching server for GNU Guix binaries.
+facing caching server for GNU Guix binaries. Make sure to
+run a recent guix daemon.
 
 ** Set up server
 
@@ -162,3 +176,4 @@ Or use it with the guix-daemon using hydra as a fallback
 
 : guix-daemon --build-users-group=guix-build --substitute-urls="http://fps.io:9999 http://hydra.gnu.org"
 
+(for multiple substitutes to work make sure you are running Guix > 0.9)
