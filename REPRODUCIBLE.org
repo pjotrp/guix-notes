@@ -1,0 +1,137 @@
+#+TITLE: GNU Guix reproducible software deployment
+
+* Table of Contents                                                     :TOC:
+ - [[#introduction][Introduction]]
+ - [[#reproducible-software-deployment-][Reproducible software deployment ]]
+   - [[#git-checkout-of-gnu-guix-repository][Git checkout of GNU Guix repository]]
+   - [[#set-up-an-authoritative-git][Set up an authoritative git]]
+ - [[#using-gnu-guix-archive][Using GNU Guix archive]]
+ - [[#caching-server][Caching server]]
+   - [[#set-up-server][Set up server]]
+   - [[#use-server][Use server]]
+
+* Introduction
+
+In this document I will describe how to have reproducible software
+deployment with GNU Guix adding a caching server for binaries.
+
+GNU Guix gives full control over the software dependency graph. This
+is because Guix is a declarative software deployment system, unlike,
+for example, Debian, Docker and Brew which give different results
+depending on the *order* of installation and the *time* of
+installation. Guix has none of that. You get what you expect. More
+can be read about this in [[SYSCONFIG.org]].
+
+Here we want to recreate a software stack every time.
+
+* Reproducible software deployment 
+
+** Git checkout of GNU Guix repository
+
+The entry point for the reproducible software graph, at this point, is
+handled via a git checkout of the Guix package repository. Follow the
+guidelines in [[INSTALL.org]] to get a git checkout and make of the
+repository. You should be able to run
+
+: ./pre-inst-env guix package -A
+
+At this point your source repo defines your graph. So if you do a `git log' you can
+see the SHA value which is the current version of your graph, e.g. 
+
+: commit 96250294012c2f1520b67f12ea80bfd6b98075a2
+
+Anywhere you install software 
+this SHA value you will get the exact same result. For example:
+
+: ./pre-inst-env guix package -A ruby
+
+Will install the exact same Ruby, for x86_64 this will be
+
+: /gnu/store/pgks1l9cl696j34v9mb35lk8x6lac3b0-ruby-2.2.4
+
+In fact, the only external non-Guix dependency is the Linux kernel API
+which, fortunately, does not change much. There is no (external) glibc
+dependency because glibc is *part* of the graph. GNU Guix comes with
+its own dependencies.
+
+** Set up an authoritative git
+
+For our deployment we set up a git server somewhere which contains the
+tree that gets used to deploy software in a reproducible way. Git
+branches can be helpful when dealing with different deployment
+versions.
+
+* Using GNU Guix archive
+
+With the archive option a package with all its dependencies can be
+copied from one machine to another. For rapid reproducible deployment
+this can be a useful method.
+
+* Caching server
+
+Thanks to Florian Paul Schmidt I now know how to set up a public
+facing caching server for GNU Guix binaries.
+
+** Set up server
+
+1. Generate a key pair for the guix-publish service
+2. Add the guix-publish service to your services (and reconfigure your system)
+3. Either build or pull all the packages you want:
+
+  3.1] Get a git checkout of guix
+
+  3.2] Checkout the revision you want (check tags and branches)
+
+  3.3] Build it
+
+  3.4] Then either:
+
+    3.4.a] for n in `./pre-inst-env guix packages -A | cut -f1`; do
+             ./pre-inst-env guix package build "$n"; done
+
+    or
+
+    3.4.b] for n in `./pre-inst-env guix packages -A | cut -f1`; do
+             ./pre-inst-env guix package --no-substitutes build "$n"; done
+
+You could do the last step (3.4.a or 3.4.b) directly from withing
+scheme, too, since the guix package management is just a scheme
+module, but I never got around to doing that.
+
+3.4.a just pulls all packages available from hydra, 3.4.b tries to
+rebuild them all. My machine has a mixture of both.
+
+These for-loops will fail altogether if a single build fails. This is
+probably not what you want :) So:
+
+     3.4.a] for n in `./pre-inst-env guix packages -A | cut -f1`; do
+                        ./pre-inst-env guix package build "$n" || true; done
+
+And you might also want to look into the --cache-failures option for
+the guix-daemon. And instead of just using a for-loop you might
+want to use gnu parallel instead. 
+
+** Use server
+
+Example for http://fps.io:9999
+
+The public key is
+
+    (public-key
+     (ecc
+     (curve Ed25519)
+      (q #AFF68C4E099401E85BE2D7375C1DB5E8A29F1DB83299038122AF5C0984099CF8#)))
+  
+Run 
+
+: sudo guix archive --authorize
+
+Paste in the scheme expression for the key above and finish with
+ctrl-d. After that you can use e.g.
+
+: guix package -i boost --substitute-urls="http://fps.io:9999"
+
+Or use it with the guix-daemon using hydra as a fallback
+
+: guix-daemon --build-users-group=guix-build --substitute-urls="http://fps.io:9999 http://hydra.gnu.org"
+

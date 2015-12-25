@@ -2,26 +2,28 @@
 
 * Table of Contents                                                     :TOC:
  - [[#introduction][Introduction]]
- - [[#install-with-an-existing-package-manager][Install with an existing package manager]]
+ - [[#install-in-conjunction-with-another-package-manager][Install in conjunction with another package manager]]
  - [[#binary-installation][Binary installation]]
-     - [[#the-one-step-tarball-installation][The one-step tarball installation]]
-     - [[#from-an-existing-gnu-guix-installation][From an existing GNU Guix installation]]
- - [[#set-the-store-permissions][Set the store permissions]]
+   - [[#the-one-step-tarball-installation][The one-step tarball installation]]
+   - [[#from-an-existing-gnu-guix-installation][From an existing GNU Guix installation]]
  - [[#create-build-group-and-users][Create build group and users]]
+ - [[#set-the-store-permissions][Set the store permissions]]
  - [[#start-the-gnu-guix-daemon][Start the GNU Guix daemon]]
  - [[#set-the-key][Set the key]]
- - [[#update-the-package-list][Update the package list]]
+ - [[#update-the-package-list-guix-pull][Update the package list (guix pull)]]
  - [[#use-guix-as-a-normal-user][Use guix as a normal user]]
  - [[#install-the-hello-package][Install the hello package]]
  - [[#add-symlinks-to-the-path][Add symlinks to the PATH]]
  - [[#set-locale][Set locale]]
+ - [[#sysv-startup-of-guix-daemon][SysV startup of Guix daemon]]
  - [[#other-installation-routes][Other installation routes]]
-     - [[#install-repository-from-git][Install repository from git]]
-     - [[#bootstrap-from-source][Bootstrap from source]]
-     - [[#building-gnu-guix-from-source-using-guix][Building GNU Guix from source (using Guix)]]
-     - [[#building-gnu-guix-from-source-debian-native][Building GNU Guix from source (Debian native)]]
-     - [[#bootstrap-with-nix][Bootstrap with Nix]]
-     - [[#bootstrap-with-docker][Bootstrap with Docker]]
+   - [[#before-you-try-read-this][Before you try, read this]]
+   - [[#install-repository-from-git][Install repository from git]]
+   - [[#bootstrap-from-source][Bootstrap from source]]
+   - [[#building-gnu-guix-from-source-using-guix][Building GNU Guix from source (using Guix)]]
+   - [[#building-gnu-guix-from-source-debian-native][Building GNU Guix from source (Debian native)]]
+   - [[#bootstrap-with-nix][Bootstrap with Nix]]
+   - [[#bootstrap-with-docker][Bootstrap with Docker]]
  - [[#continue-with-ruby-installation-and-environment][Continue with Ruby installation and environment]]
  - [[#continue-with-python-installation-and-environment][Continue with Python installation and environment]]
  - [[#add-your-own-package][Add your own package]]
@@ -334,7 +336,6 @@ and more locales with local glibc support
    guix package -i glibc-locales
 #+end_src sh   :lang bash
 
-
 Set the GUIX_LOCPATH
 
 #+begin_src sh   :lang bash
@@ -407,7 +408,6 @@ and (on Debian)
 : update-rc.d guix-daemon defaults
 
 * Other installation routes
-
 ** Before you try, read this
 
 Note that above binary installation is by far the easiest if your
