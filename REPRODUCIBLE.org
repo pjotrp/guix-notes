@@ -45,7 +45,11 @@ And to create a caching server
 2. Publish the server on the internet
 3. Tell your machines to use the server for substitute binaries
 
-It is all rather simple, really.
+It is all rather simple, really. 
+
+A side-effect of taking this approach is that you'll spend less time
+downloading and installing large binaries. GNU Guix can be quite heavy
+in its use of bandwidth if you opt for rolling upgrades.
 
 * Reproducible software deployment 
 

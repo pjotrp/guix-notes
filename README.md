@@ -15,7 +15,7 @@ Guix](https://github.com/pjotrp/guix-notes/blob/master/INSTALL.org),
 [hacking](https://github.com/pjotrp/guix-notes/blob/master/HACKING.org)
 Guix packages with Guile and the philosophy of creating a
 [Ruby](https://github.com/pjotrp/guix-notes/blob/master/RUBY.org)
-environment and getting rid of RVM and the like.
+environment and getting rid of RVM, bundler, virtualenv and the like.
 
 You may want to also read [Ricardo's
 article](http://elephly.net/posts/2015-04-17-gnu-guix.html) about Guix
