@@ -260,15 +260,55 @@ Hmmm. It found the correct libm.so.6 during startup.
 So, R finds the shared library earlier but does not honour what it
 built locally. Apparently it can't resolve the paths at dynamic
 library load time which is an R thing - it disregards the embedded
-hard coded shared library paths!  Maybe I am trying to this the hard
-way and should just install r-lmmlite via Guix.
+hard coded shared library paths!  
+
+Maybe I am trying to this the hard
+way and should just install r-lmmlite via Guix. Writing the package,
+even with the git-fetch proved rather easy:
+
+#+begin_src scheme
+(define-public r-lmmlite
+  (package
+    (name "r-lmmlite")
+    (version "0.1-9")
+    (source (origin
+              ;; We use the git reference, because there's CRAN package
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/kbroman/lmmlite.git")
+                    (commit "5b833d5")))
+              (file-name (string-append name "-" version "-checkout"))
+              (sha256
+               (base32
+                "0v4z4qxa8ki9hlmdwlgslchvg21nqkkq6135nx6w63xikjffxcba"))))
+    (build-system r-build-system)
+    (propagated-inputs
+     `(("r-rcppeigen" ,r-rcppeigen)))
+    (synopsis "R/lmmlite")
+    (description
+     "R/lmmlite")
+    (home-page "https://github.com/kbroman/")
+    (license license:asl2.0)))
+#+end_src 
+
+The latest edition can be found [[https://github.com/genenetwork/guix-bioinformatics/blob/master/gn/packages/statistics.scm][here]] (or in GNU Guix if it was
+accepted in mainline). Install with
+
+: env GUIX_PACKAGE_PATH=$HOME/genenetwork/guix-bioinformatics guix package -i r-lmmlite
+
+and
+
+: R
+: library(lmmlite)
+
+Success!
+
+* Conclusion
 
 Going through this process you can see how many dependencies there
 really are! And unlike R, GNU Guix does not insist on downloading
 everything every time something goes wrong. Something I find really
 annoying with R.
-
-* Conclusion
 
 The main reason to package these CRAN packages into GNU Guix is that
 once a package is included it becomes *reproducible*. Not only that,
