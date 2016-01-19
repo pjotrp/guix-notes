@@ -476,6 +476,10 @@ You can view the environment variable definitions Guix recommends with
 
 : guix package --search-paths
 
+or when using a profile
+
+: guix package -p ~/opt/guix-build-system --search-paths
+
 Mine are (general)
 
 #+begin_src sh   :lang bash
