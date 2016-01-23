@@ -38,6 +38,7 @@
    - [[#mail-the-patch][Mail the patch]]
    - [[#using-git-branches][Using git branches]]
    - [[#dealing-with-the-review-process][Dealing with the review process]]
+ - [[#workflow-for-packaging][Workflow for packaging]]
  - [[#hints][Hints]]
    - [[#using-emacs][Using emacs]]
  - [[#the-ruby-package][The Ruby package]]
@@ -593,17 +594,20 @@ Guix uses [[https://www.gnu.org/software/guix/manual/html_node/The-Store-Monad.h
 if you intend to hack Guix. To run a procedure within a Store do something like
 
 #+begin_src scheme
+,use (guix git-download)
+(git-reference (url "https://github.com/pjotrp/genenetwork2.git") (commit "860bdcebde5cbb1898c26da80ac67207480c0803"))
+$3 = #<<git-reference> url: "https://github.com/pjotrp/genenetwork2.git" commit: "860bdcebde5cbb1898c26da80ac67207480c0803" recursive?: #f>
 ,enter-store-monad
-   (git-fetch ref 'sha256
+   (git-fetch $3 'sha256
                   (base32
-                   "0yvkv7pnigvcifas3vcr8sk87xrrb8y9nh9v1yx2p43k0xz1q8vz")
-                  "mypackage")
+                   "0yvkv7pnigvcifas3vcr8sk87xrrb8y9nh9v1yx2p43k0xz1q8vz"))
+
 $4 = #<derivation /gnu/store/fmpk2sck6ny5dgyx12s539qcadzky24n-mypackage.drv => /gnu/store/k6q69arfmsm116a8hfkqqah
 m0ddzacjc-mypackage 50b9e10>
 #+end_src scheme
 
-Here $4 is a derivation object, and calling ‘built-derivations’ starts
-the build process
+Here $3 is the git-reference record and $4 is a derivation object, and
+calling ‘built-derivations’ starts the build process
 
 #+begin_src scheme
 (built-derivations (list $4))
@@ -872,6 +876,36 @@ directory) and give the packages different names too - so that when
 you overlap with the GNU Guix package tree there is no packaging
 conflict. With the GeneNetwork tree we use the gn directory and
 prepend package names with gn- so r-qtl becomes gn-r-qtl.
+
+* Workflow for packaging
+
+The general workflow for adding and maintaining packages is a bit
+complex. Everything goes via de guix-dev mailing list and includes a
+review process which can be discouraging and is more geared towards
+reviewers than towards newbies. This should not discourage you because
+GNU Guix is great. Note that the reviewers do this work voluntarily
+and most 'rules' have been agreed by the community. In the end your
+labours will get rewarded. So, how to start?
+
+1. Work on a recent git checkout of guix 
+2. Use 'guix import' if you can (e.g. for python and R modules)
+3. Build the package yourself 
+4. If tests are there, make sure they pass
+5. Test your work with 'guix lint'
+6. Create a patch as described above
+7. Send it to the mailing list as described above
+8. Submit one patch at a time and submit the next one when it goes in
+9. Be patient, review can take a while - if it is a trivial patch
+   monitor the git log
+
+With small problems the reviewers will often modify the patch for you.
+Larger problems you need to fix yourself. See it as a learning
+process.
+
+Note: sometimes I use an older GNU Guix tree since it is a work in
+progress and the master may fail for whatever reason. Simply use git
+cherry-pick to update a single module and it should still work to
+submit a patch.
 
 * Hints
 
