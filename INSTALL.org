@@ -128,9 +128,9 @@ users with build permissions for the Guix daemon. In bash
 
 #+begin_src sh   :lang bash
     builders=10
-    groupadd guix-build
+    groupadd guixbuild
     for i in `seq 1 $builders`; do
-        useradd -g guix-build -G guix-build           \
+        useradd -g guixbuild -G guixbuild           \
             -d /var/empty -s `which nologin`          \
             -c "Guix build user $i" --system          \
             guix-builder$i;
@@ -148,7 +148,7 @@ system before running guix.
 This part is normally done automatically by the guix-daemon
 
 #+begin_src sh   :lang bash
-    chgrp guix-build -R /gnu/store
+    chgrp guixbuild -R /gnu/store
     chmod 1775 /gnu/store
 #+end_src sh   :lang bash
 
@@ -157,7 +157,7 @@ This part is normally done automatically by the guix-daemon
 Now you should be able to run Guix daemon and client directly from the store
 
 #+begin_src sh   :lang bash
-    /gnu/store/(...)-guix-(...)/bin/guix-daemon --build-users-group=guix-build
+    /gnu/store/(...)-guix-(...)/bin/guix-daemon --build-users-group=guixbuild
 #+end_src sh   :lang bash
 
 and you should be able to use the client also from the store
@@ -377,8 +377,8 @@ SCRIPTNAME=/etc/init.d/guix-daemon
 
 do_start()
 {
-        # /root/.guix-profile/bin/guix-daemon --build-users-group=guix-build 2>/dev/null || return 2
-        /root/.guix-profile/bin/guix-daemon --build-users-group=guix-build 2> /var/log/guix.log &
+        # /root/.guix-profile/bin/guix-daemon --build-users-group=guixbuild 2>/dev/null || return 2
+        /root/.guix-profile/bin/guix-daemon --build-users-group=guixbuild 2> /var/log/guix.log &
 }
 
 case "$1" in
@@ -408,15 +408,22 @@ and (on Debian)
 * Other installation routes
 ** Before you try, read this
 
-Note that above binary installation is by far the easiest if your
-package manager does not support Guix by default. Every distribution
-contains its own dependencies which may interfere with a Guix source
-install. But then, some of us are more adventurous than others.
+Note that above guix tarball binary installation is by far the easiest
+if your package manager does not support Guix by default. Every
+distribution contains its own dependencies which may interfere with a
+Guix source install. But then, some of us are more adventurous than
+others and you may need the git tree to package new software and work
+on reproducible builds.
 
 ** Install repository from git
 
+
 Use one of https://savannah.gnu.org/git/?group=guix and clone with
 sub modules:
+
+: git clone --recurse git://git.savannah.gnu.org/guix.git 
+
+when updating
 
 : git pull --recurse-submodules git-URI
 

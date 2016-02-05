@@ -191,6 +191,6 @@ ctrl-d. After that you can use e.g.
 
 Or use it with the guix-daemon using hydra as a fallback
 
-: guix-daemon --build-users-group=guix-build --substitute-urls="http://fps.io:9999 http://hydra.gnu.org"
+: guix-daemon --build-users-group=guixbuild --substitute-urls="http://fps.io:9999 http://hydra.gnu.org"
 
 (for multiple substitutes to work make sure you are running Guix > 0.9)
