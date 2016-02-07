@@ -9,7 +9,7 @@ is the one solution that can handle that complexity. Rather than going
 for ad hoc solutions, such as Docker and Brew, we champion using
 the right tool for the job.
 
-![alt text](python2-virtualenv.svg "Dependency graph for python2-virtualenv")
+![alt text](https://github.com/pjotrp/guix-notes/raw/master/python2-virtualenv.svg "Dependency graph for python2-virtualenv")
 
 # Useful Guix commands
 
