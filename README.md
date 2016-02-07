@@ -16,13 +16,14 @@ because of openssl.
 
 # Useful Guix commands
 
-This is a list of useful Guix commands
+This is a list of useful Guix commands. The quick path to
+installation is using the [binary tarball](https://github.com/pjotrp/guix-notes/blob/master/INSTALL.org#binary-installation).
 
 Add the guix PATH
 
     export PATH=./guix-profile/bin:$PATH
 
-Start the daemon
+Start the daemon (normally as root)
 
     guix-daemon --build-users-group=guixbuild
 
