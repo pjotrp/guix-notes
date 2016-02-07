@@ -11,74 +11,77 @@ the right tool for the job.
 
 ![alt text](https://github.com/pjotrp/guix-notes/raw/master/python2-virtualenv.png "Dependency graph for python2-virtualenv")
 
+Dependency graph for python2-virtualenv. Notice perl5 is required
+because of openssl.
+
 # Useful Guix commands
 
 This is a list of useful Guix commands
 
 Add the guix PATH
 
-: export PATH=./guix-profile/bin:$PATH
+    export PATH=./guix-profile/bin:$PATH
 
 Start the daemon
 
-: guix-daemon --build-users-group=guixbuild
+    guix-daemon --build-users-group=guixbuild
 
 Update guix and guix binary packages to the latest and greatest
 version
 
-: guix pull
+    guix pull
 
 Update guix itself
 
-: guix package -i guix
+    guix package -i guix
 
 List all recommended environment settings
 
-: guix package --search-paths
+    guix package --search-paths
 
 List all python packages (that contain the word 'python')
 
-: guix package -A python
+    guix package -A python
 
 Install Python2 with virtualenv (yes, you can do that)
 
-: guix package -i python2-virtualenv
+    guix package -i python2-virtualenv
 
 which installs the binary distribution. If you want to build from
 source do
 
-: guix package -i python2-virtualenv --no-substitutes
+    guix package -i python2-virtualenv --no-substitutes
 
 and if you want to keep the build directories (so to visit them and
 see what is happening, especially on error)
 
-: guix package -i python2-virtualenv --no-substitutes -K
+    guix package -i python2-virtualenv --no-substitutes -K
 
 Find all dependencies
 
-: guix gc --references /gnu/store/b896978pyr8bfw5bbqv1d7w24163xpxg-python2-virtualenv-13.1.2
+    guix gc --references /gnu/store/b896978pyr8bfw5bbqv1d7w24163xpxg-python2-virtualenv-13.1.2
 
 Plot a graph of dependencies
 
-: guix package -i graphviz
-: guix graph --type=references python2-virtualenv |dot -Gsize="10,10" -Gratio=0.7 -Tsvg -Nfontsize=48 > dag.svg
+    guix package -i graphviz
+    guix graph --type=references python2-virtualenv |dot -Gsize="10,10" -Gratio=0.7 -Tsvg -Nfontsize=48 > dag.svg
 
 Rendering the figure above.
 
 Validate the contents of the store against the database (there is also
 an option for repair)
 
-: guix gc --verify
+    guix gc --verify
 
 List all unused paths (i.e., no longer symlinked) and after remove them
 
-: guix gc --list-dead
-: guix gc --collect-garbage
+    guix gc --list-dead
+    guix gc --collect-garbage
 
 Spawns a shell or container (similar to Docker) where all declared
 inputs are available and all environment variables are set
 
-: guix environment --{pure,container} pkg
+    guix environment --{pure,container} pkg
 
 
 # Other information
