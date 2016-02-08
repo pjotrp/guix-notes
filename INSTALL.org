@@ -474,13 +474,15 @@ which may be used during build time.
 
 Arguably, you may want to create a special (isolated) build profile
 using -p and add that to your PATH instead. I use -p
-$HOME/opt/guix-build-system so the full thing becomes
+$HOME/opt/guix-build-system so the full thing becomes (with some
+additional tools I use)
 
 #+begin_src sh   :lang bash
    guix package -p $HOME/opt/guix-build-system --install autoconf \
       automake bzip2 gcc-toolchain gettext guile libgcrypt \
       pkg-config sqlite m4 make grep sed texinfo graphviz bash \
-      help2man binutils coreutils xz tar findutils gawk git less
+      help2man binutils coreutils xz tar findutils gawk git less \
+      time which
    export PATH=$HOME/opt/guix-build-system/bin:$PATH
 #+end_src sh   :lang bash
 
@@ -499,6 +501,11 @@ You can view the environment variable definitions Guix recommends with
 or when using a profile
 
 : guix package -p ~/opt/guix-build-system --search-paths
+
+To get rid of the LOCALE errors, do something like
+
+: export GUIX_LOCPATH=$HOME/.guix-profile/lib/locale
+: export LC_ALL=en_US.utf8
 
 Mine are (general)
 
@@ -563,7 +570,7 @@ and if you used a special build profile
 Run `make' (and optionally `make check') every time you change something in the
 repository. Make can do parallel builds so for 4 cores
 
-: make clean ; make -j 4 
+: make clean ; time make -j 4 
 
 which builds on my machine in 
 
