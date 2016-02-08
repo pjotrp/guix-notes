@@ -2,20 +2,30 @@
 
 #+TITLE: Troubleshooting GNU Guix
 
+* Running out of disk space
+
+Use the TMPDIR environment variable to use a different
+directory when building files. Use it with the *daemon*.
+
 * Libraries links (seen with ldd) are pointing outside /gnu/store
 
 When copying the files from one /gnu to another /gnu store
 they work fine, e.g. 
 
+#+begin_src bash
     /gnu/store/nx4zd42igyb7ghmv4mxv6ncg8wr7ypa1-bash-4.3.33/bin/bash --version
     GNU bash, version 4.3.33(1)-release (x86_64-unknown-linux-gnu)
+#+end_src 
 
 but when I run 
 
+#+begin_src bash
     /gnu/store/wnsbzddp3izv3xr3gqf2rar4fyd4shl7-guix-0.8.1.f1082ec/bin/guix package -i bash
+#+end_src 
 
 it runs and I get
 
+#+begin_src bash
     The following package will be installed:     
        bash 4.3.33  /gnu/store/7cc229218glj3kzp6zafzs5mc4241wqk-bash-4.3.33
     substitute-binary: updating list of substitutes from 'http://hydra.gnu.org'...
@@ -30,19 +40,25 @@ it runs and I get
     (...)
     substitute error: executing `/gnu/store/wnsbzddp3izv3xr3gqf2rar4fyd4shl7-guix-0.8.1.f1082ec/libexec/guix/substitute-binary': No such file or directory
     guix package: error: build failed: unexpected EOF reading a line
+#+end_src 
 
 Looking at
 
+#+begin_src bash
     head -1 /gnu/store/wnsbzddp3izv3xr3gqf2rar4fyd4shl7-guix-0.8.1.f1082ec/libexec/guix/substitute-binary
 #!/gnu/store/nx4zd42igyb7ghmv4mxv6ncg8wr7ypa1-bash-4.3.33/bin/bash
+#+end_src 
 
 it calls bash and now check
 
+#+begin_src bash
     /gnu/store/nx4zd42igyb7ghmv4mxv6ncg8wr7ypa1-bash-4.3.33/bin/bash
     bash: /gnu/store/nx4zd42igyb7ghmv4mxv6ncg8wr7ypa1-bash-4.3.33/bin/bash: No such file or directory
+#+end_src 
 
 while
 
+#+begin_src bash
     ldd /gnu/store/nx4zd42igyb7ghmv4mxv6ncg8wr7ypa1-bash-4.3.33/bin/bash
         linux-vdso.so.1 =>  (0x00007fff739ec000)
         libreadline.so.6 => /gnu/store/fznw2a1ig05jkc2yrw8knzcb99akcjx7-readline-6.3/lib/libreadline.so.6 (0x00007f0084bd5000)
@@ -51,12 +67,15 @@ while
         libdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f008455b000)
         libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f008419b000)
         /gnu/store/q2mm1wv4a3g0b29yv0rjybfjh8kr07qi-glibc-2.20/lib/ld-linux-x86-64.so.2 => /lib64/ld-linux-x86-64.so.2 (0x00007f0084e1d000)
+#+end_src 
 
 Oooops. Where does libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 come from? 
 
 Also the other bash stopped working
 
+#+begin_src bash
     /gnu/store/nx4zd42igyb7ghmv4mxv6ncg8wr7ypa1-bash-4.3.33/bin/bash --version
+#+end_src 
 
 and ldd shows links outside /gnu (when it worked they are all linked inside /gnu).
 
