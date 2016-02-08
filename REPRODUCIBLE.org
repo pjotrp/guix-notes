@@ -7,7 +7,7 @@
    - [[#set-up-an-authoritative-git][Set up an authoritative git]]
  - [[#using-gnu-guix-archive][Using GNU Guix archive]]
    - [[#generate-the-key][Generate the key]]
- - [[#caching-server][Caching server]]
+ - [[#introducing-a-gnu-guix-caching-server][Introducing a GNU Guix caching server]]
    - [[#set-up-server][Set up server]]
    - [[#use-server][Use server]]
 
@@ -36,13 +36,13 @@ software are *exactly* running.
 Here we describe how to recreate the same software stack every time. Basically,
 
 1. Use a checked out git repository of GNU Guix packages
-2. The checked out HASH value defines the dependency graph
-3. Build software of fetch binary substitutes against that graph
+2. The checked out git HASH value defines the origin of the dependency graph
+3. Build software of fetch binary substitutes against that git repo/graph
 
-And to create a caching server
+And next to create a caching server
 
 1. Create a key for the server
-2. Publish the server on the internet
+2. Publish the server on the network
 3. Tell your machines to use the server for substitute binaries
 
 It is all rather simple, really. 
@@ -62,24 +62,25 @@ repository. You should be able to run
 
 : ./pre-inst-env guix package -A
 
-At this point your source repo defines your graph. So if you do a `git log' you can
-see the SHA value which is the current version of your graph, e.g. 
+At this point your source repo defines your graph. So if you do a `git
+log' you can see the SHA value which is the current version of your
+guix git repo/graph, e.g.
 
 : commit 96250294012c2f1520b67f12ea80bfd6b98075a2
 
-Anywhere you install software 
-this SHA value you will get the exact same result. For example:
+Anywhere you install software this SHA value you will get the exact
+same result. For example using this version of the git repo/graph
 
 : ./pre-inst-env guix package -A ruby
 
-Will install the exact same Ruby, for x86_64 this will be
+Will install the exact same Ruby, for x86_64 this can be
 
 : /gnu/store/pgks1l9cl696j34v9mb35lk8x6lac3b0-ruby-2.2.4
 
 In fact, the only external non-Guix dependency is the Linux kernel API
 which, fortunately, does not change much. There is no (external) glibc
 dependency because glibc is *part* of the graph. GNU Guix comes with
-its own dependencies.
+its own dependencies (i.e., batteries included).
 
 ** Set up an authoritative git
 
@@ -111,7 +112,7 @@ across. Depending on how Guix was installed the key may be stored in
      (ecc 
       (curve Ed25519)
       (q #11217788B41ADC8D5B8E71BD87EF699C65312EC387752899FE9C888856F5C769#)))
-#+begin_end scheme
+#+end_src scheme
 
 Then create a signed tar ball with
 
@@ -123,7 +124,7 @@ it with
 
 : guix archive --import < guix_ruby.nar
 
-* Caching server
+* Introducing a GNU Guix caching server
 
 Thanks to Florian Paul Schmidt I now know how to set up a public
 facing caching server for GNU Guix binaries. Make sure to
