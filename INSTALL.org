@@ -16,7 +16,7 @@
  - [[#add-symlinks-to-the-path][Add symlinks to the PATH]]
  - [[#set-locale][Set locale]]
  - [[#sysv-startup-of-guix-daemon][SysV startup of Guix daemon]]
- - [[#other-installation-routes][Other installation routes]]
+ - [[#other-installation-routes-building-guix-from-source][Other installation routes (building Guix from source)]]
    - [[#before-you-try-read-this][Before you try, read this]]
    - [[#install-repository-from-git][Install repository from git]]
    - [[#bootstrap-from-source][Bootstrap from source]]
@@ -405,7 +405,7 @@ and (on Debian)
 
 : update-rc.d guix-daemon defaults
 
-* Other installation routes
+* Other installation routes (building Guix from source)
 ** Before you try, read this
 
 Note that above guix tarball binary installation is by far the easiest
@@ -416,7 +416,6 @@ others and you may need the git tree to package new software and work
 on reproducible builds.
 
 ** Install repository from git
-
 
 Use one of https://savannah.gnu.org/git/?group=guix and clone with
 sub modules:
@@ -430,9 +429,9 @@ when updating
 ** Bootstrap from source
 
 Bootstrapping from source, after checking out the git Guix source tree
-is surprisingly tricky because of the build dependencies. Your mileage
-may vary, but currently I recommend using the tar-ball install
-described above instead.
+can be surprisingly tricky because of the build dependencies. Your
+mileage may vary, but currently I recommend starting from the tar-ball
+install described above instead and build Guix using Guix tools.
 
 For building from source I found it to be important to make sure not to 
 *mix* Guix and native dependencies. Also make sure you are using the
@@ -440,16 +439,26 @@ proper localstatedir.
 
 ** Building GNU Guix from source (using Guix)
 
+This is my recommended route for building from source.
+
 You can re-build and re-install Guix using a system that already runs Guix.
 To do so (copied from the Guix README). After the binary tar install 
 described above:
 
 *** Install the dependencies and build tools using Guix:
 
-Make sure Guix is at the *front* of the PATH
+Display the search paths and set them, e.g.
 
 #+begin_src sh   :lang bash
-   export PATH=$HOME/.guix-profile/bin:$PATH
+guix package --search-paths
+export PATH="/home/wrk/.guix-profile/bin:/home/wrk/.guix-profile/sbin"
+export INFOPATH="/home/wrk/.guix-profile/share/info"
+#+end_src sh   :lang bash
+
+Note that if you want full isolation you may want to use 'guix
+environment', but here we opt for the lazy version. E.g.
+
+#+begin_src sh   :lang bash
    guix package --install autoconf automake bzip2 gcc-toolchain gettext \
                           guile libgcrypt pkg-config sqlite m4 make
 #+end_src sh   :lang bash
@@ -457,23 +466,27 @@ Make sure Guix is at the *front* of the PATH
 I also run
 
 #+begin_src sh   :lang bash
-    guix package --install grep sed texinfo graphviz 
+    guix package --install grep sed texinfo graphviz \
+      binutils coreutils xz tar findutils gawk git
 #+end_src sh   :lang bash
 
 which may be used during build time.
 
-Arguably, you may want to create a special build profile using -p and
-add that to your PATH instead. I use -p $HOME/opt/guix-build-system
-so the full thing becomes
+Arguably, you may want to create a special (isolated) build profile
+using -p and add that to your PATH instead. I use -p
+$HOME/opt/guix-build-system so the full thing becomes
 
 #+begin_src sh   :lang bash
+   guix package -p $HOME/opt/guix-build-system --install autoconf \
+      automake bzip2 gcc-toolchain gettext guile libgcrypt \
+      pkg-config sqlite m4 make grep sed texinfo graphviz bash \
+      help2man binutils coreutils xz tar findutils gawk git less
    export PATH=$HOME/opt/guix-build-system/bin:$PATH
-   guix package -p $HOME/opt/guix-build-system --install autoconf automake bzip2 gcc-toolchain gettext \
-                          guile libgcrypt pkg-config sqlite m4 make grep sed texinfo graphviz bash help2man
 #+end_src sh   :lang bash
 
-Note that hydra can be slow when many people are using it. The download farm should
-become faster in the future (it is designed for scalability).
+Note: hydra can be slow when many people are using it. The download
+should become faster in the near future (it is designed for scalability and
+GNU Guix is getting new hardware).
 
 ***  Set the Guix environment variables 
 
@@ -503,11 +516,14 @@ Mine are (general)
 Or (for the build system)
 
 #+begin_src sh   :lang bash
-   export PATH="$HOME/opt/guix-build-system/bin:/usr/bin:/bin"
-   export PKG_CONFIG_PATH="$HOME/opt/guix-build-system/lib/pkgconfig"
-   export CPATH="$HOME/opt/guix-build-system/include"
-   export LIBRARY_PATH="$HOME/opt/guix-build-system/lib"
-   export ACLOCAL_PATH="$HOME/opt/guix-build-system/share/aclocal"
+export PATH="/home/wrk/opt/guix-build-system/bin:$HOME/opt/guix-build-system/sbin"
+export INFOPATH="$HOME/opt/guix-build-system/share/info"
+export PKG_CONFIG_PATH="$HOME/opt/guix-build-system/lib/pkgconfig"
+export GUILE_LOAD_COMPILED_PATH="$HOME/opt/guix-build-system/lib/guile/2.0/ccache"
+export C_INCLUDE_PATH="$HOME/opt/guix-build-system/include"
+export CPLUS_INCLUDE_PATH="$HOME/opt/guix-build-system/include"
+export LIBRARY_PATH="$HOME/opt/guix-build-system/lib"
+export ACLOCAL_PATH="$HOME/opt/guix-build-system/share/aclocal"
 #+end_src sh   :lang bash
 	
 Re-run the 'configure' script passing it the option
@@ -518,7 +534,15 @@ that would lead the new Guix to consider the store to be
 empty!). E.g.,
 
 #+begin_src sh   :lang bash
-    ./configure --with-libgcrypt-prefix=$HOME/.guix-profile --localstatedir=/var
+    ./configure --with-libgcrypt-prefix=$HOME/.guix-profile \
+       --localstatedir=/var
+#+end_src sh   :lang bash
+
+or with profile
+
+#+begin_src sh   :lang bash
+./configure --with-libgcrypt-prefix=$HOME/opt/guix-build-system \
+  --localstatedir=/var
 #+end_src sh   :lang bash
 
 If that did not work try recreating configure with bootstrap
@@ -539,13 +563,27 @@ and if you used a special build profile
 Run `make' (and optionally `make check') every time you change something in the
 repository. Make can do parallel builds so for 4 cores
 
-: make -j 4 
+: make clean ; make -j 4 
+
+which builds on my machine in 
+
+: real    1m23.808s
+: user    3m35.616s
+: sys     0m1.624s
+
+Those cores get used well.
 
 You may want to avoid "make install" since it will probably install the guix
 binaries in /usr and you can run it in the source dir with
 
 #+begin_src sh   :lang bash
     ./pre-inst-env guix package -A ruby
+      ruby    1.8.7-p374      out     gnu/packages/ruby.scm:156:2
+      ruby    2.1.8   out     gnu/packages/ruby.scm:123:2
+      ruby    2.2.4   out     gnu/packages/ruby.scm:104:2
+      ruby    2.3.0   out     gnu/packages/ruby.scm:47:2
+      ruby-activesupport      4.2.4   out     gnu/packages/ruby.scm:2466:2
+      (... 137 more gems as per Feb 2016 ...)
 #+end_src sh   :lang bash
 
 At this point check whether the database path (localstatedir) was correct by checking

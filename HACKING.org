@@ -820,8 +820,11 @@ Initially you can mail the patch as an attachment to the mailing
 list. But better is to mail it as it is with something like (I use two steps
 to validate the mail and send it from a different mail server)
 
-: cat 0001-*.patch |formail -t -I "To: guix-devel@gnu.org" -I "From: Pjotr Prins <pjotr.public12@thebird.nl>"> mail.patch
-: cat ~/tmp/mail.patch|formail -s mail -t ; rm ~/tmp/mail.patch
+#+begin_src bash
+cat 0001-*.patch |formail -t -I "To: guix-devel@gnu.org" \
+   -I "From: Pjotr Prins <pjotr.public12@thebird.nl>"> mail.patch
+cat ~/tmp/mail.patch|formail -s mail -t ; rm ~/tmp/mail.patch
+#+end_src bash
 
 after making sure the header contains something like
 

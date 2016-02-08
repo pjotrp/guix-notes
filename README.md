@@ -44,6 +44,10 @@ List all python packages (that contain the word 'python')
 
     guix package -A python
 
+Show the contents of a package
+
+    guix package --show=python2-virtualenv
+
 Install Python2 with virtualenv (yes, you can do that)
 
     guix package -i python2-virtualenv
