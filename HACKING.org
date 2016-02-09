@@ -823,7 +823,7 @@ to validate the mail and send it from a different mail server)
 #+begin_src bash
 cat 0001-*.patch |formail -t -I "To: guix-devel@gnu.org" \
    -I "From: Pjotr Prins <pjotr.public12@thebird.nl>"> mail.patch
-cat ~/tmp/mail.patch|formail -s mail -t ; rm ~/tmp/mail.patch
+cat mail.patch|formail -s mail -t ; rm mail.patch
 #+end_src bash
 
 after making sure the header contains something like
@@ -836,8 +836,8 @@ after making sure the header contains something like
 : ---
 : etc.
 
-Note that GNU Guix wants one patch per variable. So submit packages
-one at a time.
+Note that the GNU Guix developers want one patch per variable. So
+submit packages one at a time.
 
 For more information see the official HACKING document in the Guix git
 repo.
