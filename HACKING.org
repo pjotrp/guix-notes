@@ -41,6 +41,7 @@
  - [[#workflow-for-packaging][Workflow for packaging]]
  - [[#hints][Hints]]
    - [[#using-emacs][Using emacs]]
+   - [[#filing-a-bug][Filing a bug]]
  - [[#the-ruby-package][The Ruby package]]
    - [[#ruby-gems][Ruby Gems]]
  - [[#dealing-with-special-packages][Dealing with special packages]]
@@ -822,7 +823,8 @@ to validate the mail and send it from a different mail server)
 
 #+begin_src bash
 cat 0001-*.patch |formail -t -I "To: guix-devel@gnu.org" \
-   -I "From: Pjotr Prins <pjotr.public12@thebird.nl>"> mail.patch
+   -I "From: Pjotr Prins <pjotr.public12@email>" \
+   -I "In-Reply-To: <20160213102825.GA19194@debian>" > mail.patch
 cat mail.patch|formail -s mail -t ; rm mail.patch
 #+end_src bash
 
@@ -923,6 +925,38 @@ Emacs has powerful support for editing LISP (unsurprisingly, perhaps).
 *** Key binding
 
 + C-M-f and C-M-b move to forward/backward to matching braces
+
+** Filing a bug
+
+Send a mail to the bug list, it should look like this:
+
+#+begin_src scheme
+From: Pjotr Prins <pjotr.public12@email>
+To: bug-guix@gnu.org
+Bcc: 
+Subject: guix lint fails with -dc switch missing
+Reply-To: 
+
+When I run lint on a recent ceckout
+
+  ./pre-inst-env guix lint 
+  
+or
+  
+  ./pre-inst-env guix lint python
+  
+I get
+  
+  filtered-port: failed to execute ' -dc ': No such file or directory
+
+Backtrace: 
+In unknown file:
+   ?: 19 [apply-smob/1 #<catch-closure 16dfcc0>]
+In ice-9/boot-9.scm:
+  63: 18 [call-with-prompt prompt0 ...]
+In ice-9/eval.scm:
+ 432: 17 [eval # #]
+#+end_src scheme
 
 * The Ruby package
 ** Ruby Gems

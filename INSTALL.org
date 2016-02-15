@@ -451,8 +451,8 @@ Display the search paths and set them, e.g.
 
 #+begin_src sh   :lang bash
 guix package --search-paths
-export PATH="/home/wrk/.guix-profile/bin:/home/wrk/.guix-profile/sbin"
-export INFOPATH="/home/wrk/.guix-profile/share/info"
+export PATH="$HOME/.guix-profile/bin:$HOME/.guix-profile/sbin"
+export INFOPATH="$HOME/.guix-profile/share/info"
 #+end_src sh   :lang bash
 
 Note that if you want full isolation you may want to use 'guix
@@ -482,7 +482,7 @@ additional tools I use)
       automake bzip2 gcc-toolchain gettext guile libgcrypt \
       pkg-config sqlite m4 make grep sed texinfo graphviz bash \
       help2man binutils coreutils xz tar findutils gawk git less \
-      time which
+      time which diffutils
    export PATH=$HOME/opt/guix-build-system/bin:$PATH
 #+end_src sh   :lang bash
 
@@ -523,7 +523,7 @@ Mine are (general)
 Or (for the build system)
 
 #+begin_src sh   :lang bash
-export PATH="/home/wrk/opt/guix-build-system/bin:$HOME/opt/guix-build-system/sbin"
+export PATH="$HOME/opt/guix-build-system/bin:$HOME/opt/guix-build-system/sbin"
 export INFOPATH="$HOME/opt/guix-build-system/share/info"
 export PKG_CONFIG_PATH="$HOME/opt/guix-build-system/lib/pkgconfig"
 export GUILE_LOAD_COMPILED_PATH="$HOME/opt/guix-build-system/lib/guile/2.0/ccache"
@@ -532,6 +532,8 @@ export CPLUS_INCLUDE_PATH="$HOME/opt/guix-build-system/include"
 export LIBRARY_PATH="$HOME/opt/guix-build-system/lib"
 export ACLOCAL_PATH="$HOME/opt/guix-build-system/share/aclocal"
 #+end_src sh   :lang bash
+
+*** And build it
 	
 Re-run the 'configure' script passing it the option
 '--with-libgcrypt-prefix=$HOME/.guix-profile/', as well as
@@ -621,6 +623,9 @@ source, in fact, to get GNU Guix running on Debian proved surprisingly
 hard. But with Guix 0.7 I got a working installation on Debian
 (building from the source tarball using Debian packages) and David and
 I created the first Ruby package in September 2014.
+
+: Even so, the recommended route is bootstrapping Guix from Guix in 
+: Debian (see above section).
 
 To do a Debian install make sure to remove all references to guix in
 the PATH and other settings. Use the full native dependencies too
