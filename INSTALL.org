@@ -484,6 +484,7 @@ additional tools I use)
       help2man binutils coreutils xz tar findutils gawk git less \
       time which diffutils
    export PATH=$HOME/opt/guix-build-system/bin:$PATH
+   guix package --search-paths
 #+end_src sh   :lang bash
 
 Note: hydra can be slow when many people are using it. The download
