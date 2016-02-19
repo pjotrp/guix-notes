@@ -478,6 +478,7 @@ $HOME/opt/guix-build-system so the full thing becomes (with some
 additional tools I use)
 
 #+begin_src sh   :lang bash
+   mkdir $HOME/opt
    guix package -p $HOME/opt/guix-build-system --install autoconf \
       automake bzip2 gcc-toolchain gettext guile libgcrypt \
       pkg-config sqlite m4 make grep sed texinfo graphviz bash \

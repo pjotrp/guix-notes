@@ -52,7 +52,6 @@ downloading and installing large binaries. GNU Guix can be quite heavy
 in its use of bandwidth if you opt for rolling upgrades.
 
 * Reproducible software deployment 
-
 ** Git checkout of GNU Guix repository
 
 The entry point for the reproducible software graph, at this point, is
