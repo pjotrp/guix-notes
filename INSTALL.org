@@ -483,7 +483,7 @@ additional tools I use)
       automake bzip2 gcc-toolchain gettext guile libgcrypt \
       pkg-config sqlite m4 make grep sed texinfo graphviz bash \
       help2man binutils coreutils xz tar findutils gawk git less \
-      time which diffutils
+      time which diffutils vim
    export PATH=$HOME/opt/guix-build-system/bin:$PATH
    guix package --search-paths
 #+end_src sh   :lang bash

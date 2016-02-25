@@ -42,6 +42,7 @@
  - [[#hints][Hints]]
    - [[#using-emacs][Using emacs]]
    - [[#filing-a-bug][Filing a bug]]
+   - [[#git-ca-certificates][Git CA certificates]]
  - [[#the-ruby-package][The Ruby package]]
    - [[#ruby-gems][Ruby Gems]]
  - [[#dealing-with-special-packages][Dealing with special packages]]
@@ -957,6 +958,21 @@ In ice-9/boot-9.scm:
 In ice-9/eval.scm:
  432: 17 [eval # #]
 #+end_src scheme
+
+** Git CA certificates
+
+When you get the dreaded `server certificate verification
+failed. CAfile: none CRLfile: none' you may want to fix the
+[[http://stackoverflow.com/questions/3777075/ssl-certificate-rejected-trying-to-access-github-over-https-behind-firewall][certificates]]. It is also possible to checkout a repository using
+
+: env GIT_SSL_NO_VERIFY=true git clone URI
+
+(note there are security implications) and next update inside the 
+repo with 
+
+: git config http.sslVerify false
+
+to override certificate checking.
 
 * The Ruby package
 ** Ruby Gems
