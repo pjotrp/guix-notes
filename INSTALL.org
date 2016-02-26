@@ -455,6 +455,12 @@ export PATH="$HOME/.guix-profile/bin:$HOME/.guix-profile/sbin"
 export INFOPATH="$HOME/.guix-profile/share/info"
 #+end_src sh   :lang bash
 
+Are we on the latest versions?
+
+#+begin_src sh   :lang bash
+guix pull
+#+end_src sh   :lang bash
+
 Note that if you want full isolation you may want to use 'guix
 environment', but here we opt for the lazy version. E.g.
 
@@ -472,10 +478,9 @@ I also run
 
 which may be used during build time.
 
-Arguably, you may want to create a special (isolated) build profile
-using -p and add that to your PATH instead. I use -p
-$HOME/opt/guix-build-system so the full thing becomes (with some
-additional tools I use)
+I create a special (isolated) build profile using -p and add that to
+your PATH instead. I use -p $HOME/opt/guix-build-system so the full
+thing becomes (with some additional tools I use)
 
 #+begin_src sh   :lang bash
    mkdir $HOME/opt
