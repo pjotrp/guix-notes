@@ -758,6 +758,9 @@ And nowadays one can also use --search-paths=suffix or
 
 Check the Guix guidelines [[https://www.gnu.org/software/guix/manual/html_node/Submitting-Patches.html#Submitting-Patches][first]].
 
+Make sure your terminal and editors are running in UTF8. See locales
+in [[INSTALL.org]].
+
 A patch can be sent to the mailing list. Use git rebase --interactive
 to merge and [[http://gitready.com/advanced/2009/02/10/squashing-commits-with-rebase.html][squash patches]] into one. E.g., 
 
@@ -1083,6 +1086,8 @@ Save it as a file named pylmm.scm (the name of the module!) and add the path
 : env GUIX_PACKAGE_PATH=~/python/pylmm_gn2/guix guix package -A python-pylmm 
 :   python-pylmm    1.0.0   out     ~/python/pylmm_gn2/guix/pylmm.scm:15:2
 
-* TODO Create a caching server
+* Create a caching server
 
 The Guix daemon contains a build server. It also can distribute built binaries.
+
+See [[REPRODUCIBLE.org]]

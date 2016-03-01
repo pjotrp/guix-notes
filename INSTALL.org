@@ -490,7 +490,7 @@ thing becomes (with some additional tools I use)
       help2man binutils coreutils xz tar findutils gawk git less \
       time which diffutils vim
    export PATH=$HOME/opt/guix-build-system/bin:$PATH
-   guix package --search-paths
+   guix package -p ~/opt/guix-build-system --search-paths
 #+end_src sh   :lang bash
 
 Note: hydra can be slow when many people are using it. The download
@@ -511,8 +511,10 @@ or when using a profile
 
 To get rid of the LOCALE errors, do something like
 
-: export GUIX_LOCPATH=$HOME/.guix-profile/lib/locale
-: export LC_ALL=en_US.utf8
+#+begin_src sh   :lang bash
+export GUIX_LOCPATH=$HOME/.guix-profile/lib/locale
+export LC_ALL=en_US.utf8
+#+end_src sh   :lang bash
 
 Mine are (general)
 
@@ -538,6 +540,20 @@ export C_INCLUDE_PATH="$HOME/opt/guix-build-system/include"
 export CPLUS_INCLUDE_PATH="$HOME/opt/guix-build-system/include"
 export LIBRARY_PATH="$HOME/opt/guix-build-system/lib"
 export ACLOCAL_PATH="$HOME/opt/guix-build-system/share/aclocal"
+#+end_src sh   :lang bash
+
+*** Check before build
+
+Make sure the path is pointing to the build path
+
+#+begin_src sh   :lang bash
+which env 
+#+end_src sh   :lang bash
+
+should give 
+
+#+begin_src sh   :lang bash
+/home/wrk/opt/guix-build-system/bin/env
 #+end_src sh   :lang bash
 
 *** And build it
