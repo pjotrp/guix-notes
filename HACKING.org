@@ -127,7 +127,7 @@ GNU Guix uses key-value pairs extensively. With
   (build-system
     (name 'ruby)
     (description "The standard Ruby build system")
-    (lower lower)))
+    (lower lower))
 #+end_src
 
 the Guix build-system record constructor is called with the field
@@ -257,7 +257,7 @@ comma (an unquote), e.g.
                    #:system ,system
                    #:test-target ,test-target
                    #:tests? ,tests?
-                   #:phases ,phases
+                   #:phases ,phases)
 #+end_src
 
 Note match operator which is used for expression matching. Here 'source'
@@ -326,7 +326,7 @@ bin:
        (let* ((out (assoc-ref outputs "out"))
               (bin (string-append out "/bin")))
          (mkdir-p bin)
-         (copy-file (string-append bin "/mpc123") (string-append bin "/mpc123"))))
+         (copy-file (string-append bin "/mpc123") (string-append bin "/mpc123")))))
 #+end_src
 
 *** TODO show the newer 'modify-phases' syntax instead
@@ -362,7 +362,7 @@ The version is located in the package definition. E.g.
                            "/ruby-" version ".tar.bz2"))
        (sha256
         (base32
-         "1r4bs8lfwsypbcf8j2lpv3by40729vp5mh697njizj97fjp644qy"))))
+         "1r4bs8lfwsypbcf8j2lpv3by40729vp5mh697njizj97fjp644qy"))))))
 #+end_src
 
 ** Updating the HASH value
