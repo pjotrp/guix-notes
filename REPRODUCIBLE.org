@@ -103,10 +103,11 @@ First, as root, generate a key for the machine:
 Note this can take forever on a server without a [[https://bugs.launchpad.net/ubuntu/+source/gnupg/+bug/706011][keyboard]] so you may
 want to generate a key on a local machine and copy it
 across. Depending on how Guix was installed the key may be stored in
-/etc/guix/ or /usr/local/etc/guix/, e.g., cat
-/usr/local/etc/guix/signing-key.pub
+/etc/guix/ or /usr/local/etc/guix/, e.g., 
 
 #+begin_src scheme
+cat /usr/local/etc/guix/signing-key.pub
+
     (public-key 
      (ecc 
       (curve Ed25519)

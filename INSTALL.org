@@ -27,10 +27,11 @@
  - [[#continue-with-ruby-installation-and-environment][Continue with Ruby installation and environment]]
  - [[#continue-with-python-installation-and-environment][Continue with Python installation and environment]]
  - [[#add-your-own-package][Add your own package]]
+ - [[#install-gnu-guix-systemsoftware-distribution-sd][Install GNU Guix system/software distribution (SD)]]
 
 * Introduction
 
-*NEWS FLASH*: GNU Guix can be installed in one go on most Linux installations!
+*NEWS FLASH*: GNU Guix can be installed in one go on most Linux distributions!
  
 See the [[#the-one-step-tarball-installation][The one-step tarball installation]] below
 
@@ -461,6 +462,9 @@ Are we on the latest versions?
 guix pull
 #+end_src sh   :lang bash
 
+If 'guix pull' fails or messes up, see trouble shooting in
+[[HACKING.org]].
+
 Note that if you want full isolation you may want to use 'guix
 environment', but here we opt for the lazy version. E.g.
 
@@ -516,20 +520,7 @@ export GUIX_LOCPATH=$HOME/.guix-profile/lib/locale
 export LC_ALL=en_US.utf8
 #+end_src sh   :lang bash
 
-Mine are (general)
-
-#+begin_src sh   :lang bash
-    export PKG_CONFIG_PATH="$HOME/.guix-profile/lib/pkgconfig"
-    export GUILE_LOAD_PATH="$HOME/.guix-profile/share/guile/site/2.0"
-    export GUILE_LOAD_COMPILED_PATH="$HOME/.guix-profile/share/guile/site/2.0"
-    export CPATH="$HOME/.guix-profile/include"
-    export LIBRARY_PATH="$HOME/.guix-profile/lib"
-    export ACLOCAL_PATH="$HOME/.guix-profile/share/aclocal"
-    export CMAKE_PREFIX_PATH="$HOME/.guix-profile/"
-    export PYTHONPATH="$HOME/.guix-profile/lib/python2.7/site-packages"
-#+end_src sh   :lang bash
-
-Or (for the build system)
+Mine are for the build system
 
 #+begin_src sh   :lang bash
 export PATH="$HOME/opt/guix-build-system/bin:$HOME/opt/guix-build-system/sbin"
@@ -709,3 +700,7 @@ See [[https://github.com/pjotrp/guix-notes/blob/master/PYTHON.org][GNU Guix Pyth
 * Add your own package
 
 See [[https://github.com/pjotrp/guix-notes/blob/master/HACKING.org][GNU Guix HACKING]]
+
+* Install GNU Guix system/software distribution (SD)
+
+See [[GuixSD.org]].

@@ -43,6 +43,7 @@
    - [[#using-emacs][Using emacs]]
    - [[#filing-a-bug][Filing a bug]]
    - [[#git-ca-certificates][Git CA certificates]]
+   - [[#recovering-from-a-guix-pull][Recovering from a 'guix pull']]
  - [[#the-ruby-package][The Ruby package]]
    - [[#ruby-gems][Ruby Gems]]
  - [[#dealing-with-special-packages][Dealing with special packages]]
@@ -334,10 +335,6 @@ bin:
 * Starting the daemon
 
 Do not forget to start the daemon
-
-#+begin_src scheme
-  guix-daemon --build-users-group=guix-build
-#+end_src
 
 The daemon runs ar root, the actual build processes run as unprivileged users.
 
@@ -976,6 +973,19 @@ repo with
 : git config http.sslVerify false
 
 to override certificate checking.
+
+** Recovering from a 'guix pull'
+
+Occasionally you do a guix pull and regret it. It is pretty easy
+to recover. Basically a guix pull fetches the latest guix source
+tree, puts it in the store and symlinks the directory to 
+~/.config/guix/latest.
+
+So, to change things, change the symlink and point it to a checked out
+guix git repository (for example). 
+
+: ls ~/.config/guix/latest
+: gnu  gnu.go  gnu.scm  guix  guix.go  guix.scm
 
 * The Ruby package
 ** Ruby Gems
