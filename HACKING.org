@@ -320,16 +320,20 @@ and makes sure to make the directory and copy a file named mpc123 into
 bin:
 
 #+begin_src scheme
-    (alist-replace
-     'install
-     (lambda* (#:key outputs #:allow-other-keys)
-       (let* ((out (assoc-ref outputs "out"))
-              (bin (string-append out "/bin")))
-         (mkdir-p bin)
-         (copy-file (string-append bin "/mpc123") (string-append bin "/mpc123")))))
+;...
+    (build-system gnu-build-system)
+    (arguments
+     '(#:phases
+       (modify-phases %standard-phases
+         (delete 'check) ;; Don't run the 'make check' step of the gnu-build-system
+         (replace 'install ;; Replace the install step with the function defined below
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let* ((out (assoc-ref outputs "out"))
+                    (bin (string-append out "/bin")))
+               (mkdir-p bin)
+               (copy-file "mpc123" (string-append bin "/mpc123"))))))))
+;...
 #+end_src
-
-*** TODO show the newer 'modify-phases' syntax instead
 
 * Starting the daemon
 
