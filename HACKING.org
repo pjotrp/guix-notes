@@ -981,6 +981,10 @@ repo with
 
 to override certificate checking.
 
+If you already have CA certificates, you can point git to them using the =GIT_SSL_CAINFO= variable. In =.bashrc=:
+
+: export GIT_SSL_CAINFO=/etc/ssl/certs/ca-certificates.crt
+
 * The Ruby package
 ** Ruby Gems
 
