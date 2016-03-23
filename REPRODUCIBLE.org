@@ -168,9 +168,13 @@ And you might also want to look into the --cache-failures option for
 the guix-daemon. And instead of just using a for-loop you might
 want to use gnu parallel or something.
 
+To publish the server
+
+: guix publish -p 9999 -u guixpublisher
+
 ** Use server
 
-Example for http://fps.io:9999
+Example for http://penguin:9999
 
 The public key is
 
@@ -188,10 +192,20 @@ Run
 Paste in the scheme expression for the key above and finish with
 ctrl-d. After that you can use e.g.
 
-: guix package -i boost --substitute-urls="http://fps.io:9999"
+: guix package -i boost --substitute-urls="http://penguin:9999"
 
 Or use it with the guix-daemon using hydra as a fallback
 
-: guix-daemon --build-users-group=guixbuild --substitute-urls="http://fps.io:9999 http://hydra.gnu.org"
+: guix-daemon --build-users-group=guixbuild --substitute-urls="http://penguin:9999 http://hydra.gnu.org"
 
 (for multiple substitutes to work make sure you are running Guix > 0.9)
+
+To test the server by hand go to the URL 
+
+wget http://penguin:9999/nix-cache-info
+
+and check the contents, it should show something like
+
+: StoreDir: /gnu/store
+: WantMassQuery: 0
+: Priority: 100

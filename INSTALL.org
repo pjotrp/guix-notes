@@ -21,6 +21,7 @@
    - [[#install-repository-from-git][Install repository from git]]
    - [[#bootstrap-from-source][Bootstrap from source]]
    - [[#building-gnu-guix-from-source-using-guix][Building GNU Guix from source (using Guix)]]
+   - [[#run-the-latest-guix-server-from-the-git-repo][Run the latest guix server from the git repo]]
    - [[#building-gnu-guix-from-source-debian-native][Building GNU Guix from source (Debian native)]]
    - [[#bootstrap-with-nix][Bootstrap with Nix]]
    - [[#bootstrap-with-docker][Bootstrap with Docker]]
@@ -456,7 +457,7 @@ export PATH="$HOME/.guix-profile/bin:$HOME/.guix-profile/sbin"
 export INFOPATH="$HOME/.guix-profile/share/info"
 #+end_src sh   :lang bash
 
-Are we on the latest versions?
+Optional: are we on the latest versions? 
 
 #+begin_src sh   :lang bash
 guix pull
@@ -482,9 +483,9 @@ I also run
 
 which may be used during build time.
 
-I create a special (isolated) build profile using -p and add that to
-your PATH instead. I use -p $HOME/opt/guix-build-system so the full
-thing becomes (with some additional tools I use)
+In fact, I create a special (isolated) build profile using -p and add
+that to the PATH instead. I use -p $HOME/opt/guix-build-system so the
+full thing becomes (with some additional tools I use)
 
 #+begin_src sh   :lang bash
    mkdir $HOME/opt
@@ -556,12 +557,6 @@ Re-run the 'configure' script passing it the option
 that would lead the new Guix to consider the store to be
 empty!). E.g.,
 
-#+begin_src sh   :lang bash
-    ./configure --with-libgcrypt-prefix=$HOME/.guix-profile \
-       --localstatedir=/var
-#+end_src sh   :lang bash
-
-or with profile
 
 #+begin_src sh   :lang bash
 ./configure --with-libgcrypt-prefix=$HOME/opt/guix-build-system \
@@ -571,22 +566,14 @@ or with profile
 If that did not work try recreating configure with bootstrap
 
 #+begin_src sh   :lang bash
-    ./bootstrap
-    ./configure --with-libgcrypt-prefix=$HOME/.guix-profile --localstatedir=/var
-    make clean
-    make
-#+end_src sh   :lang bash
-
-and if you used a special build profile
-
-#+begin_src sh   :lang bash
+./bootstrap
 ./configure --with-libgcrypt-prefix=$HOME/opt/guix-build-system --localstatedir=/var
 #+end_src
 
 Run `make' (and optionally `make check') every time you change something in the
 repository. Make can do parallel builds so for 4 cores
 
-: make clean ; time make -j 4 
+: make clean ; time make 
 
 which builds on my machine in 
 
@@ -595,6 +582,8 @@ which builds on my machine in
 : sys     0m1.624s
 
 Those cores get used well.
+
+*** And run it
 
 You may want to avoid "make install" since it will probably install the guix
 binaries in /usr and you can run it in the source dir with
@@ -628,6 +617,17 @@ or, at least, that it comes first.
 #+begin_src sh   :lang bash
   export PATH=$HOME/.guix-profile/bin:/usr/bin:/bin
   set|grep guix
+#+end_src sh   :lang bash
+
+** Run the latest guix server from the git repo
+
+If you get something like "error while loading shared libraries:
+libsqlite3.so.0: cannot open shared object file: No such file or
+directory" you may want to add the LD_LIBRARY_PATH to run the server
+after setting up the paths suggested by 'guix package --search-paths'.
+
+#+begin_src sh   :lang bash
+env LD_LIBRARY_PATH=$LIBRARY_PATH ./guix-daemon --build-users-group=guixbuild 
 #+end_src sh   :lang bash
 
 ** Building GNU Guix from source (Debian native)
@@ -669,11 +669,8 @@ be using the /usr/local prefix, so the metadata will be in
 
 ** Bootstrap with Nix
 
-Bootstrapping with Nix is possible, the package managers are 1st
-cousins and use the same backend. The Guix package contained in Nix,
-however, may be out of date and perhaps uses /gnu/store instead of
-/nix/store. The latter should also work with Guix, but you don't get binary
-downloads.
+No longer supported. It is possible to reintroduce a Nix
+package for GNU Guix, but the binary installer is just as convenient.
 
 ** Bootstrap with Docker
 
