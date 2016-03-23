@@ -132,6 +132,9 @@ run a recent guix daemon.
 
 ** Set up server
 
+It is important to use recent versions of the guix daemon and guix on
+both ends.
+
 1. Generate a key pair for the guix-publish service
 2. Add the guix-publish service to your services (and reconfigure your system)
 3. Either build or pull all the packages you want:

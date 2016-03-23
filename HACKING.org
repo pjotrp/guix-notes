@@ -128,7 +128,7 @@ GNU Guix uses key-value pairs extensively. With
   (build-system
     (name 'ruby)
     (description "The standard Ruby build system")
-    (lower lower)))
+    (lower lower))
 #+end_src
 
 the Guix build-system record constructor is called with the field
@@ -258,7 +258,7 @@ comma (an unquote), e.g.
                    #:system ,system
                    #:test-target ,test-target
                    #:tests? ,tests?
-                   #:phases ,phases
+                   #:phases ,phases)
 #+end_src
 
 Note match operator which is used for expression matching. Here 'source'
@@ -321,16 +321,20 @@ and makes sure to make the directory and copy a file named mpc123 into
 bin:
 
 #+begin_src scheme
-    (alist-replace
-     'install
-     (lambda* (#:key outputs #:allow-other-keys)
-       (let* ((out (assoc-ref outputs "out"))
-              (bin (string-append out "/bin")))
-         (mkdir-p bin)
-         (copy-file (string-append bin "/mpc123") (string-append bin "/mpc123"))))
+;...
+    (build-system gnu-build-system)
+    (arguments
+     '(#:phases
+       (modify-phases %standard-phases
+         (delete 'check) ;; Don't run the 'make check' step of the gnu-build-system
+         (replace 'install ;; Replace the install step with the function defined below
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let* ((out (assoc-ref outputs "out"))
+                    (bin (string-append out "/bin")))
+               (mkdir-p bin)
+               (copy-file "mpc123" (string-append bin "/mpc123"))))))))
+;...
 #+end_src
-
-*** TODO show the newer 'modify-phases' syntax instead
 
 * Starting the daemon
 
@@ -359,7 +363,7 @@ The version is located in the package definition. E.g.
                            "/ruby-" version ".tar.bz2"))
        (sha256
         (base32
-         "1r4bs8lfwsypbcf8j2lpv3by40729vp5mh697njizj97fjp644qy"))))
+         "1r4bs8lfwsypbcf8j2lpv3by40729vp5mh697njizj97fjp644qy"))))))
 #+end_src
 
 ** Updating the HASH value
@@ -974,6 +978,7 @@ repo with
 
 to override certificate checking.
 
+<<<<<<< HEAD
 ** Recovering from a 'guix pull'
 
 Occasionally you do a guix pull and regret it. It is pretty easy
@@ -986,6 +991,10 @@ guix git repository (for example).
 
 : ls ~/.config/guix/latest
 : gnu  gnu.go  gnu.scm  guix  guix.go  guix.scm
+
+If you already have CA certificates, you can point git to them using the =GIT_SSL_CAINFO= variable. In =.bashrc=:
+
+: export GIT_SSL_CAINFO=/etc/ssl/certs/ca-certificates.crt
 
 * The Ruby package
 ** Ruby Gems
