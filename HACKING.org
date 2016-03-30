@@ -967,7 +967,14 @@ In ice-9/eval.scm:
 
 When you get the dreaded `server certificate verification
 failed. CAfile: none CRLfile: none' you may want to fix the
-[[http://stackoverflow.com/questions/3777075/ssl-certificate-rejected-trying-to-access-github-over-https-behind-firewall][certificates]]. It is also possible to checkout a repository using
+[[http://stackoverflow.com/questions/3777075/ssl-certificate-rejected-trying-to-access-github-over-https-behind-firewall][certificates]]. 
+
+If you already have CA certificates, you can point git to them using
+the =GIT_SSL_CAINFO= variable. In =.bashrc=:
+
+: export GIT_SSL_CAINFO=/etc/ssl/certs/ca-certificates.crt
+
+It is also possible to checkout a repository using
 
 : env GIT_SSL_NO_VERIFY=true git clone URI
 
@@ -977,6 +984,7 @@ repo with
 : git config http.sslVerify false
 
 to override certificate checking.
+
 
 ** Recovering from a 'guix pull'
 
@@ -990,10 +998,6 @@ guix git repository (for example).
 
 : ls ~/.config/guix/latest
 : gnu  gnu.go  gnu.scm  guix  guix.go  guix.scm
-
-If you already have CA certificates, you can point git to them using the =GIT_SSL_CAINFO= variable. In =.bashrc=:
-
-: export GIT_SSL_CAINFO=/etc/ssl/certs/ca-certificates.crt
 
 * The Ruby package
 ** Ruby Gems
