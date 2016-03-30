@@ -15,6 +15,7 @@
  - [[#install-the-hello-package][Install the hello package]]
  - [[#add-symlinks-to-the-path][Add symlinks to the PATH]]
  - [[#set-locale][Set locale]]
+ - [[#fonts][Fonts]]
  - [[#sysv-startup-of-guix-daemon][SysV startup of Guix daemon]]
  - [[#other-installation-routes-building-guix-from-source][Other installation routes (building Guix from source)]]
    - [[#before-you-try-read-this][Before you try, read this]]
@@ -351,6 +352,30 @@ Choose one from
 
 Alternatively set the LOCPATH to that of your underlying
 distribution - though incompatibilities may exist.
+
+* Fonts
+
+When installing fonts they end up in ~/.guix-profile/share/fonts.
+
+The fontconfig package contains utitilies that help sort font 
+issues. E.g.
+
+: fc-list
+
+will show the fonts in scope which tend to be the underlying 
+distribution's.
+
+The majority of graphical applications uses Fontconfig to locate and
+load font and perform X11-client-side rendering.  Guix's ddress@hidden
+package looks for fonts in the user's profile by default, so you have
+to install them there.
+
+FIXME: but actually Fontconfig's cache will have the host distro's
+fonts listed, so maybe this is not a problem?
+
+Please drop this as ~/.config/fontconfig/fonts.conf:
+
+<fontconfig><dir>/run/current-system/profile/share/fonts</dir></fontconfig>
 
 * SysV startup of Guix daemon
 

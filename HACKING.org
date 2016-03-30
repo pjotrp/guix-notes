@@ -978,7 +978,6 @@ repo with
 
 to override certificate checking.
 
-<<<<<<< HEAD
 ** Recovering from a 'guix pull'
 
 Occasionally you do a guix pull and regret it. It is pretty easy
