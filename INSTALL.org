@@ -377,6 +377,9 @@ Please drop this as ~/.config/fontconfig/fonts.conf:
 
 <fontconfig><dir>/run/current-system/profile/share/fonts</dir></fontconfig>
 
+Probably the most comprehensive description of fonts can be found
+[[http://xpt.sourceforge.net/techdocs/nix/x/fonts/xf21-XOrgFontConfiguration/single/][here]]. With GNU Guix the relevant dirs will be found in ~/.guix-profile.
+
 * SysV startup of Guix daemon
 
 Guix comes with a script for systemd. For SysV's startup I use /etc/init.d/guix-daemon which
