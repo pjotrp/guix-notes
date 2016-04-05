@@ -10,6 +10,7 @@
  - [[#introducing-a-gnu-guix-caching-server][Introducing a GNU Guix caching server]]
    - [[#set-up-server][Set up server]]
    - [[#use-server][Use server]]
+   - [[#trouble-shooting][Trouble shooting]]
 
 * Introduction
 
@@ -173,11 +174,11 @@ want to use gnu parallel or something.
 
 To publish the server
 
-: guix publish -p 9999 -u guixpublisher
+: guix publish -p 8080 -u guixpublisher
 
 ** Use server
 
-Example for http://penguin:9999
+Example for http://penguin:8080
 
 The public key is
 
@@ -193,22 +194,28 @@ Run
 : sudo guix archive --authorize
 
 Paste in the scheme expression for the key above and finish with
-ctrl-d. After that you can use e.g.
+ctrl-D. After that you can use e.g.
 
-: guix package -i boost --substitute-urls="http://penguin:9999"
+: guix package -i boost --substitute-urls="http://penguin:8080"
 
 Or use it with the guix-daemon using hydra as a fallback
 
-: guix-daemon --build-users-group=guixbuild --substitute-urls="http://penguin:9999 http://hydra.gnu.org"
+: guix-daemon --build-users-group=guixbuild --substitute-urls="http://penguin:8080 http://mirror.guixsd.org http://hydra.gnu.org"
 
 (for multiple substitutes to work make sure you are running Guix > 0.9)
 
 To test the server by hand go to the URL 
 
-wget http://penguin:9999/nix-cache-info
+wget http://penguin:8080/nix-cache-info
 
 and check the contents, it should show something like
 
 : StoreDir: /gnu/store
 : WantMassQuery: 0
 : Priority: 100
+
+** Trouble shooting
+
+The guix substitute server is not very helpful giving messages - i.e.,
+it fails silently to comply if an authorization key is missing, or if
+you pass in a wrong URL.
