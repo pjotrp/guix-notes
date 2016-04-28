@@ -17,7 +17,7 @@
  - [[#set-locale][Set locale]]
  - [[#fonts][Fonts]]
  - [[#sysv-startup-of-guix-daemon][SysV startup of Guix daemon]]
- - [[#other-installation-routes-building-guix-from-source][Other installation routes (building Guix from source)]]
+ - [[#building-guix-from-source][Building Guix from source]]
    - [[#before-you-try-read-this][Before you try, read this]]
    - [[#install-repository-from-git][Install repository from git]]
    - [[#bootstrap-from-source][Bootstrap from source]]
@@ -435,7 +435,7 @@ and (on Debian)
 
 : update-rc.d guix-daemon defaults
 
-* Other installation routes (building Guix from source)
+* Building Guix from source
 ** Before you try, read this
 
 Note that above guix tarball binary installation is by far the easiest
@@ -461,7 +461,8 @@ when updating
 Bootstrapping from source, after checking out the git Guix source tree
 can be surprisingly tricky because of the build dependencies. Your
 mileage may vary, but currently I recommend starting from the tar-ball
-install described above instead and build Guix using Guix tools.
+install described above instead and build Guix using Guix tools (in
+the next section).
 
 For building from source I found it to be important to make sure not to 
 *mix* Guix and native dependencies. Also make sure you are using the
@@ -521,7 +522,7 @@ full thing becomes (with some additional tools I use)
       automake bzip2 gcc-toolchain gettext guile libgcrypt \
       pkg-config sqlite m4 make grep sed texinfo graphviz bash \
       help2man binutils coreutils xz tar findutils gawk git less \
-      time which diffutils vim
+      time which diffutils vim help2man
    export PATH=$HOME/opt/guix-build-system/bin:$PATH
    guix package -p ~/opt/guix-build-system --search-paths
 #+end_src sh   :lang bash
