@@ -610,7 +610,18 @@ which builds on my machine in
 : user    3m35.616s
 : sys     0m1.624s
 
+*** Troubleshooting 
+
 Those cores get used well.
+
+If you encounter problems at this stage, for example a missing
+autoreconf, it is probably because the PATHs have not been set
+correctly. Do not mix in paths from the underlying Linux
+distribution. They should show cleanly what
+
+: guix package -p ~/opt/guix-build-system --search-paths
+
+suggests!
 
 *** And run it
 
