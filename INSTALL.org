@@ -610,9 +610,9 @@ which builds on my machine in
 : user    3m35.616s
 : sys     0m1.624s
 
-*** Troubleshooting 
+Those cores get used well!
 
-Those cores get used well.
+*** Troubleshooting 
 
 If you encounter problems at this stage, for example a missing
 autoreconf, it is probably because the PATHs have not been set
