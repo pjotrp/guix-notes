@@ -85,11 +85,14 @@ package, create the build group and permissions.
 Ricardo has written a nice [[http://elephly.net/posts/2015-06-21-getting-started-with-guix.html][introduction]]. Also the [[https://www.gnu.org/software/guix/download/][guix documentation]]
 may be more up-to-date. There may also be Docker images
 
-In principle, fetch the binary tar ball and unpack it in the root
-directory
+In principle, fetch the GNU Guix binary tar ball from
+https://www.gnu.org/software/guix/download/ and unpack it in the root
+directory (note that it is an FTP server which may give problems with
+proxy setups). See also the Guix [[https://www.gnu.org/software/guix/manual/html_node/Binary-Installation.html][online instructions]] for up-to-date
+information. In principle
 
 #+begin_src sh   :lang bash
-    tar -C / --xz -xvf guix-binary-0.9.0.x86_64-linux.tar.xz 
+    tar -C / --xz -xvf guix-binary-$(version).x86_64-linux.tar.xz 
 #+end_src sh   :lang bash
 
 Add the guix-profile to the path
@@ -109,14 +112,14 @@ that to a local hard disk.
 To bootstrap I have successfully downloaded a GNU Guix tarball 
 
 #+begin_src sh   :lang bash
-    wget http://alpha.gnu.org/gnu/guix/gnu-usb-install-0.8.1.x86_64-linux.xz
-    xz -d gnu-usb-install-0.8.x86_64-linux.xz 
+    wget http://alpha.gnu.org/gnu/guix/gnu-usb-install-$(version).x86_64-linux.xz
+    xz -d gnu-usb-install-$(version).x86_64-linux.xz 
 #+end_src sh   :lang bash
 	
 mount it with kpartx
 
 #+begin_src sh   :lang bash
-    kpartx -v -a gnu-usb-install-0.8.1.x86_64-linux
+    kpartx -v -a gnu-usb-install-$(version).x86_64-linux
     mkdir mnt 
     mkdir tmp
     mount /dev/mapper/loop0p1 mnt
