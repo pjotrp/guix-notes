@@ -30,6 +30,8 @@
  - [[#continue-with-python-installation-and-environment][Continue with Python installation and environment]]
  - [[#add-your-own-package][Add your own package]]
  - [[#install-gnu-guix-systemsoftware-distribution-sd][Install GNU Guix system/software distribution (SD)]]
+ - [[#trouble-shooting][Trouble shooting]]
+   - [[#failed-to-connect-to-daemon][Failed to connect to daemon]]
 
 * Introduction
 
@@ -744,3 +746,11 @@ See [[https://github.com/pjotrp/guix-notes/blob/master/HACKING.org][GNU Guix HAC
 * Install GNU Guix system/software distribution (SD)
 
 See [[GuixSD.org]].
+* Trouble shooting
+** Failed to connect to daemon
+
+If you get on a guix command
+
+: guix package: error: failed to connect to `/var/guix/daemon-socket/socket': Connection refused
+
+it means the daemon is not running. 
