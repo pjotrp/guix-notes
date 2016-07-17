@@ -2,7 +2,7 @@
 
 * Table of Contents                                                     :TOC:
  - [[#introduction][Introduction]]
- - [[#reproducible-software-deployment-][Reproducible software deployment ]]
+ - [[#reproducible-software-deployment][Reproducible software deployment]]
    - [[#git-checkout-of-gnu-guix-repository][Git checkout of GNU Guix repository]]
    - [[#set-up-an-authoritative-git][Set up an authoritative git]]
  - [[#using-gnu-guix-archive][Using GNU Guix archive]]
@@ -10,6 +10,7 @@
  - [[#introducing-a-gnu-guix-caching-server][Introducing a GNU Guix caching server]]
    - [[#set-up-server][Set up server]]
    - [[#use-server][Use server]]
+   - [[#nginx-as-a-proxy][Nginx as a proxy]]
    - [[#trouble-shooting][Trouble shooting]]
 
 * Introduction
@@ -46,13 +47,13 @@ And next to create a caching server
 2. Publish the server on the network
 3. Tell your machines to use the server for substitute binaries
 
-It is all rather simple, really. 
+It is all rather simple, really.
 
 A side-effect of taking this approach is that you'll spend less time
 downloading and installing large binaries. GNU Guix can be quite heavy
 in its use of bandwidth if you opt for rolling upgrades.
 
-* Reproducible software deployment 
+* Reproducible software deployment
 ** Git checkout of GNU Guix repository
 
 The entry point for the reproducible software graph, at this point, is
@@ -104,13 +105,13 @@ First, as root, generate a key for the machine:
 Note this can take forever on a server without a [[https://bugs.launchpad.net/ubuntu/+source/gnupg/+bug/706011][keyboard]] so you may
 want to generate a key on a local machine and copy it
 across. Depending on how Guix was installed the key may be stored in
-/etc/guix/ or /usr/local/etc/guix/, e.g., 
+/etc/guix/ or /usr/local/etc/guix/, e.g.,
 
 #+begin_src scheme
 cat /usr/local/etc/guix/signing-key.pub
 
-    (public-key 
-     (ecc 
+    (public-key
+     (ecc
       (curve Ed25519)
       (q #11217788B41ADC8D5B8E71BD87EF699C65312EC387752899FE9C888856F5C769#)))
 #+end_src scheme
@@ -188,8 +189,8 @@ The public key is
     (curve Ed25519)
       (q #AFF68C4E099401E85BE2D7375C1DB5E8A29F1DB83299038122AF5C0984099CF8#)))
 #+end_src scheme
-  
-Run 
+
+Run
 
 : sudo guix archive --authorize
 
@@ -204,7 +205,7 @@ Or use it with the guix-daemon using hydra as a fallback
 
 (for multiple substitutes to work make sure you are running Guix > 0.9)
 
-To test the server by hand go to the URL 
+To test the server by hand go to the URL
 
 wget http://penguin:8080/nix-cache-info
 
@@ -213,6 +214,36 @@ and check the contents, it should show something like
 : StoreDir: /gnu/store
 : WantMassQuery: 0
 : Priority: 100
+
+** Nginx as a proxy
+
+To use Nginx as a proxy I use:
+
+     server {
+        listen 80;
+        server_name guix.genenetwork.org;
+        access_log  logs/guix.access.log;
+
+        proxy_connect_timeout       3000;
+        proxy_send_timeout          3000;
+        proxy_read_timeout          3000;
+        send_timeout                3000;
+
+        location / {
+            # proxy_set_header   Host $host;
+            proxy_set_header   Host      $http_host;
+            # proxy_redirect     off;
+            proxy_set_header   Connection keep-alive;
+            proxy_set_header   X-Real-IP $remote_addr;
+            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header   X-Forwarded-Host $server_name;
+            proxy_pass         http://127.0.0.1:8080;
+        }
+    }
+
+which can probably be simplified.  Start nginx with something like
+
+: /root/.guix-profile/sbin/nginx -c /etc/nginx/nginx-genenetwork.conf -p /var/spool/nginx
 
 ** Trouble shooting
 
