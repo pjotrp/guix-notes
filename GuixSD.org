@@ -4,10 +4,13 @@
 
 * Table of Contents                                                     :TOC:
  - [[#introduction][Introduction]]
- - [[#download-an-image-and-install][Download an image and install]]
- - [[#build-and-updated-image][Build and updated image]]
+ - [[#guixsd][GuixSD]]
+   - [[#download-an-image-and-install][Download an image and install]]
+   - [[#build-an-updated-image][Build an updated image]]
 
 * Introduction
+
+Note: I have not completed this section. YMMV.
 
 GNU Guix package manager runs brilliantly on any Linux distribution
 (see [[INSTALL.org]]). Even so, once you get used to rolling upgrades and
@@ -19,19 +22,21 @@ have been running Debian for about 15 years, and while I think it a
 great software distribution I get bitten by software updates
 regularly. In addition, the Debian packaging system is archaic (I
 dabbled in packaging, but quickly got out) and does not have rolling
-updates - i.e., the update and deployment system is outdated. As a
-developer and labourer in science, I like to run recent versions of my
-tools. Finally, Debian makes choices, such as the move to gnome3 or
-systemd, which is enforced on its users. I am not in favour of
-enforcing such radical changes and I like stability in those areas.
-Of course, with a little work you can use alternatives, but the thing
-is that GNU Guix makes choice *really* easy.
+updates - i.e., the update and deployment system is outdated by
+definition. As a developer and worker in science, I like to run recent
+versions of my tools. Finally, Debian makes choices, such as the move
+to gnome3 or systemd, which is enforced on its users. I am not in
+favour of enforcing such radical changes and I like stability in those
+areas.  Of course, with a little work you can use alternatives, but
+the thing is that GNU Guix makes choice *really* easy.
 
-* Download an image and install
+* GuixSD
+
+** Download an image and install
 
 Image and instructions can be found on the [[https://www.gnu.org/software/guix/][GNU Guix website]].
 
-* Build and updated image
+** Build an updated image
 
 If you want the latest and the greatest, checkout the Guix source
 repository and build it as described in [[INSTALL.org]]. Next create 
@@ -40,9 +45,3 @@ GuixSD with
 : ./pre-inst-env guix system disk-image --image-size=1700MiB gnu/system/install.scm --substitute-urls=http://mirror.guixsd.org
 
 Amazingly you'll see it boot into a Linux kernel to create the image.
-
-It created
-
-  environment variable `PATH' set to `/gnu/store/fx8wa04b40fcs79p7apiza1gq1hrxbrd-qemu-minimal-2.5.0/bin:/gnu/store/nl4g5nzfdy6fad6i1zgxp1gin5c73b47-coreutils-8.24/bin'
-
-/gnu/store/b21w0zcwhqyamxsakagp2cn5f1i5k4br-disk-image
