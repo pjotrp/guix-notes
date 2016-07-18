@@ -1,0 +1,372 @@
+#+TITLE: Elixir/Erlang on GNU Guix
+
+* Table of Contents                                                     :TOC:
+ - [[#introduction][Introduction]]
+ - [[#elixir-dependencies][Elixir dependencies]]
+   - [[#the-erlang-package][The Erlang package]]
+   - [[#the-debugger-requires-wxwidgets][The debugger requires wxWidgets]]
+ - [[#starting-the-elixir-package][Starting the Elixir package]]
+   - [[#download-and-compile-elixir-source-code][Download and compile Elixir source code]]
+   - [[#start-on-a-package-definition][Start on a package definition]]
+   - [[#fixing-tests][Fixing tests]]
+   - [[#erlangerror-erlang-error-enoent][(ErlangError) erlang error: :enoent]]
+   - [[#indentation][Indentation]]
+   - [[#lint][Lint]]
+
+* Introduction
+
+Almost two years ago I wrote about adding [[RUBY.org][Ruby]] support to GNU
+Guix. Now, for [[http://genenetwork.org/][GeneNetwork]] we have introduced a [[https://github.com/genenetwork/gn_server][REST API]] served by
+[[http://elixir-lang.org/][Elixir]] - a new functional language that translates to the highly
+scalable [[http://www.erlang.org/][Erlang VM]]. So, it is only logical we add it to the overall
+deployment strategy we use - sane management of all software
+deployment through GNU Guix. In this document I track the steps to
+make that happen.
+
+Note that while some people may argue that Elixir comes with its own
+deployment tool 'Mix' - and since Elixir has learnt from previous
+mistakes made with Rubygems it certainly is a decent tool. Even so,
+just like with npm and Rubygems, it is likely to implode on itself
+with time. So when should you look at GNU Guix?  You should look at
+Guix when you
+
+1. are serious about software *deployment*
+2. need to handle multiple *versions* of Elixir
+3. want clear isolation of *dependencies*
+4. want clean *separation* of gems
+5. want a *reproducible* environment
+
+GNU Guix allows you to define a software package once with *all* its
+dependencies. Every time you install the package it gets reproduced
+*exactly* with its exact dependency graph, all the way down to
+glibc. See this [[http://lists.gnu.org/archive/html/guix-devel/2015-08/msg00628.html][figure]]. Whether you are a sysadmin who needs to deploy
+an exact Elixir stack or you are a developer and need to support user
+environment, GNU Guix is the solution you require.
+
+* Elixir dependencies
+
+** The Erlang package
+
+The [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/packages/erlang.scm][Erlang package]] was recently added to GNU Guix. This means we have
+a version of Erlang we can tie to Elixir. There were some hickups
+getting Erlang into Guix (as discussed on both mailing lists), mostly
+because the Erlang build system was not byte reproducible. Time stamps
+were included in the binaries. The Erlang developers responded
+admirably by changing the Erlang compiler behaviour! Some libraries,
+however, still introduced time stamps, so we had to patch those
+out. In all, we have a system we can build reproducibly on.
+
+** The debugger requires wxWidgets
+
+To get the debugger to work wxWidgets was required. So, we added that
+dependency. It is interesting to note that there are many issues
+people have getting the debugger to work. With GNU Guix it now just
+works - and should work 'forever' because we can tie versions
+explicitly.
+
+* Starting the Elixir package
+
+** Download and compile Elixir source code
+
+The first step I did was install above Erlang package with
+
+: guix package -i erlang
+
+add the guix path
+
+: export PATH=$HOME/.guix-profile/bin:$PATH
+
+and download Elixir sources and run make. Other than a small number of
+tests failing (which we look into later) the whole think compiled and
+ran:
+
+#+src_begin sh
+iex -v
+Erlang/OTP 19 [erts-8.0] [source] [64-bit] [smp:4:4] [async-threads:10] [kernel-poll:false]
+IEx 1.3.2
+#+src_end
+
+Note that both Erlang and Elixir are at latest released versions by
+both communities!
+
+** Start on a package definition
+
+To develop a new package I tend to work outsite the Guix source
+tree. Mostly because getting packages in GNU Guix is quite
+demanding. The community is very precise about what gets accepted, and
+what not, and I find I have to spend quite a lot of time trying to get
+packages into shape and fit for the GNU project. Time I can arguably
+spend on other (useful) things. For Elixir I want to add it to the
+main tree, so hopefully other people start using it and improve over
+time. That is what happened to our Ruby work and the other languages
+and compilers that have been added to GNU Guix.
+
+So, a quick draft looks like
+
+#+src_begin guile
+(define-module (gn packages elixir)
+  #:use-module ((guix licenses) #:prefix license:)
+  #:use-module (guix build-system gnu)
+  #:use-module (guix download)
+  #:use-module (guix packages)
+  #:use-module (gnu packages erlang))
+
+(define-public elixir
+  (package
+    (name "elixir")
+    (version "1.3.2")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append
+                    "https://github.com/elixir-lang/elixir/archive/v"
+                    version ".tar.gz"))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "0jsc6kl7f74yszcypdv3w3vhyc9qfqav8nwc41in082m0vpfy95y"))))
+    (build-system gnu-build-system)
+    (inputs
+     `(("erlang" ,erlang)))
+    (arguments
+     `(#:phases (modify-phases %standard-phases
+         (delete 'configure)
+         (replace 'check
+          (lambda _
+            (zero? (system* "make" "test"))))
+         (add-before
+          'build 'rewrite-path
+          (lambda* (#:key inputs #:allow-other-keys)
+                   (substitute* "bin/elixir"
+                     (("ERL_EXEC=\"erl\"") (string-append "ERL_EXEC=" (which "erl")))))))
+       #:make-flags (list (string-append "PREFIX=" %output))
+       #:tests? #f)) ;; 3124 tests, 11 failures, 1 skipped
+
+    (home-page "http://elixir-lang.org/")
+    (synopsis "The Elixir programming language")
+(description "Elixir is a dynamic, functional language designed for
+building scalable and maintainable applications. Elixir leverages the
+Erlang VM, known for running low-latency, distributed and
+fault-tolerant systems, while also being successfully used in web
+development and the embedded software domain.")
+    (license license:asl2.0)))
+#+src_end
+
+Which includes the download tar ball for the source code, the erlang
+dependency, a 'make test' command (the default is make check), a
+substitute to the erl(ang) binary and then it can be compiled with
+something like
+
+: env GUIX_PACKAGE_PATH=$HOME/genenetwork/guix-bioinformatics ./pre-inst-env guix package -i elixir --no-substitutes
+
+Where GUIX_PACKAGE_PATH points to a [[https://github.com/genenetwork/guix-bioinformatics][git repository]] containing my
+out-of-tree work-in-progress packages.
+
+Some tests fail (3124 tests, 11 failures, 1 skipped) and when I set
+#:tests? to #f (false) Elixir builds and installs fine. To get Elixir
+accepted into Guix, however, I'll have to fix or patch those tests
+out.
+
+** Fixing tests
+
+Usually failing tests are caused by the fact that GNU Guix builds in
+an isolated environment without access to standard directories and
+without network access. This to ascertain no mischevious things can
+happen and that builds are truly reproducible (not depending on some
+outside input). Also, standard tools like '/bin/ls' are not visible.
+
+To start fixing tests (or other build errors) use the -K switch. This
+will keep the unpacked source code available in the build system's
+$TMPDIR (defaults to /tmp). So:
+
+: env GUIX_PACKAGE_PATH=~/izip/git/opensource/genenetwork/guix-bioinformatics ./pre-inst-env guix package -i elixir --no-substitutes -K
+
+I am using the --no-substitutes switch so the system does not check
+the binary substitute servers every time.
+
+One thing is immediately cool - the tests are run in parallel!
+
+We'll treat the tests one by one. But first, after Guix is done building and
+testing, go to the build dir, in this case
+
+: cd /tmp/guix-build-elixir-1.3.2.drv-0
+
+To get the environment set do
+
+: source ./environment-variables
+
+now you have the environment that is like the one the build system sees
+
+: cd elixir-1.3.2/
+: make test
+
+Leads to the error 'could not make directory'. The permissions are wrong,
+so as root in another window set it to yours
+
+: chown pjotr.pjotr -R /tmp/guix-build-elixir-1.3.2.drv-0/
+
+and try again. Funnily now only one tests fails:
+
+#+begin_src
+10:44:17.359 [error] Failed to create cookie file '/homeless-shelter/.erlang.cookie': enoent
+
+  1) test start/3 and stop/0 (NodeTest)
+     test/elixir/node_test.exs:8
+#+end_src
+
+which obviously has to do with a path pointing to $HOME (which is now set to
+/homeless-shelter). So let's fix that first. First I set git to track
+a file.
+
+: git init
+: git add test/elixir/node_test.exs
+: git commit -a 'First test'
+
+Sadly, the code shows that the cookie is set deep in Erlang and, indeed,
+the cookie is set in the current HOME.
+
+*** Disable test that wants HOME
+
+The first test I disable with a warning because Guix does not
+provide the HOME environment to store the cookie:
+
+#+src_begin elixir
+--- a/lib/elixir/test/elixir/node_test.exs
++++ b/lib/elixir/test/elixir/node_test.exs
+@@ -6,8 +6,10 @@ defmodule NodeTest do
+   doctest Node
+
+   test "start/3 and stop/0" do
+-    assert Node.stop == {:error, :not_found}
+-    assert {:ok, _} = Node.start(:hello, :shortnames, 15000)
+-    assert Node.stop() == :ok
++    IO.puts "Skipping test because GNU Guix does not allow the HOME environment
++
++    # assert Node.stop == {:error, :not_found}
++    # assert {:ok, _} = Node.start(:hello, :shortnames, 15000)
++    # assert Node.stop() == :ok
+   end
+ end
+#+src_end
+
+The patch I save with
+
+: git diff > ~/test1.patch
+
+*** Add git for tests that require it
+
+The next test fails with
+
+#+begin_src
+==> mix (exunit)
+** (ErlangError) erlang error: :enoent
+    (elixir) lib/system.ex:544: System.cmd("git", ["init"], [])
+#+end_src
+
+where Mix wants to run git. We can fix that by making git a build
+dependency.
+
+Rebuilding with -K creates a new directory so, we do the same as before
+
+: cd /tmp/guix-build-elixir-1.3.2.drv-1
+: etc.
+
+Finally reapply above patch with
+
+: patch -p1 < /home/wrk/test1.patch
+
+Now all tests pass as a normal user. But Guix still complains, so
+let's fix or silence them one by one and create a patch.
+
+*** CLI tests failing because of TMPDIR
+
+I found I can disable tests by injecting '@tag :skip' before
+the test.
+
+The following tests assumes a hard coded TMPDIR so we skip them all
+
+#+src_begin
+  1) test fails on missing patterns (Kernel.CLI.CompileTest)
+     test/elixir/kernel/cli_test.exs:99
+     expected non_existing.ex to be mentioned
+     stacktrace:
+       test/elixir/kernel/cli_test.exs:101: (test)
+
+  2) test compiles code (Kernel.CLI.CompileTest)
+     test/elixir/kernel/cli_test.exs:89
+     Expected truthy, got false
+     code: File.regular?(context[:beam_file_path])
+     stacktrace:
+       test/elixir/kernel/cli_test.exs:91: (test)
+
+  3) test fails on missing write access to .beam file (Kernel.CLI.CompileTest)
+     test/elixir/kernel/cli_test.exs:106
+     Expected truthy, got false
+     code: File.regular?(context[:beam_file_path])
+     stacktrace:
+       test/elixir/kernel/cli_test.exs:110: (test)
+
+  4) test properly format errors (Kernel.CLI.ErrorTest)
+     test/elixir/kernel/cli_test.exs:69
+     Assertion with == failed
+     code: elixir('-e "IO.puts(Process.flag(:trap_exit, false)); exit({:shutdown, 1})"') == 'false\n'
+     lhs:  []
+     rhs:  'false\n'
+     stacktrace:
+       test/elixir/kernel/cli_test.exs:72: (test)
+
+  5) test invokes at_exit callbacks (Kernel.CLI.AtExitTest)
+     test/elixir/kernel/cli_test.exs:60
+     Assertion with == failed
+     code: elixir(fixture_path("at_exit.exs") |> to_charlist) == 'goodbye cruel world with status 1\n'
+     lhs:  []
+     rhs:  'goodbye cruel world with status 1\n'
+     stacktrace:
+       test/elixir/kernel/cli_test.exs:61: (test)
+
+  6) test properly parses paths (Kernel.CLI.OptionParsingTest)
+     test/elixir/kernel/cli_test.exs:42
+     ** (Protocol.UndefinedError) protocol Enumerable not implemented for nil
+     stacktrace:
+       (elixir) lib/enum.ex:1: Enumerable.impl_for!/1
+       (elixir) lib/enum.ex:131: Enumerable.member?/2
+       (elixir) lib/enum.ex:1352: Enum.member?/2
+       test/elixir/kernel/cli_test.exs:48: (test)
+
+  7) test no warnings on raise (Kernel.DialyzerTest)
+     test/elixir/kernel/dialyzer_test.exs:68
+     ** (File.CopyError) could not copy from "/tmp/guix-build-elixir-1.3.2.drv-0/elixir-1.3.2/lib/elixir/tmp/dialyzer/Elixir.Dialyzer.Raise.beam" to "/tmp/guix-build-elixir-1.3.2.drv-0/elixir-1.3.2/lib/elixir/tmp/dialyzer/line68/Elixir.Dialyzer.Raise.beam": no such file or directory
+     stacktrace:
+       (elixir) lib/file.ex:524: File.cp!/3
+       test/elixir/kernel/dialyzer_test.exs:69: (test)
+
+  8) test no warnings on rewrites (Kernel.DialyzerTest)
+     test/elixir/kernel/dialyzer_test.exs:63
+     ** (File.CopyError) could not copy from "/tmp/guix-build-elixir-1.3.2.drv-0/elixir-1.3.2/lib/elixir/tmp/dialyzer/Elixir.Dialyzer.Rewrite.beam" to "/tmp/guix-build-elixir-1.3.2.drv-0/elixir-1.3.2/lib/elixir/tmp/dialyzer/line63/Elixir.Dialyzer.Rewrite.beam": no such file or directory
+     stacktrace:
+       (elixir) lib/file.ex:524: File.cp!/3
+       test/elixir/kernel/dialyzer_test.exs:64: (test)
+
+  9) test no warnings on macrocallback (Kernel.DialyzerTest)
+     test/elixir/kernel/dialyzer_test.exs:73
+     ** (File.CopyError) could not copy from "/tmp/guix-build-elixir-1.3.2.drv-0/elixir-1.3.2/lib/elixir/tmp/dialyzer/Elixir.Dialyzer.Macrocallback.beam" to "/tmp/guix-build-elixir-1.3.2.drv-0/elixir-1.3.2/lib/elixir/tmp/dialyzer/line73/Elixir.Dialyzer.Macrocallback.beam": no such file or directory
+     stacktrace:
+       (elixir) lib/file.ex:524: File.cp!/3
+       test/elixir/kernel/dialyzer_test.exs:74: (test)
+
+ 10) test argv/0 (SystemTest)
+     test/elixir/system_test.exs:57
+     Assertion with == failed
+     code: args == ["-o", "opt", "arg1", "arg2", "--long-opt", "10"]
+     lhs:  nil
+     rhs:  ["-o", "opt", "arg1", "arg2", "--long-opt", "10"]
+     stacktrace:
+       test/elixir/system_test.exs:60: (test)
+#+src_end
+
+We disable these tests with '@tag :skip' and include the patch in the
+Elixir package definition.
+
+
+** Indentation
+
+** Lint
