@@ -14,7 +14,7 @@
    - [[#disable-mix-tests][Disable Mix tests]]
    - [[#a-working-package][A working package]]
  - [[#the-gnu-guix-dance-of-getting-packages-accepted][The GNU Guix dance of getting packages accepted]]
-   - [[#indentation][Indentation]]
+   - [[#fixing-indentation][Fixing indentation]]
    - [[#lint][Lint]]
  - [[#conclusion][Conclusion]]
 
@@ -38,7 +38,7 @@ Guix when you
 1. are serious about software *deployment*
 2. need to handle multiple *versions* of Elixir
 3. want clear isolation of *dependencies*
-4. want clean *separation* of gems
+4. want clean *separation* of Elixir packages
 5. want a *reproducible* environment
 
 GNU Guix allows you to define a software package once with *all* its
@@ -92,7 +92,7 @@ export PATH=$HOME/.guix-profile/bin:$PATH
 #+end_src
 
 and download Elixir sources and run make. Other than a small number of
-tests failing (which we look into later) the whole think compiled and
+tests failing (which we look into later) the whole thing compiled and
 ran:
 
 #+begin_src sh
@@ -102,7 +102,8 @@ IEx 1.3.2
 #+end_src
 
 Note that both Erlang and Elixir are at latest released versions by
-both communities!
+both communities. Now we want to add Elixir to GNU Guix too, so we can
+simply install it with its dependencies (Erlang, wxWidgets, etc).
 
 ** Start on a package definition
 
@@ -112,9 +113,9 @@ demanding. The community is very precise about what gets accepted, and
 what not, and I find I have to spend quite a lot of time trying to get
 packages into shape and fit for the GNU project. Time I can arguably
 spend on other (useful) things. For Elixir I want to add it to the
-main tree, so hopefully other people start using it and improve over
-time. That is what happened to our Ruby work and the other languages
-and compilers that have been added to GNU Guix.
+main Guix source tree, so other people start using it and improve
+things over time. That is what happened to our Ruby work and the other
+languages and compilers that have been added to GNU Guix.
 
 So, a quick draft looks like
 
@@ -181,8 +182,7 @@ out-of-tree work-in-progress packages.
 
 Some tests fail (3124 tests, 11 failures, 1 skipped) and when I set
 #:tests? to #f (false) Elixir builds and installs fine. To get Elixir
-accepted into Guix, however, I'll have to fix or patch those tests
-out.
+accepted into Guix, however, I'll have to fix or disable those tests.
 
 ** Fixing tests
 
@@ -191,14 +191,15 @@ an isolated environment without access to standard directories and
 without network access (note that guix environment isolates even
 more). This to ascertain no mischievous things can happen and that
 builds are truly reproducible (not depending on some outside
-input). Also, standard tools like '/bin/ls' are not visible.
+input). Also, standard tools like '/bin/ls' are not visible by
+default.
 
 To start fixing tests (or other build errors) use the -K switch. This
 will keep the unpacked source code available in the build system's
 $TMPDIR (defaults to /tmp). So:
 
 #+begin_src sh
-env GUIX_PACKAGE_PATH=~/izip/git/opensource/genenetwork/guix-bioinformatics \
+env GUIX_PACKAGE_PATH=$HOME/genenetwork/guix-bioinformatics \
   ./pre-inst-env guix package -i elixir --no-substitutes -K
 #+end_src sh
 
@@ -314,10 +315,11 @@ Rebuilding with -K creates a new directory so, we do the same as before
 : cd /tmp/guix-build-elixir-1.3.2.drv-1
 : etc.
 
-Finally reapply above patch with
+Notice the last number of the path getting incremented. Finally
+reapply above patch with
 
 #+begin_src sh
-patch -p1 < /home/wrk/test1.patch
+patch -p1 < $HOME/test1.patch
 #+end_src sh
 
 Now all tests pass as a normal user. But Guix still complains, so
@@ -328,7 +330,7 @@ let's fix or silence them one by one and create a patch.
 I found I can disable tests by injecting '@tag :skip' before
 the test.
 
-The following tests assumes a hard coded TMPDIR so we skip them all
+The following tests failed, so we skip them:
 
 #+begin_src
   1) test fails on missing patterns (Kernel.CLI.CompileTest)
@@ -410,7 +412,7 @@ The following tests assumes a hard coded TMPDIR so we skip them all
 #+end_src
 
 We disable these tests with '@tag :skip' and include the patch in the
-Elixir package definition. Patches can go into the root of the
+Elixir package definition. Again, patches can go into the root of the
 indicated GUIX_PACKAGE_PATH.
 
 ** Fighting with Elixir build
@@ -552,7 +554,7 @@ duplicated work...
 
 Anyway, let's make a best attempt.
 
-** Indentation
+** Fixing indentation
 
 ** Lint
 
@@ -583,5 +585,16 @@ new software to run next to each other.
 With more experience I should get faster in writing correct
 packages. The language guile (a scheme lisp) is pretty
 straightforward. And with thousands of existing package definitions it
-is quite easy to try solving problems by copying what others did (such
-as patching the tests *after* the build phase).
+is quite easy to try solving problems by copying what others did (this
+is how I found out how to patch the tests *after* the build phase).
+
+In all, after acceptance of Elixir into GNU Guix, I will be happy with
+this work. The package will last forever and probably be updated by
+others. A day's work for a rock solid deployment platform is worth it.
+Developing software takes time and trouble shooting deployment issues
+(later) takes a *lot* of of time, in my experience. With GNU Guix this
+software package is now sorted!
+
+Future work will be adding a build system for Elixir packages, similar
+to the Ruby build system in Guix, so we do not have to (fully) depend
+on Mix for deployment of libraries etc.
