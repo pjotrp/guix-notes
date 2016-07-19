@@ -21,6 +21,7 @@
    - [[#lint][Lint]]
    - [[#final-looks-of-the-package][Final looks of the package]]
    - [[#about-git-as-a-dependency][About git as a dependency]]
+   - [[#make-sure-the-build-is-byte-identical][Make sure the build is byte identical]]
    - [[#submitting-the-patch][Submitting the patch]]
  - [[#conclusion][Conclusion]]
 
@@ -685,7 +686,7 @@ development and the embedded software domain.")
 
 ** About git as a dependency
 
-At this point we can submit the package.
+At this point we can pretty much submit the package.
 
 Now I notice git is still there. With git commented out this triggers a
 rebuild with new failing tests. So, git is required. This encourages
@@ -706,7 +707,16 @@ in
 : lib/mix/lib/mix/scm/git.ex
 
 So we need to replace the Mix.shell.cmd("git " and :os.cmd('git
-with the full paths in these two files. Now git! looks like
+with the full paths in these two files using something like
+
+#+begin_src lisp
+          (substitute* '("lib/elixir/lib/system.ex"
+                         "lib/mix/lib/mix/scm/git.ex")
+                       (("cmd\\('git") (string-append "cmd('" (which "git")))
+                       (("cmd\\(\"git") (string-append "cmd(\"" (which "git")))
+#+end_src
+
+Now git! looks like
 
 #+begin_src elixir
   defp git!(command) do
@@ -720,7 +730,15 @@ with the full paths in these two files. Now git! looks like
 and uses the full path for git which is a great improvement. Now this version
 of git it tied with this version of elixir/mix.
 
+** Make sure the build is byte identical
+
+Ascertain that building the package will result in identical targets with
+
+: guix build --rounds=2
+
 ** Submitting the patch
+
+Follow what is written in [[HACKING.org#making-a-patch-to-submit-to-the-mailing-list][HACKING.org]]. Guix also has [[https://www.gnu.org/software/guix/manual/html_node/Submitting-Patches.html][guidelines]].
 
 * Conclusion
 
