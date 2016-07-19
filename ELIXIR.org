@@ -59,11 +59,11 @@ or something...
 ** The Erlang package
 
 The [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/packages/erlang.scm][Erlang package]] was recently added to GNU Guix. This means we have
-a version of Erlang we can tie to Elixir. There were some hickups
+a version of Erlang we can tie to Elixir. There were some hick-ups
 getting Erlang into Guix (as discussed on both mailing lists), mostly
 because the Erlang build system was not byte reproducible. Time stamps
 were included in the binaries. The Erlang developers responded
-admirably by changing the Erlang compiler behaviour! Some libraries,
+admirably by changing the Erlang compiler behavior! Some libraries,
 however, still introduced time stamps, so we had to patch those
 out. In all, we have a system we can build reproducibly on.
 
@@ -106,7 +106,7 @@ both communities!
 
 ** Start on a package definition
 
-To develop a new package I tend to work outsite the Guix source
+To develop a new package I tend to work outside the Guix source
 tree. Mostly because getting packages in GNU Guix is quite
 demanding. The community is very precise about what gets accepted, and
 what not, and I find I have to spend quite a lot of time trying to get
@@ -503,7 +503,7 @@ make it work for Guix' isolated builds.
           (lambda* (#:key inputs #:allow-other-keys)
                    (substitute* "bin/elixir"
                      (("ERL_EXEC=\"erl\"") (string-append "ERL_EXEC=" (which "erl"))))))
-         (add-after 'build 'disable-breaking-elixir-tests ;; when making this convential part of source the build breaks!
+         (add-after 'build 'disable-breaking-elixir-tests ;; when making this conventional part of source the build breaks!
           (lambda* (#:key inputs #:allow-other-keys)
 
             (and
@@ -529,8 +529,28 @@ development and the embedded software domain.")
     (license license:asl2.0)))
 #+end_src
 
+To the naked eye above definition looks fine. But it won't get
+into GNU Guix like this!
+
 * The GNU Guix dance of getting packages accepted
 
+Getting packages into GNU Guix is a hassle. This is for a reason - by
+pursuing a common use and syntax of the Guix DSL and git commit
+messages the overall system becomes easy to manage. For people like
+me, however, this means pain. I am happy at this point because the
+package installs with tests switched on. Anyway, even at this stage, I
+can see some improvements. Going from bottom to top: the description
+needs work, I should check the license, the use of #tests? #t is
+superfluous, I can probably remove the git input, I need to explain
+why we are disabling tests, I need to fix indentation and then I need
+to create a patch and post it to the ML and wait for more suggestions.
+
+It troubles me that this process is so elaborate. I would contribute a
+lot more packages if it were easier, and I know I am not the only
+one. We have a bunch of working packages and others have already
+duplicated work...
+
+Anyway, let's make a best attempt.
 
 ** Indentation
 
@@ -553,7 +573,7 @@ installed every time.
 This is one reason the Debian release cycle is so slow and packages
 tend to be out of date in 'stable'. It is their way of ascertaining
 combinations of dependencies get tested and are proven to work. Debian
-'fixates' dependencies. In responce conda and others have come up to
+'fixates' dependencies. In response conda and others have come up to
 allow people to easily deploy recent software on top of (older)
 distributions.  You can imagine this is not a solid base to build on.
 

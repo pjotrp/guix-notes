@@ -2,15 +2,23 @@
 
 * Table of Contents                                                     :TOC:
  - [[#introduction][Introduction]]
- - [[#todo-gnu-guix-installation][TODO GNU Guix installation]]
+ - [[#getting-rid-of-rvm-rbenv-and-bundler][Getting rid of RVM, rbenv and bundler]]
+ - [[#gnu-guix-installation][GNU Guix installation]]
  - [[#ruby][Ruby]]
-     - [[#check-shared-libraries][Check shared libraries]]
- - [[#todo-adding-gems-in-user-land][TODO Adding Gems in user land]]
-     - [[#user-land-gems-with-gem_home-and-gem_path][User land gems with GEM_HOME and GEM_PATH]]
-     - [[#dynamically-linked-libraries][Dynamically Linked Libraries]]
-     - [[#gnu-guix-ruby-with-bundler][GNU Guix ruby with bundler]]
- - [[#todo-adding-system-shared-gems][TODO Adding system shared gems]]
- - [[#todo-generating-gnu-guix-gem-packages][TODO Generating GNU Guix Gem packages]]
+   - [[#check-shared-libraries][Check shared libraries]]
+ - [[#adding-system-shared-gems][Adding system shared gems]]
+ - [[#adding-gems-in-user-land-home][Adding Gems in user land ($HOME)]]
+   - [[#user-land-gems-with-gem_home-and-gem_path][User land gems with GEM_HOME and GEM_PATH]]
+   - [[#dynamically-linked-libraries][Dynamically Linked Libraries]]
+   - [[#gnu-guix-ruby-with-bundler][GNU Guix ruby with bundler]]
+ - [[#adding-a-ruby-gem-to-guix][Adding a Ruby gem to Guix]]
+   - [[#step-1-download-ruby-gem-with-guix-and-get-hash-value][Step 1 Download Ruby gem with guix and get HASH value]]
+   - [[#step-2-write-expression][Step 2 Write expression]]
+   - [[#step-2-bis-alternatively-generate-the-package-definition][Step 2-bis Alternatively generate the package definition]]
+   - [[#step-3-test-the-package][Step 3 Test the package]]
+   - [[#step-4-submit-the-expression-to-the-mailing-list][Step 4 Submit the expression to the mailing list]]
+ - [[#generating-gnu-guix-gem-packages][Generating GNU Guix Gem packages]]
+ - [[#more-on-creating-ruby-packages][More on creating Ruby packages]]
 
 * Introduction
 
@@ -41,7 +49,7 @@ glibc. See this [[http://lists.gnu.org/archive/html/guix-devel/2015-08/msg00628.
 an exact Rails stack or you are a developer and need to support user
 environment, GNU Guix is the solution you require. Use cases are
 
-1. test gems using multiple versions of Ruby 
+1. test gems using multiple versions of Ruby
 2. install concurrent rubies with or without linked openssl support
 3. run minimal ruby to be exposed to the web
 4. update ruby in production and roll-back after a problem
@@ -75,7 +83,7 @@ faster without bundler wrapping!
 * Getting rid of RVM, rbenv and bundler
 
 Ruby gems are natively supported from GNU Guix. This means we can get
-rid of the RVM-rbenv-bundler trinity. All we use here is the *ruby* interpreter with 
+rid of the RVM-rbenv-bundler trinity. All we use here is the *ruby* interpreter with
 the accompanying *gem* tool.
 
 * GNU Guix installation
@@ -98,7 +106,7 @@ packages see [[https://github.com/pjotrp/guix-notes/blob/master/HACKING.org][HAC
 
 * Ruby
 
-The basic idea of GNU Guix is simple. A HASH value (SHA256) is calculated 
+The basic idea of GNU Guix is simple. A HASH value (SHA256) is calculated
 over the inputs to a build. This includes the source code of Ruby, and the
 switches used over configure and make. The software is installed under the
 HASH, for example I have Ruby 2.1.2 and 2.1.3 on my system sitting under
@@ -168,7 +176,7 @@ To check the version of openssl you can do
 To list the shared libraries:
 
 #+begin_src sh
-ldd ~/.guix-profile/bin/ruby 
+ldd ~/.guix-profile/bin/ruby
         linux-vdso.so.1 (0x00007ffee8533000)
         libpthread.so.0 => /gnu/store/hy2hi0zj5hrqkmkhpdxf04c9bcnlnsf9-glibc-2.21/lib/libpthread.so.0 (0x00007efe20b58000)
         libdl.so.2 => /gnu/store/hy2hi0zj5hrqkmkhpdxf04c9bcnlnsf9-glibc-2.21/lib/libdl.so.2 (0x00007efe20954000)
@@ -181,7 +189,7 @@ ldd ~/.guix-profile/bin/ruby
 
 * Adding system shared gems
 
-System shared gems are GNU Guix packages (unless you start explicitly overriding above 
+System shared gems are GNU Guix packages (unless you start explicitly overriding above
 GEM_PATHs). The advantage of using GNU Guix is that the dependency graph is explicit
 and people can easily share installations. A gem gets installed with its version under
 its own HASH dir, e.g.
@@ -272,7 +280,7 @@ I wrote a bash script which does this can be found as
 When you do a grep on the files in the Ruby installation dir, all references
 to GEM_HOME and GEM_PATH occur in files under lib/ruby/2.1.0/rubygems/.
 
-When you override these with 
+When you override these with
 
 #+begin_src sh
 env GEM_HOME=gem_home GEM_PATH=gem_path GEM_SPEC_CACHE=gem_spec_cache gem env
@@ -311,10 +319,10 @@ Now local gem installs should work, e.g.
   gem install -V bio-logger
 #+end_src
 
-and 
+and
 
 #+begin_src sh
-  gem list -d 
+  gem list -d
 #+end_src
 
 will tell you where the gems are installed. To use bundler you can call
@@ -380,7 +388,7 @@ in binary form for all GNU Guix users!
 
 ** Step 1 Download Ruby gem with guix and get HASH value
 
-Find your gem on http://rubygems.org/ and download the gem to get the HASH 
+Find your gem on http://rubygems.org/ and download the gem to get the HASH
 value:
 
 : guix download https://rubygems.org/downloads/bio-locus-0.0.6.gem
@@ -395,7 +403,7 @@ to create a new git branch) using [[https://www.gnu.org/software/guix/manual/htm
 : cd guix
 : git checkout -b bio-locus
 
-#+begin_src scheme 
+#+begin_src scheme
 (define-public ruby-bio-locus
   (package
     (name "ruby-bio-locus")
@@ -425,7 +433,7 @@ Actually, guix can also give you an example expression for a gem with
 
 : ./pre-inst-env guix import gem bio-locus
 
-#+begin_src scheme 
+#+begin_src scheme
 (package
   (name "ruby-bio-locus")
   (version "0.0.7")
@@ -443,7 +451,7 @@ Actually, guix can also give you an example expression for a gem with
     "A tool for fast querying and filtering of genome locations in VCF and other formats")
   (home-page "http://github.com/pjotrp/bio-locus")
   (license expat))
-#+end_src scheme 
+#+end_src scheme
 
 which can help to get started!
 
@@ -477,7 +485,7 @@ First check the syntax:
 
 : ./pre-inst-env guix lint ruby-bio-locus
 
-Next make a single patch following the [[https://github.com/pjotrp/guix-notes/blob/master/HACKING.org#making-a-patch-to-submit-to-the-mailing-list][guidelines]] and submit 
+Next make a single patch following the [[https://github.com/pjotrp/guix-notes/blob/master/HACKING.org#making-a-patch-to-submit-to-the-mailing-list][guidelines]] and submit
 it to the mailing list after
 
 : git format-patch -1
