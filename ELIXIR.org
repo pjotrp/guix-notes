@@ -14,8 +14,14 @@
    - [[#disable-mix-tests][Disable Mix tests]]
    - [[#a-working-package][A working package]]
  - [[#the-gnu-guix-dance-of-getting-packages-accepted][The GNU Guix dance of getting packages accepted]]
+   - [[#copy-the-package-definition][Copy the package definition]]
    - [[#fixing-indentation][Fixing indentation]]
+   - [[#fixing-the-description][Fixing the description]]
+   - [[#checking-the-license][Checking the license]]
    - [[#lint][Lint]]
+   - [[#final-looks-of-the-package][Final looks of the package]]
+   - [[#about-git-as-a-dependency][About git as a dependency]]
+   - [[#submitting-the-patch][Submitting the patch]]
  - [[#conclusion][Conclusion]]
 
 * Introduction
@@ -552,11 +558,169 @@ lot more packages if it were easier, and I know I am not the only
 one. We have a bunch of working packages and others have already
 duplicated work...
 
-Anyway, let's make a best attempt.
+Anyway, let's make a best attempt. Basically we follow what is written
+in [[HACKING.org#making-a-patch-to-submit-to-the-mailing-list][HACKING.org]]. Guix also has [[https://www.gnu.org/software/guix/manual/html_node/Submitting-Patches.html][guidelines]].
+
+** Copy the package definition
+
+First, the package definition gets copied into a recent version of the Guix
+tree (probably after creating a new git branch)
+
+: mv ../guix-bioinformatics/gn/packages/elixir.scm gnu/packages
+: mv ../guix-bioinformatics/elixir*.patch gnu/packages/patches
+
+The two patches go into ./gnu/packages/patches. Also add the new elixir.scm
+to gnu/local.mk and we make our first
+commit
+
+: git add gnu/
+: git commit -a -m "Elixir: moved in package and patches"
+
+(or something like that). This I do to show you what has to change. From now on
+you should be able to test the package with
+
+: ./pre-inst-env guix package -i elixir
 
 ** Fixing indentation
 
+Guix follows emacs indentation rules for Guile. So, fixing indentation is mostly
+hitting tab on every line of the package. Also, make sure lines don't get too
+long and move all closing braces on the same line. The only time indentation
+goes wrong is with a key value like #:phases.
+
+** Fixing the description
+
+I reworded the description somewhat to match the idea of the Erlang
+description.
+
+** Checking the license
+
+Elixir comes with the [[https://github.com/elixir-lang/elixir/blob/master/LICENSE][Apace]] license 2.0, so I had put in the correct license
+info earlier.
+
 ** Lint
+
+Guix comes with a linter:
+
+: ./pre-inst-env guix lint elixir
+
+which complains it misses gnutls. So first install that
+
+: guix package -i gnutls
+
+and export the path
+
+: export GUILE_LOAD_PATH="/home/wrk/.guix-profile/share/guile/site/2.0"
+
+Try again. I got an error
+
+: gnu/packages/elixir.scm:81:16: elixir-1.3.2:
+: sentences in description should be followed by two spaces;
+: possible infraction at 93
+
+which sounds more terrible than it is. Just add the space between two
+sentences in the description field.
+
+** Final looks of the package
+
+#+begin_src lisp
+(define-public elixir
+  (package
+   (name "elixir")
+   (version "1.3.2")
+   (source (origin
+            (method url-fetch)
+            (uri (string-append
+                  "https://github.com/elixir-lang/elixir/archive/v"
+                  version ".tar.gz"))
+            (file-name (string-append name "-" version ".tar.gz"))
+            (sha256
+             (base32
+              "0jsc6kl7f74yszcypdv3w3vhyc9qfqav8nwc41in082m0vpfy95y"))))
+   (build-system gnu-build-system)
+   (native-inputs
+    `(("patch" ,patch)
+      ("patch/elixir-disable-failing-tests"
+       ,(search-patch "elixir-disable-failing-tests.patch"))
+      ("patch/elixir-disable-mix-tests"
+       ,(search-patch "elixir-disable-mix-tests.patch"))))
+   (inputs
+    `(("erlang" ,erlang)
+      ("git" ,git)))
+   (arguments
+    `(#:phases (modify-phases %standard-phases
+      (delete 'configure)
+      (add-before
+       'build 'rewrite-path
+       (lambda* (#:key inputs #:allow-other-keys)
+                (substitute* "bin/elixir"
+                             (("ERL_EXEC=\"erl\"")
+                              (string-append "ERL_EXEC=" (which "erl"))))))
+      (add-after 'build 'disable-breaking-elixir-tests
+        ;; when patching as part of source the build breaks, so we do
+        ;; it after build phase
+        (lambda* (#:key inputs #:allow-other-keys)
+            (and
+             (zero? (system* "patch" "--force" "-p1" "-i"
+                             (assoc-ref inputs "patch/elixir-disable-failing-tests")))
+             (zero? (system* "patch" "--force" "-p1" "-i"
+                             (assoc-ref inputs "patch/elixir-disable-mix-tests")))
+             ;; Most tests fail in these two files:
+             (delete-file "./lib/mix/test/mix/tasks/deps.git_test.exs")
+             (delete-file "./lib/mix/test/mix/shell_test.exs"))))
+      (replace 'check
+               ;; 3124 tests, 0 failures, 11 skipped
+               (lambda _
+                 (zero? (system* "make" "test")))))
+      #:make-flags (list (string-append "PREFIX=" %output))))
+   (home-page "http://elixir-lang.org/")
+   (synopsis "The Elixir programming language")
+   (description "Elixir is a dynamic, functional language used to
+build scalable and maintainable applications.  Elixir leverages the
+Erlang VM, known for running low-latency, distributed and
+fault-tolerant systems, while also being successfully used in web
+development and the embedded software domain.")
+   (license license:asl2.0)))
+#+end_src lisp
+
+** About git as a dependency
+
+At this point we can submit the package.
+
+Now I notice git is still there. With git commented out this triggers a
+rebuild with new failing tests. So, git is required. This encourages
+me to look for more invocations of git (apparently Mix uses git a lot,
+and we don't want Mix to pick up another installation of git later -
+which it does with my manual install in the first section).
+
+Git is called in the git! function in lib/mix/lib/mix/scm/git.exe.
+
+Also there are lines that do
+
+: :os.cmd('git --git-dir=.git config remote.origin.url && git --git-dir=.git
+:   rev-parse --verify --quiet HEAD')
+
+in
+
+: lib/elixir/lib/system.ex
+: lib/mix/lib/mix/scm/git.ex
+
+So we need to replace the Mix.shell.cmd("git " and :os.cmd('git
+with the full paths in these two files. Now git! looks like
+
+#+begin_src elixir
+  defp git!(command) do
+    if Mix.shell.cmd("/gnu/store/5x1lh19kmn524kjhh2ps8qrpglklskqz-git-2.9.1/bin/git " <> command) != 0 do
+      Mix.raise "Command \"git #{command}\" failed"
+    end
+    :ok
+  end
+#+end_src
+
+and uses the full path for git which is a great improvement. Now this version
+of git it tied with this version of elixir/mix.
+
+** Submitting the patch
 
 * Conclusion
 
@@ -597,4 +761,6 @@ software package is now sorted!
 
 Future work will be adding a build system for Elixir packages, similar
 to the Ruby build system in Guix, so we do not have to (fully) depend
-on Mix for deployment of libraries etc.
+on Mix for deployment of libraries etc. A mix package will look like
+[[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/packages/ruby.scm#n731][this]] (check the other packages and notice the use of rubygems-uri).
+Anyway, I have written about this in [[RUBY.org]].

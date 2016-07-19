@@ -27,7 +27,7 @@
  - [[#debugging-the-package][Debugging the package]]
    - [[#environment][Environment]]
    - [[#inside-guile-repl][Inside Guile (REPL)]]
-   - [[#using-the-debugger-][Using the debugger ]]
+   - [[#using-the-debugger][Using the debugger]]
    - [[#the-user-init-file][The user init file]]
    - [[#running-a-guile-script][Running a Guile script]]
    - [[#in-progress-using-guile-in-emacs-geiser][IN PROGRESS Using guile in emacs (geiser)]]
@@ -83,7 +83,7 @@ good thing too because GNU Guix is designed to build packages in parallel.
 * Guile, the language
 
 Guile is a Scheme LISP. Here we list some Scheme specific material that is used
-by GNU Guix. There is much information on the web on Scheme. Check out 
+by GNU Guix. There is much information on the web on Scheme. Check out
 [[http://www.troubleshooters.com/codecorn/scheme_guile/hello.htm][Scheme at a Glance]], for example.
 
 ** Functions vs procedures
@@ -100,7 +100,7 @@ In this document I carelessly mix the two terms, you are warned.
 
 ** Hash colon (#:) notation
 
-The #: signifies literal keyword syntax and is used to 
+The #: signifies literal keyword syntax and is used to
 create unique identifiers, see also
 
   http://practical-scheme.net/wiliki/schemexref.cgi?keyword%3F
@@ -181,7 +181,7 @@ letrec*, allowing them to refer to one another):
 
 In GNU Guix the record data is available as build-system-name,
 build-system-description etc. Same for the package record which
-delivers package-name, package-version, etc. 
+delivers package-name, package-version, etc.
 
 Also literal keywoard syntax is used, e.g.,
 
@@ -293,7 +293,7 @@ manual online or in PDF. The procedure index contains all available
 function calls for the language.
 
 Running Guile stand-alone is easy using a command line REPL or inside emacs.
-That allows you to play with language features, as well as call 
+That allows you to play with language features, as well as call
 GNU Guix functionality directly.
 
 * Guix, the language
@@ -305,13 +305,13 @@ list some of the commonly used macros.
 ** Expressions
 
 A good explanation of expressions (a derivation in Nix-speak) and how
-they are implemented can be found on [[https://en.wikisource.org/wiki/Functional_Package_Management_with_Guix/Build_expressions_and_package_descriptions][Wikisource]]. Actually at the low 
+they are implemented can be found on [[https://en.wikisource.org/wiki/Functional_Package_Management_with_Guix/Build_expressions_and_package_descriptions][Wikisource]]. Actually at the low
 level an expression returns a derivation variable or structure.
 
 ** Bags
 
 Recently GNU Guix introduced bags as an intermediate form between packages
-and derivations. A bag includes all the implicit inputs which is useful 
+and derivations. A bag includes all the implicit inputs which is useful
 for processing.
 
 ** Renaming and moving files
@@ -438,14 +438,14 @@ of Ruby!  Next try the explicit package compile which should return
 the destination
 
 #+begin_src scheme
-  ./pre-inst-env guix build -K -e '(@ (gnu packages ruby) ruby-2.1)' 
+  ./pre-inst-env guix build -K -e '(@ (gnu packages ruby) ruby-2.1)'
   /gnu/store/c13v73jxmj2nir2xjqaz5259zywsa9zi-ruby-2.1.6
 #+end_src
 
 * Debugging the package
 ** Environment
 
-Before debugging it is important to have a clean environment. 
+Before debugging it is important to have a clean environment.
 
 You can view the environment variable definitions Guix recommends with
 
@@ -487,7 +487,7 @@ From the command line with guile use the [[https://www.gnu.org/software/guile/ma
     Copyright (C) 1995-2014 Free Software Foundation, Inc.
 
   Enter `,help' for help.
-  scheme@(guile-user)> 
+  scheme@(guile-user)>
   ;;; read-line support
   (use-modules (ice-9 readline))
   (activate-readline)
@@ -499,7 +499,7 @@ From the command line with guile use the [[https://www.gnu.org/software/guile/ma
   ;;; $1 = 3
   ,pretty-print a
   ;;; $2 = 3
-#+end_src 
+#+end_src
 
 Load guix (the leading comma interprets the command)
 
@@ -533,52 +533,52 @@ Let's inspect the package using the methods defined in guix/packages.scm
 (package-name p)
 ;;; "ruby"
 (package-inputs p)
-;;; (("readline" #<package readline-6.3 gnu/packages/readline.scm:39 2aa2840>) 
-;;; ("openssl" #<package openssl-1.0.2b gnu/packages/openssl.scm:30 2f15d80>) 
-;;; ("libffi" #<package libffi-3.1 gnu/packages/libffi.scm:34 2b8b900>) 
+;;; (("readline" #<package readline-6.3 gnu/packages/readline.scm:39 2aa2840>)
+;;; ("openssl" #<package openssl-1.0.2b gnu/packages/openssl.scm:30 2f15d80>)
+;;; ("libffi" #<package libffi-3.1 gnu/packages/libffi.scm:34 2b8b900>)
 ;;; etc.
 (package->bag p)
- 
 
-$22 = #<<bag> name: "ruby-2.2.2" system: "x86_64-linux" target: #f 
+
+$22 = #<<bag> name: "ruby-2.2.2" system: "x86_64-linux" target: #f
 build-inputs: (
 ("source" #<origin "http://cache.ruby-lang.org/pub/ruby/2.2/ruby-2.2.2.tar.xz" 6az3luekwvyihzemdwa3zvzztftvpdbxbnte3kiockrsrekcirra () 36f28c0>)
 ("tar" #<package tar-1.28 gnu/packages/bootstrap.scm:145 3953540>)
 ("gzip" #<package gzip-1.6 gnu/packages/bootstrap.scm:145 39533c0>)
-("bzip2" #<package bzip2-1.0.6 gnu/packages/bootstrap.scm:145 3953240>) 
-("xz" #<package xz-5.0.4 gnu/packages/bootstrap.scm:145 39530c0>) 
-("file" #<package file-5.22 gnu/packages/bootstrap.scm:145 395cf00>) 
-("diffutils" #<package diffutils-3.3 gnu/packages/bootstrap.scm:145 395cd80>) 
-("patch" #<package patch-2.7.5 gnu/packages/bootstrap.scm:145 395cc00>) 
-("sed" #<package sed-4.2.2 gnu/packages/bootstrap.scm:145 395ca80>) 
+("bzip2" #<package bzip2-1.0.6 gnu/packages/bootstrap.scm:145 3953240>)
+("xz" #<package xz-5.0.4 gnu/packages/bootstrap.scm:145 39530c0>)
+("file" #<package file-5.22 gnu/packages/bootstrap.scm:145 395cf00>)
+("diffutils" #<package diffutils-3.3 gnu/packages/bootstrap.scm:145 395cd80>)
+("patch" #<package patch-2.7.5 gnu/packages/bootstrap.scm:145 395cc00>)
+("sed" #<package sed-4.2.2 gnu/packages/bootstrap.scm:145 395ca80>)
 ("findutils" #<package findutils-4.4.2 gnu/packages/bootstrap.scm:145 395c900>)
 ("gawk" #<package gawk-4.1.1 gnu/packages/bootstrap.scm:145 395c780>)
 ("grep" #<package grep-2.21 gnu/packages/bootstrap.scm:145 39536c0>)
-("coreutils" #<package coreutils-8.23 gnu/packages/bootstrap.scm:145 3953840>) 
-("make" #<package make-4.1 gnu/packages/bootstrap.scm:145 3953a80>) 
-("bash" #<package bash-4.3.33 gnu/packages/bootstrap.scm:145 3953e40>) 
-("ld-wrapper" #<package ld-wrapper-0 gnu/packages/commencement.scm:644 39539c0>) 
-("binutils" #<package binutils-2.25 gnu/packages/bootstrap.scm:145 394d3c0>) 
+("coreutils" #<package coreutils-8.23 gnu/packages/bootstrap.scm:145 3953840>)
+("make" #<package make-4.1 gnu/packages/bootstrap.scm:145 3953a80>)
+("bash" #<package bash-4.3.33 gnu/packages/bootstrap.scm:145 3953e40>)
+("ld-wrapper" #<package ld-wrapper-0 gnu/packages/commencement.scm:644 39539c0>)
+("binutils" #<package binutils-2.25 gnu/packages/bootstrap.scm:145 394d3c0>)
 ("gcc" #<package gcc-4.8.4 gnu/packages/commencement.scm:530 394d180>)
-("libc" #<package glibc-2.21 gnu/packages/commencement.scm:454 394d600>) 
+("libc" #<package glibc-2.21 gnu/packages/commencement.scm:454 394d600>)
 ("locales" #<package glibc-utf8-locales-2.21 gnu/packages/commencement.scm:621 3953c00>)
-) 
+)
 host-inputs: (
 ("readline" #<package readline-6.3 gnu/packages/readline.scm:39 2aa2840>)
-("openssl" #<package openssl-1.0.2b gnu/packages/openssl.scm:30 2f15d80>) 
-("libffi" #<package libffi-3.1 gnu/packages/libffi.scm:34 2b8b900>) 
-("gdbm" #<package gdbm-1.11 gnu/packages/gdbm.scm:26 2b8b6c0>) 
+("openssl" #<package openssl-1.0.2b gnu/packages/openssl.scm:30 2f15d80>)
+("libffi" #<package libffi-3.1 gnu/packages/libffi.scm:34 2b8b900>)
+("gdbm" #<package gdbm-1.11 gnu/packages/gdbm.scm:26 2b8b6c0>)
 ("zlib" #<package zlib-1.2.7 gnu/packages/compression.scm:33 36f1c00>)
-) 
-target-inputs: () 
-outputs: ("out") 
+)
+target-inputs: ()
+outputs: ("out")
 arguments: (#:system "x86_64-linux" #:test-target "test" #:parallel-tests? #f #:phases
-(alist-cons-before (quote configure) (quote replace-bin-sh) 
+(alist-cons-before (quote configure) (quote replace-bin-sh)
   (lambda _ (substitute* (quote ("Makefile.in" "ext/pty/pty.c" "io.c"
 "lib/mkmf.rb" "process.c" "test/rubygems/test_gem_ext_configure_builder.rb"
 "test/rdoc/test_rdoc_parser.rb" "test/ruby/test_rubyoptions.rb"
 "test/ruby/test_process.rb" "test/ruby/test_system.rb"
-"tool/rbinstall.rb")) 
+"tool/rbinstall.rb"))
 (("/bin/sh") (which "sh")))) %standard-phases)
 )
 build: #<procedure gnu-build (store name input-drvs #:key guile
@@ -633,7 +633,7 @@ Guile, read [[http://okmij.org/ftp/Scheme/monad-in-Scheme.html][Chris Okasaki br
 Scheme']]. If you are a Ruby guy (like me) and want to understand
 monads, read [[http://codon.com/refactoring-ruby-with-monads][Tom Stuart's more gentle `Refactoring Ruby with Monads']].
 
-** Using the debugger 
+** Using the debugger
 
 It is also possible to [[https://www.gnu.org/software/guile/manual/html_node/Debug-Commands.html][step through code]] and view progress and the
 contents of variables at every stage. The debugger comes with Guile by
@@ -651,7 +651,7 @@ started in interactive mode. Mine contains:
 ;;; read-line support
 (use-modules (ice-9 readline))
  (activate-readline)
- 
+
 ;;; GNU Guix
 (use-modules (guix hash) (guix) (guix build-system))
 
@@ -705,7 +705,7 @@ Compiling the package there may be build problems. cd into the build directory
   cd /tmp/nix-build-ruby-2.1.3.drv-0
 #+end_src
 
-and 
+and
 
 #+begin_src scheme
   . environment-variables
@@ -713,7 +713,7 @@ and
 
 will recreate the build environment. Now you can see where the build stopped by running
 commands.
-  
+
 * Installing the package
 
 Once the build works you can use standard guix to install the package
@@ -763,7 +763,7 @@ Make sure your terminal and editors are running in UTF8. See locales
 in [[INSTALL.org]].
 
 A patch can be sent to the mailing list. Use git rebase --interactive
-to merge and [[http://gitready.com/advanced/2009/02/10/squashing-commits-with-rebase.html][squash patches]] into one. E.g., 
+to merge and [[http://gitready.com/advanced/2009/02/10/squashing-commits-with-rebase.html][squash patches]] into one. E.g.,
 
 : git rebase -i HEAD~4
 
@@ -772,12 +772,12 @@ format which is a header with a filewise change description:
 
 #+begin_src scheme
   gnu: Add Ruby.
-    
+
   * gnu/packages/ruby.scm (Ruby): New file.
   * guix/licenses.scm: Add Ruby license information.
 #+end_src
 
-Use git format-patch to send a patch to the mailing list.  
+Use git format-patch to send a patch to the mailing list.
 
 You can set up an environment to hack on Guix by entering the clone
 directory and running
@@ -816,7 +816,7 @@ Which creates a file 0001-gnu-patchname.patch.
 
 Make sure tabs are turned into spaces. The emacs commands are
 [[http://www.emacswiki.org/emacs/NoTabs][here]]. Lines should be broken (use M-q in emacs). And use the Emacs TAB
-to find the right LISP indendation. 
+to find the right LISP indendation.
 
 To change credentials for the patch use the [[https://help.github.com/articles/setting-your-email-in-git/][git config]] command.
 
@@ -838,7 +838,7 @@ after making sure the header contains something like
 : From: Pjotr Prins <my.email>
 : To: guix-devel <guix-devel@gnu.org>
 : Subject: [PATCH]     gnu: Add ruby-libxml.
-: 
+:
 :    * gnu/packages/ruby.scm (ruby-libxml): New variable.
 : ---
 : etc.
@@ -897,9 +897,9 @@ GNU Guix is great. Note that the reviewers do this work voluntarily
 and most 'rules' have been agreed by the community. In the end your
 labours will get rewarded. So, how to start?
 
-1. Work on a recent git checkout of guix 
+1. Work on a recent git checkout of guix
 2. Use 'guix import' if you can (e.g. for python and R modules)
-3. Build the package yourself 
+3. Build the package yourself
 4. If tests are there, make sure they pass
 5. Test your work with 'guix lint'
 6. Create a patch as described above
@@ -921,7 +921,7 @@ submit a patch.
 
 Read the HACKING documentation in the Guix source tree.
 
-There are also videos on hacking in gnu.org/s/guix. 
+There are also videos on hacking in gnu.org/s/guix.
 
 ** Using emacs
 
@@ -938,23 +938,23 @@ Send a mail to the bug list, it should look like this:
 #+begin_src scheme
 From: Pjotr Prins <pjotr.public12@email>
 To: bug-guix@gnu.org
-Bcc: 
+Bcc:
 Subject: guix lint fails with -dc switch missing
-Reply-To: 
+Reply-To:
 
 When I run lint on a recent ceckout
 
-  ./pre-inst-env guix lint 
-  
+  ./pre-inst-env guix lint
+
 or
-  
+
   ./pre-inst-env guix lint python
-  
+
 I get
-  
+
   filtered-port: failed to execute ' -dc ': No such file or directory
 
-Backtrace: 
+Backtrace:
 In unknown file:
    ?: 19 [apply-smob/1 #<catch-closure 16dfcc0>]
 In ice-9/boot-9.scm:
@@ -967,7 +967,7 @@ In ice-9/eval.scm:
 
 When you get the dreaded `server certificate verification
 failed. CAfile: none CRLfile: none' you may want to fix the
-[[http://stackoverflow.com/questions/3777075/ssl-certificate-rejected-trying-to-access-github-over-https-behind-firewall][certificates]]. 
+[[http://stackoverflow.com/questions/3777075/ssl-certificate-rejected-trying-to-access-github-over-https-behind-firewall][certificates]].
 
 If you already have CA certificates, you can point git to them using
 the =GIT_SSL_CAINFO= variable. In =.bashrc=:
@@ -978,8 +978,8 @@ It is also possible to checkout a repository using
 
 : env GIT_SSL_NO_VERIFY=true git clone URI
 
-(note there are security implications) and next update inside the 
-repo with 
+(note there are security implications) and next update inside the
+repo with
 
 : git config http.sslVerify false
 
@@ -990,11 +990,11 @@ to override certificate checking.
 
 Occasionally you do a guix pull and regret it. It is pretty easy
 to recover. Basically a guix pull fetches the latest guix source
-tree, puts it in the store and symlinks the directory to 
+tree, puts it in the store and symlinks the directory to
 ~/.config/guix/latest.
 
 So, to change things, change the symlink and point it to a checked out
-guix git repository (for example). 
+guix git repository (for example).
 
 : ls ~/.config/guix/latest
 : gnu  gnu.go  gnu.scm  guix  guix.go  guix.scm
@@ -1002,7 +1002,7 @@ guix git repository (for example).
 * The Ruby package
 ** Ruby Gems
 
-The first Ruby gem support by GNU Guix is ruby-i18n (internationalization). The 
+The first Ruby gem support by GNU Guix is ruby-i18n (internationalization). The
 definition looked like
 
 #+begin_src scheme
@@ -1033,7 +1033,7 @@ so it downloads the tar ball. The build system looks like
     (lower lower)))
 #+end_src
 
-which creates an expression using the standard build-system and the 
+which creates an expression using the standard build-system and the
 local lower function.
 
 When you install it says
@@ -1051,7 +1051,7 @@ which contains
 #+end_src
 * Dealing with special packages
 
-Some packages won't make it into GNU Guix. 
+Some packages won't make it into GNU Guix.
 
 If you have need a special section, simply create a directory with
 packages and add them to the GUIX_PACKAGE_PATH:
@@ -1105,7 +1105,7 @@ module would be:
 
 Save it as a file named pylmm.scm (the name of the module!) and add the path
 
-: env GUIX_PACKAGE_PATH=~/python/pylmm_gn2/guix guix package -A python-pylmm 
+: env GUIX_PACKAGE_PATH=~/python/pylmm_gn2/guix guix package -A python-pylmm
 :   python-pylmm    1.0.0   out     ~/python/pylmm_gn2/guix/pylmm.scm:15:2
 
 * Create a caching server
