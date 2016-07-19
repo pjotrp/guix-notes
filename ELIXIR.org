@@ -62,7 +62,6 @@ writing text during the runs. Alternatively you can check your E-mail,
 or something...
 
 * Elixir dependencies
-
 ** The Erlang package
 
 The [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/packages/erlang.scm][Erlang package]] was recently added to GNU Guix. This means we have
@@ -741,6 +740,8 @@ Ascertain that building the package will result in identical targets with
 Follow what is written in [[HACKING.org#making-a-patch-to-submit-to-the-mailing-list][HACKING.org]]. Guix also has [[https://www.gnu.org/software/guix/manual/html_node/Submitting-Patches.html][guidelines]].
 
 * Conclusion
+
+The final [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/packages/elixir.scm][Elixir package]] should show up in GNU Guix.
 
 We now have a working package for the latest release of Elixir. I put
 this work in. It took me most of a working day to get the package to
