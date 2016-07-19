@@ -10,8 +10,11 @@
    - [[#start-on-a-package-definition][Start on a package definition]]
    - [[#fixing-tests][Fixing tests]]
    - [[#erlangerror-erlang-error-enoent][(ErlangError) erlang error: :enoent]]
+   - [[#fighting-with-elixir-build][Fighting with Elixir build]]
+   - [[#disable-mix-tests][Disable Mix tests]]
    - [[#indentation][Indentation]]
    - [[#lint][Lint]]
+ - [[#conclusion][Conclusion]]
 
 * Introduction
 
@@ -42,6 +45,12 @@ dependencies. Every time you install the package it gets reproduced
 glibc. See this [[http://lists.gnu.org/archive/html/guix-devel/2015-08/msg00628.html][figure]]. Whether you are a sysadmin who needs to deploy
 an exact Elixir stack or you are a developer and need to support user
 environment, GNU Guix is the solution you require.
+
+Just on a side note: Elixir is a large piece of software. One of the
+annoying things of creating a package is that it takes quite a while
+to compile and test. When you hit snags, you have to wait. Here I am
+writing text during the runs. Alternatively you can check your E-mail,
+or something...
 
 * Elixir dependencies
 
@@ -80,11 +89,11 @@ and download Elixir sources and run make. Other than a small number of
 tests failing (which we look into later) the whole think compiled and
 ran:
 
-#+src_begin sh
+#+begin_src sh
 iex -v
 Erlang/OTP 19 [erts-8.0] [source] [64-bit] [smp:4:4] [async-threads:10] [kernel-poll:false]
 IEx 1.3.2
-#+src_end
+#+end_src
 
 Note that both Erlang and Elixir are at latest released versions by
 both communities!
@@ -103,7 +112,7 @@ and compilers that have been added to GNU Guix.
 
 So, a quick draft looks like
 
-#+src_begin guile
+#+begin_src guile
 (define-module (gn packages elixir)
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (guix build-system gnu)
@@ -149,14 +158,15 @@ Erlang VM, known for running low-latency, distributed and
 fault-tolerant systems, while also being successfully used in web
 development and the embedded software domain.")
     (license license:asl2.0)))
-#+src_end
+#+end_src
 
 Which includes the download tar ball for the source code, the erlang
 dependency, a 'make test' command (the default is make check), a
-substitute to the erl(ang) binary and then it can be compiled with
-something like
+substitute to the erl(ang) binary inside the ./bin/elixir script, and
+then it can be compiled with something like
 
-: env GUIX_PACKAGE_PATH=$HOME/genenetwork/guix-bioinformatics ./pre-inst-env guix package -i elixir --no-substitutes
+: env GUIX_PACKAGE_PATH=$HOME/genenetwork/guix-bioinformatics \
+:   ./pre-inst-env guix package -i elixir --no-substitutes
 
 Where GUIX_PACKAGE_PATH points to a [[https://github.com/genenetwork/guix-bioinformatics][git repository]] containing my
 out-of-tree work-in-progress packages.
@@ -170,20 +180,23 @@ out.
 
 Usually failing tests are caused by the fact that GNU Guix builds in
 an isolated environment without access to standard directories and
-without network access. This to ascertain no mischevious things can
-happen and that builds are truly reproducible (not depending on some
-outside input). Also, standard tools like '/bin/ls' are not visible.
+without network access (note that guix environment isolates even
+more). This to ascertain no mischievous things can happen and that
+builds are truly reproducible (not depending on some outside
+input). Also, standard tools like '/bin/ls' are not visible.
 
 To start fixing tests (or other build errors) use the -K switch. This
 will keep the unpacked source code available in the build system's
 $TMPDIR (defaults to /tmp). So:
 
-: env GUIX_PACKAGE_PATH=~/izip/git/opensource/genenetwork/guix-bioinformatics ./pre-inst-env guix package -i elixir --no-substitutes -K
+: env GUIX_PACKAGE_PATH=~/izip/git/opensource/genenetwork/guix-bioinformatics \
+:   ./pre-inst-env guix package -i elixir --no-substitutes -K
 
 I am using the --no-substitutes switch so the system does not check
 the binary substitute servers every time.
 
-One thing is immediately cool - the tests are run in parallel!
+One thing is immediately cool about Elixir - the tests are run in
+parallel! I don't think I have seen that before with other languages.
 
 We'll treat the tests one by one. But first, after Guix is done building and
 testing, go to the build dir, in this case
@@ -222,14 +235,14 @@ a file.
 : git commit -a 'First test'
 
 Sadly, the code shows that the cookie is set deep in Erlang and, indeed,
-the cookie is set in the current HOME.
+the cookie is set in the current HOME. So we disable it:
 
 *** Disable test that wants HOME
 
 The first test I disable with a warning because Guix does not
 provide the HOME environment to store the cookie:
 
-#+src_begin elixir
+#+begin_src elixir
 --- a/lib/elixir/test/elixir/node_test.exs
 +++ b/lib/elixir/test/elixir/node_test.exs
 @@ -6,8 +6,10 @@ defmodule NodeTest do
@@ -246,11 +259,28 @@ provide the HOME environment to store the cookie:
 +    # assert Node.stop() == :ok
    end
  end
-#+src_end
+#+end_src
 
-The patch I save with
+The patch is saved with
 
-: git diff > ~/test1.patch
+: git diff > elixir-disable-failing-tests.patch
+
+Store the patch in the root folder of GUIX_PACKAGE_PATH and it can be
+made part of the package as in:
+
+#+begin_src guile
+    (source (origin
+              (method url-fetch)
+              (uri (string-append
+                    "https://github.com/elixir-lang/elixir/archive/v"
+                    version ".tar.gz"))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "0jsc6kl7f74yszcypdv3w3vhyc9qfqav8nwc41in082m0vpfy95y"))
+                                        (patches (list (search-patch "elixir-disable-failing-tests.patch")))
+              ))
+#+end_src
 
 *** Add git for tests that require it
 
@@ -284,7 +314,7 @@ the test.
 
 The following tests assumes a hard coded TMPDIR so we skip them all
 
-#+src_begin
+#+begin_src
   1) test fails on missing patterns (Kernel.CLI.CompileTest)
      test/elixir/kernel/cli_test.exs:99
      expected non_existing.ex to be mentioned
@@ -361,12 +391,87 @@ The following tests assumes a hard coded TMPDIR so we skip them all
      rhs:  ["-o", "opt", "arg1", "arg2", "--long-opt", "10"]
      stacktrace:
        test/elixir/system_test.exs:60: (test)
-#+src_end
+#+end_src
 
 We disable these tests with '@tag :skip' and include the patch in the
-Elixir package definition.
+Elixir package definition. Patches can go into the root of the
+indicated GUIX_PACKAGE_PATH.
 
+** Fighting with Elixir build
+
+Disabling these tests leads to a build error
+
+: cp: cannot stat ‘lib/mix/_build/shared/lib/mix/ebin/mix.app’: No such file or directory
+: Makefile:96: recipe for target 'lib/mix/ebin/mix.app' failed
+
+which is weird because it is before the test phase. Maybe it is git trying to
+fetch something over the internet. Disabling git made no difference, so
+it has to be one of the tests. Disabling the patch gets it past
+the build phase. Including
+
+: ==> mix (compile)
+: Generated mix app
+
+and the (normal) failing tests.
+
+Now what? I must admit I was a little stumped here. So, I started
+modifying the patch to see what the effect was of individual
+changes. It turned out that any patch of the tests stops the build
+phase! I can not fathom why this is because the patch succeeds - that
+means the code is there. Some dark magic in the Elixir process -
+probably caused by the Mix tool which they use for building.
+
+The first thing to try is to patch after the build process. And that worked.
+Elixir tests 3124 tests, 0 failures, 11 skipped.
+
+** Disable Mix tests
+
+33 Mix tests fail - they are the ones that use git, and other
+environment commands. E.g.
+
+: 31) test Rebar overrides (Mix.RebarTest)
+:     test/mix/rebar_test.exs:123
+:     ** (Mix.Error) Command "git clone --no-checkout --progress "../../test/fixtures/git_rebar" "/tmp/guix-build-elixir-1.3.2.drv-0/elixir-1.3.2/lib/mix/tmp/Rebar overrides/deps/git_rebar"" failed
+
+Similar to the elixir tests I visited each one and patched accordingly.
+The following was completely removed
+
+: ./lib/mix/test/mix/tasks/deps.git_test.exs
+: ./lib/mix/test/mix/shell_test.exs
+
+Note that I will send the failing tests upstream - to see if they can
+make it work for Guix' isolated builds.
 
 ** Indentation
 
 ** Lint
+
+* Conclusion
+
+We now have a working package for the latest release of Elixir. I put
+this work in. It took me most of a working day to get the package to
+build and test. Now why would I do that and not use something simpler,
+such as conda or brew (or even Debian)? The reason is that, even
+though Guix is a more complex system and (at this point) only builds
+on Linux (and Windows), it gives full control of the dependency graph
+(all the way down to glibc). In other words, once a package exists it
+is *carved in stone*. All the other systems are building on quick
+sand: the underlying software installed at compile time dictates how a
+package comes out. The problem is that a different target gets
+installed every time.
+
+This is one reason the Debian release cycle is so slow and packages
+tend to be out of date in 'stable'. It is their way of ascertaining
+combinations of dependencies get tested and are proven work. Debian
+'fixates' dependencies. In responce conda and others have come up to
+allow people to easily deploy recent software on top of (older)
+distributions.  You can imagine this is not a solid base to build on.
+
+GNU Guix, meanwhile, is a rolling distribution that allows for old and
+new software to run next to each other.
+
+With more experience I should get faster in writing correct
+packages. The language guile (a scheme lisp) is pretty
+straightforward. And with thousands of existing package definitions it
+is quite easy to try solving problems by copying what others did (such
+as patching the tests *after* the build phase).
