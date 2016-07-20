@@ -194,11 +194,11 @@ accepted into Guix, however, I'll have to fix or disable those tests.
 
 Usually failing tests are caused by the fact that GNU Guix builds in
 an isolated environment without access to standard directories and
-without network access (note that guix environment isolates even
-more). This to ascertain no mischievous things can happen and that
-builds are truly reproducible (not depending on some outside
-input). Also, standard tools like '/bin/ls' are not visible by
-default.
+without network access (note that [[https://www.gnu.org/software/guix/manual/html_node/Invoking-guix-environment.html][guix environment]] isolates even more
+because it creates a non-networked container). This to ascertain no
+mischievous things can happen and that builds are truly reproducible
+(not depending on some outside input). Also, standard tools like
+'/bin/ls' are not visible by default.
 
 To start fixing tests (or other build errors) use the -K switch. This
 will keep the unpacked source code available in the build system's
@@ -212,7 +212,7 @@ env GUIX_PACKAGE_PATH=$HOME/genenetwork/guix-bioinformatics \
 I am using the --no-substitutes switch so the system does not check
 the binary substitute servers every time.
 
-One thing is immediately cool about Elixir - the tests are run in
+One thing is immediately cool about Elixir - the tests run in
 parallel! I don't think I have seen that before with other languages.
 
 We'll treat the tests one by one. But first, after Guix is done building and
@@ -220,7 +220,7 @@ testing, go to the build dir, in this case
 
 : cd /tmp/guix-build-elixir-1.3.2.drv-0
 
-To get the environment set do
+To get the environment set
 
 : source ./environment-variables
 

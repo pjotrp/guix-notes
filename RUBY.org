@@ -375,7 +375,7 @@ e.g.,
 Check with `gem env' and try to `run bundle'.
 
 Bundle may have trouble building native extension. For this see the writeup
-in ./RUBY-NOKOGIRI.org
+in [[RUBY-NOKOGIRI.org]]
 
 * Adding a Ruby gem to Guix
 
@@ -498,4 +498,4 @@ Take a gem name and try
 
 * More on creating Ruby packages
 
-If you are hungry for more internals, see the file RUBY-NOKOGIRI.org for more information.
+If you are hungry for more internals, see the file [[RUBY-NOKOGIRI.org]] for more information.

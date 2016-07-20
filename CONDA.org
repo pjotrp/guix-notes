@@ -1,0 +1,8 @@
+#+TITLE: Python CONDA on GNU Guix
+
+* Table of Contents                                                     :TOC:
+ - [[#introduction][Introduction]]
+
+* Introduction
+
+CONDA is becoming a popular choice for scientific software deployment

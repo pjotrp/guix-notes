@@ -3,20 +3,27 @@
 * Table of Contents                                                     :TOC:
  - [[#introduction][Introduction]]
  - [[#current-state][Current state]]
-     - [[#gnu-guix-installed-gem][GNU Guix installed gem]]
-     - [[#gem-in-home][Gem in $HOME]]
-     - [[#bundler][Bundler]]
+   - [[#gnu-guix-installed-gem][GNU Guix installed gem]]
+   - [[#gem-in-home][Gem in $HOME]]
+   - [[#bundler][Bundler]]
+   - [[#important-packages][Important packages]]
  - [[#package-nokogiri][Package Nokogiri]]
-     - [[#introduction-][Introduction ]]
-     - [[#set-up-the-environment][Set up the environment]]
-     - [[#gem-install-nokogiri]['gem install nokogiri']]
-     - [[#bundle-install]['bundle install']]
-     - [[#creating-the-tgz-derived-package][Creating the tgz-derived package]]
-     - [[#todo-creating-the-gem-derived-package][TODO Creating the gem-derived package]]
-     - [[#todo-gnu-guix-import-gem][TODO GNU Guix: import gem]]
+   - [[#introduction-][Introduction ]]
+   - [[#set-up-the-environment][Set up the environment]]
+   - [[#gem-install-nokogiri]['gem install nokogiri']]
+   - [[#bundle-install]['bundle install']]
+   - [[#creating-the-tgz-derived-package][Creating the tgz-derived package]]
+ - [[#creating-the-gem-derived-package][Creating the gem-derived package]]
+   - [[#gem-install-log4r][Gem install log4r]]
+   - [[#create-a-new-rubygem-build-system][Create a new rubygem-build-system]]
+ - [[#getting-rid-of-bundler][Getting rid of Bundler]]
+ - [[#continuous-integration-ci][Continuous integration (CI)]]
+   - [[#travis-ci-without-guix][Travis CI without Guix]]
+   - [[#the-guix-way][The Guix way]]
+ - [[#the-final-nokogiri-package-description][The final nokogiri package description]]
  - [[#notes][Notes]]
-     - [[#why-is-bundler-installing-in-gems][Why is bundler installing in .gems?]]
-     - [[#todo-add-gnu-guix-to-the-nokogiri-installation-page][TODO Add GNU Guix to the Nokogiri installation page]]
+   - [[#why-is-bundler-installing-in-gems][Why is bundler installing in .gems?]]
+   - [[#add-gnu-guix-to-the-nokogiri-installation-page][Add GNU Guix to the Nokogiri installation page]]
 
 * Introduction
 
@@ -33,7 +40,7 @@ discuss gem support in GNU Guix (this is a work in progress).
 Basically we are aware of the following use cases after installing
 a version of Ruby (say 2.1.6):
 
-1. A user/sysadmin wants to install a gem in the GNU Guix store 
+1. A user/sysadmin wants to install a gem in the GNU Guix store
 2. A user wants to install a gem using rubygems outside GNU Guix and
    local to $HOME
 3. A developer wants to use bundler which installs gems in the source
@@ -128,7 +135,7 @@ Note: it also sets the path for GNU Guix global gems.
 
 Native gems include some C or C++ code.
 
-Currently the GNU Guix gem tool does build native gems. See below the 
+Currently the GNU Guix gem tool does build native gems. See below the
 infamous Nokogiri example.
 
 ** Bundler
@@ -183,7 +190,7 @@ multi_test (0.1.2)
 #+end_src
 
 * Package Nokogiri
-** Introduction 
+** Introduction
 
 Nokogiri is a great test case because the gem contains both Ruby and C
 files (that need to be compiled into shared library nokogiri.so) and
@@ -218,9 +225,9 @@ able to do without.
 
 ** 'gem install nokogiri'
 
-Trying a naive 
+Trying a naive
 
-: gem install nokogiri 
+: gem install nokogiri
 
 results in 'ERROR: Failed to build gem native extension' due to a
 failing libxml2 build. Nokogiri packages its own version of libxml2
@@ -268,9 +275,9 @@ don't want to mix in libraries that are non-guix because it suggests
 things are missing. Note that the Nokigiri documentation also suggests
 gem path options for
 
-: --with-iconv-dir=/path/to/dir --with-zlib-dir=/path/to/dir 
+: --with-iconv-dir=/path/to/dir --with-zlib-dir=/path/to/dir
 
-as well as 
+as well as
 
 : --with-exslt-dir=/path/to/dir --with-exslt-config=/path/to/exslt-config.
 
@@ -278,7 +285,7 @@ But none of these were needed here.
 
 ** 'bundle install'
 
-Running bundler naively 
+Running bundler naively
 
 :  bundle install
 
@@ -303,7 +310,7 @@ source and some trying inside the build dir I found the environment variable
 
 : ~/.gems/bundler/ruby/2.1.0/gems/nokogiri-1.6.1/ext/nokogiri$ env NOKOGIRI_USE_SYSTEM_LIBRARIES=1 ruby extconf.rb  --with-xml2-include=$HOME/.guix-profile/include/libxml2 --with-xslt-include=$HOME/.guix-profile/include/libxslt --with-xml2-lib=$HOME/.guix-profile/lib --with-xslt-lib=$HOME/.guix-profile/lib
 
-resulted in 
+resulted in
 
 : /usr/include/features.h:323:26: fatal error: bits/predefs.h: No such file or directory
 
@@ -330,14 +337,14 @@ You may want to check config settings with
 
 Note we should have used predefs.h from the store
 glibc-2.21/include/stdc-predef.h instead. It looks like Nokogiri is using
-an older include. [[http://pastebin.com/HfJcVB4Q][This]] suggests what needs to be done: 
+an older include. [[http://pastebin.com/HfJcVB4Q][This]] suggests what needs to be done:
 
 : error: #error "Never use <bits/predefs.h> directly; include <stdc-predef.h> instead."
 
 ** Creating the tgz-derived package
 *** Fetch and unpack the tar ball
 
-Now we now how gem/bundler builds Nokogiri we have a chance at building the 
+Now we now how gem/bundler builds Nokogiri we have a chance at building the
 package from source and bundling it into GNU Guix. The tar ball can be found
 on [[https://github.com/sparklemotion/nokogiri/releases]].
 
@@ -391,7 +398,7 @@ ruby-build-system, it creates a gem first using a gemspec
 
 create the gem
 
-: gem build nokogiri.gemspec 
+: gem build nokogiri.gemspec
 
 install using our earlier trick
 
@@ -432,7 +439,7 @@ which gives
 : /gnu/store/v2hc2imgzgar4srfh64svkvas4ha07xz-v1.6.6.2.tar.gz
 : 1dpmmxr8azbyvhhmw9hpyk3dds577vsd6c312gh2s7kgjd98nd9j
 
-**** Start writing the GNU Guix Nokogiri package 
+**** Start writing the GNU Guix Nokogiri package
 
 Then I copied an existing package from gnu/packages/ruby.scm and started filling in
 
@@ -459,7 +466,7 @@ Then I copied an existing package from gnu/packages/ruby.scm and started filling
     (license license:expat)))
 #+end_src
 
-Note the MIT license is also known as the X11 or expat license. 
+Note the MIT license is also known as the X11 or expat license.
 
 **** Test run the package
 
@@ -470,9 +477,9 @@ Now we have the package let's see if it is there
 
 now build it
 
-: ./pre-inst-env guix package -K -i ruby-nokogiri 
+: ./pre-inst-env guix package -K -i ruby-nokogiri
 
-the -K switch will keep the unpacked build directory. The first error pops up 
+the -K switch will keep the unpacked build directory. The first error pops up
 
 : ERROR: No files matching pattern:  "\\.gemspec$"
 
@@ -482,13 +489,13 @@ which makes sense, because earlier we had to run first
 
 **** Check out the build by hand
 
-The builder says that it kept build directory `/tmp/nix-build-ruby-nokogiri-1.6.6.2.drv-0'. 
+The builder says that it kept build directory `/tmp/nix-build-ruby-nokogiri-1.6.6.2.drv-0'.
 So in a different terminal do
 
 : cd /tmp/nix-build-ruby-nokogiri-1.6.6.2.drv-0
 : . environment-variables
 
-and you are at the state of the error (with environment). Running 
+and you are at the state of the error (with environment). Running
 
 : rake gem:spec
 
@@ -503,7 +510,7 @@ And when you do add it, it will be visible to the package *forever*
 and this is key to the build being reproducible.
 
 Note: you may need to change the permissions of the build directory to
-try stuff by hand. As root 
+try stuff by hand. As root
 
 : chown user -R /tmp/nix-build-ruby-nokogiri-1.6.6.2.drv-*
 
@@ -517,7 +524,7 @@ We have to add the hoe dependency first.
 and retry the build. Now the new build is in
 /tmp/nix-build-ruby-nokogiri-1.6.6.2.drv-1.  This way we keep
 reiterating until the package works. One of the interesting errors was
-LoadError: cannot load such file -- rake/extensioncompiler since 
+LoadError: cannot load such file -- rake/extensioncompiler since
 we had not seen that earlier. That is part of the rake-compiler gem.
 The gems are listed in the Rakefile as
 
@@ -623,7 +630,7 @@ the settings. E.g.
 
 : cat environment-variables
 
-shows build variables, such as 
+shows build variables, such as
 
 : export LIBRARY_PATH=(...):/gnu/store/s4vwk3f0ainazh2czl5k5gsainpiby6i-libxml2-2.9.2/lib
 
@@ -682,9 +689,9 @@ directory.
 
 Great! We do not want the library installed inside Ruby, but in its
 own store. Thanks GNU Guix for pointing that out! We need to override the
-install-dir. 
+install-dir.
 
-Inside the build directory the following worked after disabling the libxml2 check in 
+Inside the build directory the following worked after disabling the libxml2 check in
 extconf.rb (so another patch is required).
 
 : gem install --install-dir /tmp --local pkg/nokogiri-1.6.6.2.gem --
@@ -704,9 +711,9 @@ Next thing we know the ruby-nokogiri package installs!
 
 **** Fix the runtime gem path
 
-After installing Nokogiri 
+After installing Nokogiri
 
-: ./pre-inst-env guix package -i ruby-nokogiri 
+: ./pre-inst-env guix package -i ruby-nokogiri
 :   The following package will be upgraded:
 :   ruby-nokogiri        1.6.6.2 → 1.6.6.2       /gnu/store/ynwfr9mfs5w3xhbxn1sgbcqrq0mh4gdx-ruby-nokogiri-1.6.6.2
 
@@ -719,11 +726,11 @@ the binary complains
 :         from /gnu/store/9iifw37m8vd5bkj0fh67ndc5f2da46wb-ruby-2.2.2/lib/ruby/2.2.0/rubygems/core_ext/kernel_gem.rb:64:in `gem'
 :         from $HOME/.guix-profile/bin/nokogiri:22:in `<main>'
 
-which means the nokogiri module is not found. Doing a 
+which means the nokogiri module is not found. Doing a
 
 : find ~/.guix-profile/lib/ruby/ -name nokogiri*
 
-finds nothing. That is disappointing. The binary nokogiri wants to run the module 
+finds nothing. That is disappointing. The binary nokogiri wants to run the module
 as a gem from a GEM_PATH. In the store we find
 
 : /gnu/store/ynwfr9mfs5w3xhbxn1sgbcqrq0mh4gdx-ruby-nokogiri-1.6.6.2/gems/nokogiri-1.6.6.2/lib/nokogiri.rb
@@ -741,7 +748,7 @@ selinunte:~$ gem env
   - GEM PATHS:
      - /var/lib/gems/1.9.1
      - $HOME/.gem/ruby/1.9.1
-#+end_src 
+#+end_src
 
 which means we need a system-wide path for gems - which does not exist
 in Guix.  The Guix way is to create symlinks in a profile (usually
@@ -769,7 +776,7 @@ Interestingly I find gems (and other directories) are symlinked in
 all we need to do is 'hoist' the relevant directories inside the
 package into ./lib/gems/#{version}.
 
-The ruby-rspec-core package does that. And reading the ruby-build system it does 
+The ruby-rspec-core package does that. And reading the ruby-build system it does
 that (we overrode that with ruby-nokogiri):
 
 #+begin_src scheme
@@ -890,12 +897,12 @@ gem that has only a few dependencies.
 
 ** Gem install log4r
 
-Log4r is a long standing popular Ruby gem with few dependencies. Doing 
-a simple 
+Log4r is a long standing popular Ruby gem with few dependencies. Doing
+a simple
 
 :  gem install log4r
 
-on my GNU Guix ruby install rapidly with 
+on my GNU Guix ruby install rapidly with
 
 : Fetching: log4r-1.1.10.gem (100%)
 : Successfully installed log4r-1.1.10
@@ -903,8 +910,8 @@ on my GNU Guix ruby install rapidly with
 : Installing ri documentation for log4r-1.1.10
 : Done installing documentation for log4r after 0 seconds
 
-That looks promising. Now we want to make it into a proper GNU Guix package 
-for posterity. The command line steps 
+That looks promising. Now we want to make it into a proper GNU Guix package
+for posterity. The command line steps
 
 : wget https://rubygems.org/downloads/log4r-1.1.10.gem
 : gem install --ignore-dependencies --install-dir ~/tmp/gems log4r-1.1.10.gem
@@ -923,7 +930,7 @@ good strategy for testing new things.
 
 * Getting rid of Bundler
 
-Bundler solves a problem that Guix solves - i.e.  dependencies. The
+Bundler aims to solve a problem that Guix solves - i.e.  dependencies. The
 good thing about bundler is that it creates an environment which can
 be replicated for continuous integration (Travis CI). But it is not as
 robust as Guix can do - still, and a surprising amount of tooling
@@ -979,7 +986,7 @@ shorter.
 To test Rubygems in Travis with bundler, simply provide the Gemfile. Alternatively
 pull in dependending gems separately with gem in the .travis.yml file:
 
-: install: 
+: install:
 :   - gem install cucumber rspec regressiontest
 
 This has the advantage of being faster and purer. Even better go the Guix way:
