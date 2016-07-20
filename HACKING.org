@@ -843,6 +843,15 @@ after making sure the header contains something like
 : ---
 : etc.
 
+Check the file encoding - it should be UTF8. With vim you can force
+encoding with
+
+: :set bomb
+: :set fileencoding=utf-8
+: :wq
+
+Probably a good idea to try and send the mail to yourself first.
+
 Note that the GNU Guix developers want one patch per variable. So
 submit packages one at a time.
 
