@@ -693,7 +693,7 @@ me to look for more invocations of git (apparently Mix uses git a lot,
 and we don't want Mix to pick up another installation of git later -
 which it does with my manual install in the first section).
 
-Git is called in the git! function in lib/mix/lib/mix/scm/git.exe.
+Git is called in the git! function in lib/mix/lib/mix/scm/git.ex.
 
 Also there are lines that do
 
@@ -715,7 +715,7 @@ with the full paths in these two files using something like
                        (("cmd\\(\"git") (string-append "cmd(\"" (which "git")))
 #+end_src
 
-Now git! looks like
+Now at build time 'git!' got patched with the git input and looks like
 
 #+begin_src elixir
   defp git!(command) do
@@ -746,7 +746,7 @@ The final [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/packages/elixir.s
 We now have a working package for the latest release of Elixir. I put
 this work in. It took me most of a working day to get the package to
 build and test. Now why would I do that and not use something simpler,
-such as conda or brew (or even Debian)? The reason is that, even
+such as [[CONDA.org]] or brew (or even Debian)? The reason is that, even
 though Guix is a more complex system and (at this point) only builds
 on Linux (and Windows), it gives full control of the dependency graph
 (all the way down to glibc). In other words, once a package exists it
