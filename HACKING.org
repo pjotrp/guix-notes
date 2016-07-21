@@ -828,7 +828,7 @@ to validate the mail and send it from a different mail server)
 
 #+begin_src bash
 cat 0001-*.patch |formail -t -I "To: guix-devel@gnu.org" \
-   -I "From: Pjotr Prins <pjotr.public12@email>" \
+   -I "From: Pjotr Prins <my@email>" \
    -I "In-Reply-To: <20160213102825.GA19194@debian>" > mail.patch
 cat mail.patch|formail -s mail -t ; rm mail.patch
 #+end_src bash

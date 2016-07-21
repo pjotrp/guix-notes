@@ -463,7 +463,7 @@ The following files are completely removed because most tests fail there
 : ./lib/mix/test/mix/tasks/deps.git_test.exs
 : ./lib/mix/test/mix/shell_test.exs
 
-Note that I will send the failing tests upstream - to see if they can
+Note that I sent the failing tests [[https://github.com/elixir-lang/elixir/issues/5043][upstream]] - to see if they can
 make it work for Guix' isolated builds.
 
 ** A working package
