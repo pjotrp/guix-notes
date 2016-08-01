@@ -68,7 +68,9 @@ probably is a good idea to reserve at least 20GB.
 You may need to set the key and update guix according to [[https://github.com/pjotrp/guix-notes/blob/master/INSTALL.org#binary-installation][guix-notes]].
 
 When everything works there is probably nothing else to install
-because my previous /gnu/store was up-to-date!
+because my previous /gnu/store was up-to-date! For example, my
+installation of python and elixir with dependencies just worked (tm).
+There is no smoother way to move from one machine to another.
 
 * Start replacing services
 
@@ -76,7 +78,6 @@ because my previous /gnu/store was up-to-date!
 
 On my bare system only the following services are running (outside
 kernel stuff):
-
 
 #+begin_src sh
 ps xau|grep bin
@@ -91,8 +92,10 @@ root      1296  0.0  0.0  12844  1840 tty4     Ss+  Jun12   0:00 /sbin/getty 384
 root      1297  0.0  0.0  12844  1768 tty5     Ss+  Jun12   0:00 /sbin/getty 38400 tty5
 root      1298  0.0  0.0  12844  1852 tty6     Ss+  Jun12   0:00 /sbin/getty 38400 tty6
 root      2457  0.0  0.0  20312  3352 pts/3    Ss   00:58   0:00 /bin/bash
-root      2458  0.0  0.0  33872  4008 pts/3    S+   00:58   0:00 /home/wrk/.guix-profile/bin/guix-daemon --build-users-group=guixbuild
+root      2458  0.0  0.0  33872  4008 pts/3    S+   00:58   0:00 /home/pjotr/.guix-profile/bin/guix-daemon --build-users-group=guixbuild
 #+end_src
+
+Nice and minimalistic.
 
 ** openssh on Guix
 
@@ -185,10 +188,10 @@ Section "ServerFlags"
 EndSection
 
 Section "Files"
-    ModulePath   "/home/wrk/.guix-profile/lib/xorg/modules"
-    ModulePath   "/home/wrk/.guix-profile/lib/xorg/modules/drivers"
-    ModulePath   "/home/wrk/.guix-profile/lib/xorg/modules/input"
-    ModulePath   "/home/wrk/.guix-profile/lib/xorg/modules/extensions"
+    ModulePath   "/home/pjotr/.guix-profile/lib/xorg/modules"
+    ModulePath   "/home/pjotr/.guix-profile/lib/xorg/modules/drivers"
+    ModulePath   "/home/pjotr/.guix-profile/lib/xorg/modules/input"
+    ModulePath   "/home/pjotr/.guix-profile/lib/xorg/modules/extensions"
     # XkbDir       "/etc/X11/xkb"
 EndSection
 
@@ -230,9 +233,34 @@ Section "Screen"
                 Depth     24
         EndSubSection
 EndSection
-
-
 #+end_src sh
+
+Now, on my bare X11 system running i3wm, only the following services
+are running (outside kernel stuff):
+
+#+begin_src sh
+ps xau|grep bin
+root       334  0.0  0.0  41104  3496 ?        Ss   07:15   0:00 udevd --daemon
+root      1073  0.0  0.0  25400  7708 ?        Ss   07:16   0:00 dhclient -v -pf /run/dhclient.eth0.pid -lf /var/lib/dhcp/dhclient.eth0.leases eth0
+root      1191  0.0  0.0 258672  3000 ?        Ssl  07:16   0:00 /usr/sbin/rsyslogd
+root      1230  0.0  0.0  25904  2124 ?        Ss   07:16   0:00 /usr/sbin/cron
+root      1251  0.0  0.0  19276  2056 ?        Ss   07:16   0:00 /usr/sbin/irqbalance --pid=/var/run/irqbalance.pid
+root      1275  0.0  0.0  30644  2452 ?        Ss   07:16   0:00 /root/.guix-profile/sbin/sshd -f /etc/ssh/sshd_config
+root      1299  0.0  0.0  63528  3076 tty1     Ss   07:16   0:00 /bin/login --
+root      1300  0.0  0.0  12844  1824 tty2     Ss+  07:16   0:00 /sbin/getty 38400 tty2
+root      1301  0.0  0.0  12844  1948 tty3     Ss+  07:16   0:00 /sbin/getty 38400 tty3
+root      1302  0.0  0.0  12844  1960 tty4     Ss+  07:16   0:00 /sbin/getty 38400 tty4
+root      1303  0.0  0.0  12844  1928 tty5     Ss+  07:16   0:00 /sbin/getty 38400 tty5
+root      1304  0.0  0.0  12844  1912 tty6     Ss+  07:16   0:00 /sbin/getty 38400 tty6
+pjotr     1339  0.0  0.0  18028  1956 tty1     S+   07:16   0:00 xinit /home/pjotr/.xinitrc -- /home/pjotr/.guix-profile/bin/X :0 -auth /home/pjotr/.serverauth.1321
+root      1340  0.1  0.4 155516 32900 tty7     Ss+  07:16   0:00 /home/pjotr/.guix-profile/bin/X :0 -auth /home/pjotr/.serverauth.1321
+pjotr     1344  0.0  0.1 115936  9372 tty1     S    07:16   0:00 i3
+pjotr     1348  0.0  0.1  90168  8080 ?        S    07:16   0:00 i3bar --bar_id=bar-0 --socket=/tmp/i3-pjotr.xWV6Ja/ipc-socket.1344
+pjotr     1349  0.0  0.0  57320  3924 ?        S    07:16   0:00 i3status
+#+end_src
+
+Note the lack of dbus, for example. Still nice and minimalistic. I think
+this is sweet.
 
 ** Fonts
 
@@ -274,8 +302,6 @@ Usage
 
 : xterm -fa 'Mono' -fs 20
 
-
-
 ** Keyboard layout
 
 : guix package -i xset setxkbmap
@@ -283,4 +309,4 @@ Usage
 I had to copy my keyboard layout into the store (not recommended, I
 need to add a proper package!)
 
-: root@monza:/gnu/store/cqwv78pirkfka92flin1hs34sb5i8v1k-xkeyboard-config-2.17# cp /home/wrk/workman share/X11/xkb/symbols/
+: root@monza:/gnu/store/cqwv78pirkfka92flin1hs34sb5i8v1k-xkeyboard-config-2.17# cp /home/pjotr/workman share/X11/xkb/symbols/
