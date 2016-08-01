@@ -9,6 +9,7 @@
    - [[#openssh-on-guix][openssh on Guix]]
  - [[#setting-up-the-desktop][Setting up the desktop]]
    - [[#graphics-driver][Graphics driver]]
+   - [[#fonts][Fonts]]
    - [[#keyboard-layout][Keyboard layout]]
 
 * Introduction
@@ -33,7 +34,7 @@ partition.
 That installs about 170 packages(!) and we may start purging some
 later.
 
-After the chroot, install SysV and purge systemd according to [[http://without-systemd.org/wiki/index.php/How_to_remove_systemd_from_a_Debian_jessie/sid_installation][info]]. Edit 
+After the chroot, install SysV and purge systemd according to [[http://without-systemd.org/wiki/index.php/How_to_remove_systemd_from_a_Debian_jessie/sid_installation][info]]. Edit
 /etc/fstab to match your system and install kernel and headers
 
 : apt-get install linux-image-amd64 linux-headers-3.16.0-4-all-amd64
@@ -137,14 +138,24 @@ Feeling lighter already ;)
 ** Graphics driver
 
 First thing we need is a driver for X. My laptop has an intel card.
-Install the following as root
+Install the following as root (and later as normal user)
 
-: guix package -i xf86-video-intel xorg-server xinit slim xterm xf86-input-keyboard xf86-input-mouse xf86-input-evdev
-  xf86-input-libinput xf86-input-synaptics xinput
+#+begin_src sh
+guix package -i xf86-video-intel xorg-server xinit slim \
+   xterm xf86-input-keyboard xf86-input-mouse xf86-input-evdev \
+   xf86-input-libinput xf86-input-synaptics xinput libdrm \
+   xf86driproto
+#+end_src sh
+
+xf86-video-intel
+
+Add the search paths to .bashrc (or something):
+
+: guix package --search-paths
 
 start X as root
 
-: slim 
+: slim
 
 and you should be able to run a desktop with
 
@@ -152,10 +163,124 @@ and you should be able to run a desktop with
 
 I had to add a basic xorg.conf file to point to the drivers.
 
+Note that the X server has to run with root privileges. I am not sure
+how to work around this, but I set suid permissions in the store for
+the X server.
+
+A working /etc/X11/xorg.conf
+
+#+begin_src sh
+Section "ServerLayout"
+        Identifier     "X.org Configured"
+        Screen      0  "Screen0" 0 0
+        InputDevice    "Mouse0" "CorePointer"
+        InputDevice    "Keyboard0" "CoreKeyboard"
+EndSection
+
+
+Section "ServerFlags"
+   Option   "AllowEmptyInput"     "false"
+   Option   "AutoAddDevices"      "false"
+   Option   "AutoEnableDevices"   "false"
+EndSection
+
+Section "Files"
+    ModulePath   "/home/wrk/.guix-profile/lib/xorg/modules"
+    ModulePath   "/home/wrk/.guix-profile/lib/xorg/modules/drivers"
+    ModulePath   "/home/wrk/.guix-profile/lib/xorg/modules/input"
+    ModulePath   "/home/wrk/.guix-profile/lib/xorg/modules/extensions"
+    # XkbDir       "/etc/X11/xkb"
+EndSection
+
+Section "Module"
+        Load  "glx"
+EndSection
+
+Section "InputDevice"
+        Identifier  "Keyboard0"
+        Driver      "kbd"
+EndSection
+
+Section "InputDevice"
+        Identifier  "Mouse0"
+        Driver      "mouse"
+        Option      "Protocol" "auto"
+        Option      "Device" "/dev/input/mice"
+        Option      "ZAxisMapping" "4 5 6 7"
+EndSection
+
+Section "Monitor"
+        Identifier   "Monitor0"
+        VendorName   "Monitor Vendor"
+        ModelName    "Monitor Model"
+EndSection
+
+Section "Device"
+        Identifier  "Card0"
+        Driver      "modesetting"
+        BusID       "PCI:0:2:0"
+EndSection
+
+Section "Screen"
+        Identifier "Screen0"
+        Device     "Card0"
+        Monitor    "Monitor0"
+        SubSection "Display"
+                Viewport   0 0
+                Depth     24
+        EndSubSection
+EndSection
+
+
+#+end_src sh
+
+** Fonts
+
+This description appeals to me:
+
+: guix package --show=font-terminus
+: location: gnu/packages/fonts.scm:381:2
+: homepage: http://terminus-font.sourceforge.net/
+: license: SIL OFL 1.1
+: synopsis: Simple bitmap programming font
+: description: Terminus Font is a clean, fixed width bitmap font, designed for
+: + long (8 and more hours per day) work with computers.
+
+Install
+
+: guix package -i font-terminus
+
+The fonts are stored in $HOME/.guix-profile/share/fonts/terminus. Now you
+can do
+
+: xterm -fa 'terminus' -fs 20
+
+or
+: xterm -fa 'terminus' -fn 9x15
+
+to get a large font. Another interesting set is font-liberation:
+
+: synopsis: Fonts compatible with Arial, Times New Roman, and Courier New
+: description: The Liberation font family aims at metric compatibility with
+: + Arial, Times New Roman, and Courier New.
+: + - Sans (a substitute for Arial, Albany, Helvetica, Nimbus Sans L, and
+: + Bitstream Vera Sans);
+: + - Serif (a substitute for Times New Roman, Thorndale, Nimbus Roman, and
+: + Bitstream Vera Serif);
+: + - Mono (a substitute for Courier New, Cumberland, Courier, Nimbus Mono L, and
+: + Bitstream Vera Sans Mono).
+
+Usage
+
+: xterm -fa 'Mono' -fs 20
+
+
+
 ** Keyboard layout
 
 : guix package -i xset setxkbmap
 
-I had to copy my layout 
+I had to copy my keyboard layout into the store (not recommended, I
+need to add a proper package!)
 
 : root@monza:/gnu/store/cqwv78pirkfka92flin1hs34sb5i8v1k-xkeyboard-config-2.17# cp /home/wrk/workman share/X11/xkb/symbols/
