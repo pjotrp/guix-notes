@@ -975,7 +975,7 @@ In ice-9/eval.scm:
 ** Git CA certificates
 
 When you get the dreaded `server certificate verification
-failed. CAfile: none CRLfile: none' you may want to fix the
+failed. CAfile: none CRLfile: none' you may want to fix the path to
 [[http://stackoverflow.com/questions/3777075/ssl-certificate-rejected-trying-to-access-github-over-https-behind-firewall][certificates]].
 
 If you already have CA certificates, you can point git to them using
@@ -993,7 +993,6 @@ repo with
 : git config http.sslVerify false
 
 to override certificate checking.
-
 
 ** Recovering from a 'guix pull'
 

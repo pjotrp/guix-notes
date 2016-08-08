@@ -330,13 +330,14 @@ If you see the message
 
    warning: failed to install locale: Invalid argument
 
-it means your locale needs to be found. Guix comes with a locale database
+it means your locale needs to be found. Guix comes with a small locale
+database
 
 #+begin_src sh   :lang bash
    guix package -i glibc-utf8-locales
 #+end_src sh   :lang bash
 
-and more locales with local glibc support
+and add more locales with local glibc support
 
 #+begin_src sh   :lang bash
    guix package -i glibc-locales

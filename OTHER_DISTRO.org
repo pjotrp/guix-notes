@@ -7,10 +7,14 @@
  - [[#start-replacing-services][Start replacing services]]
    - [[#running-services][Running services]]
    - [[#openssh-on-guix][openssh on Guix]]
+ - [[#environment][Environment]]
+   - [[#locales][Locales]]
  - [[#setting-up-the-desktop][Setting up the desktop]]
    - [[#graphics-driver][Graphics driver]]
    - [[#fonts][Fonts]]
    - [[#keyboard-layout][Keyboard layout]]
+ - [[#other-services][Other services]]
+   - [[#stunnel][stunnel]]
 
 * Introduction
 
@@ -135,6 +139,19 @@ apt-get remove openssh-server openssh-client openssh-sftp-server
 #+end_src
 
 Feeling lighter already ;)
+
+* Environment
+
+** Locales
+
+Mixing locales has its problems. With this setup I set both GUIX_LOCPATH
+and LOCPATH and next the locale:
+
+: guix package -i glibc-locales
+: export LOCPATH="$HOME/.guix-profile/lib/locale"
+: export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
+: export LC_ALL=en_GB.UTF-8
+
 
 * Setting up the desktop
 
@@ -310,3 +327,7 @@ I had to copy my keyboard layout into the store (not recommended, I
 need to add a proper package!)
 
 : root@monza:/gnu/store/cqwv78pirkfka92flin1hs34sb5i8v1k-xkeyboard-config-2.17# cp /home/pjotr/workman share/X11/xkb/symbols/
+
+* Other services
+
+** stunnel
