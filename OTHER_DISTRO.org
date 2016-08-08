@@ -132,7 +132,81 @@ The last two lines can go into the startup script.
 Note that this is the barebones way of running wifi and may not be
 good enough with more complicated setups, such as eduroam (easily
 handled using networkmanager). Here is one [[https://www.wireless.bris.ac.uk/eduroam/instructions/go-wpasup/][example]] using
-wpa_supplicant.
+wpa_supplicant which includes:
+
+#+begin_src js
+network={
+	# --- MUST CONFIGURE THE FOLLOWING THREE OPTIONS --
+
+	# The 'identity' is the username actually used for authentication.
+	# This must be your Bristol username, all lowercase.
+        identity="ab12345"
+
+	# Your normal Bristol password (so make sure the permissions on
+	# your wpa_supplicant config file are not world readable!)
+        password="myUOBpassword"
+
+	# CA cert from here:
+	# https://www.wireless.bris.ac.uk/certs/eaproot/uob-net-ca.crt
+	# Change the path to where you downloaded the file
+        ca_cert="/etc/certs/uob-net-ca.crt"
+
+	# --- ONLY CHANGE BELOW IF YOU ARE NOT A MEMBER --
+	# --- OF THE UNIVERSITY OF BRISTOL, UK          --
+
+	# Bristol supports PEAP and TTLS.
+        eap=PEAP TTLS
+
+	# The 'anonymous_identity' is the identity used for routing
+	# the authentication to Bristol. It must end with '@bris.ac.uk'
+	# or '@bristol.ac.uk'. It must be all lowercase. If you have
+	# anything preceding the @ it must be all lowercase letters or
+	# a hyphen (no spaces, punctuation etc)
+	# e.g. "wireless-user@bristol.ac.uk" would be ok
+        anonymous_identity="nobody@bristol.ac.uk"
+
+	# Bristol use MS-CHAPv2 as the inner authentication scheme,
+	# with the traditional label
+	phase1="peaplabel=0"
+	phase2="auth=MSCHAPV2"
+
+	# Set priority to a big number
+	priority=999
+
+	# --- DONT CHANGE THE REST OF THIS BLOCK --
+
+	# Enable this network block
+	disabled=0
+
+	# eduroam please
+        ssid="eduroam"
+
+	# SSID should be broadcast, so don't scan.
+	scan_ssid=0
+
+	# Infrastructure mode
+	mode=0
+
+	# WPA/WPA2 require OPEN
+	auth_alg=OPEN
+
+	# WPA and WPA2 (RSN) are both used for eduroam
+	# (depending on which organisation you are at)
+	# In the future 'WPA' can be removed (WPA2 only).
+	proto=WPA RSN
+
+	# CCMP (AES) is stronger, but some organisations use TKIP.
+	# In the future 'TKIP' can be removed.
+	pairwise=CCMP TKIP
+
+	# Use EAP
+        key_mgmt=WPA-EAP
+
+	# Use PMKSA caching
+        proactive_key_caching=1
+
+}
+#+end_src
 
 ** openssh on Guix
 
