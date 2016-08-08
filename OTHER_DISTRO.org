@@ -129,6 +129,11 @@ phrase/key.
 
 The last two lines can go into the startup script.
 
+Note that this is the barebones way of running wifi and may not be
+good enough with more complicated setups, such as eduroam (easily
+handled using networkmanager). Here is one [[https://www.wireless.bris.ac.uk/eduroam/instructions/go-wpasup/][example]] using
+wpa_supplicant.
+
 ** openssh on Guix
 
 The first candidate is to run openssh server through Guix because Guix
