@@ -105,8 +105,29 @@ Nice and minimalistic.
 
 As root
 
-guix package -i wpa-supplicant iw
+: guix package -i wpa-supplicant iw
 
+My thinkpad laptop needs some non-free firmware - here Debian comes in
+handy:
+
+: apt-get install firmware-iwlwifi
+: modprobe -r iwlwifi
+: modprobe iwlwifi
+: dhclient -v wlan0
+: iw wlan0 scan|grep -i ssid
+
+should start the interface and show available routers. Now we need to
+register with the router
+
+: wpa_passphrase essid key >> /etc/wpa_supplicant.conf
+
+where essid is the name of the router and key is the access
+phrase/key.
+
+: wpa_supplicant -Dwext -iwlan0 -c/etc/wpa_supplicant.conf &
+: dhclient -v wlan0
+
+The last two lines can go into the startup script.
 
 ** openssh on Guix
 
