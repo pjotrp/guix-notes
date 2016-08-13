@@ -32,6 +32,7 @@
  - [[#install-gnu-guix-systemsoftware-distribution-sd][Install GNU Guix system/software distribution (SD)]]
  - [[#trouble-shooting][Trouble shooting]]
    - [[#failed-to-connect-to-daemon][Failed to connect to daemon]]
+   - [[#error-build-failed-substituter-substitute-died-unexpectedly][error: build failed: substituter `substitute' died unexpectedly]]
 
 * Introduction
 
@@ -759,3 +760,18 @@ If you get on a guix command
 : guix package: error: failed to connect to `/var/guix/daemon-socket/socket': Connection refused
 
 it means the daemon is not running.
+
+** error: build failed: substituter `substitute' died unexpectedly
+
+Make sure the keys are working. The real error appears to be related
+to the daemon loading libraries. Best is to revert the daemon to an
+older version already installed in the store. E.g.,
+
+: /gnu/store/0g9k45d7s5xak5mj2wqvahkphfgyxm4j-guix-0.10.0-0.7611/bin/guix-daemon  --build-users-group=guixbuild
+
+and see if it fixes the problem. When it works take the opportunity
+to install a latest guix
+
+: ./pre-inst-env guix package -i guix
+
+so you can recover from that later.
