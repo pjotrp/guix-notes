@@ -5,18 +5,20 @@
  - [[#reproducible-software-deployment][Reproducible software deployment]]
    - [[#git-checkout-of-gnu-guix-repository][Git checkout of GNU Guix repository]]
    - [[#set-up-an-authoritative-git][Set up an authoritative git]]
- - [[#using-gnu-guix-archive][Using GNU Guix archive]]
+ - [[#using-the-gnu-guix-archive-feature][Using the GNU Guix archive feature]]
    - [[#generate-the-key][Generate the key]]
  - [[#introducing-a-gnu-guix-caching-server][Introducing a GNU Guix caching server]]
    - [[#set-up-server][Set up server]]
    - [[#use-server][Use server]]
    - [[#nginx-as-a-proxy][Nginx as a proxy]]
-   - [[#trouble-shooting][Trouble shooting]]
+   - [[#trouble-shooting-guix-publish][Trouble shooting guix publish]]
+ - [[#source-reproducible-graphs][Source reproducible graphs]]
 
 * Introduction
 
 In this document I will describe how to have reproducible software
-deployment with GNU Guix adding a caching server for binaries.
+deployment with GNU Guix adding a caching server for binaries (local
+or on the internet).
 
 GNU Guix gives full control over the software dependency graph. This
 is because Guix is a declarative software deployment system, unlike,
@@ -25,23 +27,24 @@ depending on the *order* of installation and the *time* of
 installation. Guix has none of that. You get what you expect. More
 can be read about this in [[SYSCONFIG.org]].
 
-Out of the box, GNU Guix supports rolling upgrades. I.e., when you do
-a 'guix pull' it will install the latest and the greatest - matching
-the state of the build-farm at that point. Because GNU Guix packages
-are isolated, i.e., packages can not overwrite each other or their
-dependencies, it is perfectly safe.
+One of the great features of GNU Guix is that it supports rolling
+upgrades. I.e., when you do a 'guix pull' it will install the latest
+and the greatest - matching the state of the build-farm at that
+point. Because GNU Guix packages are isolated, i.e., packages can not
+overwrite each other or their dependencies, it is perfectly safe.
 
 But, this is not always what we want. Especially for production-type
 systems and software development we need to control what versions of
-software are *exactly* running.
+software are *exactly* running. GNU Guix also allows for that.
 
-Here we describe how to recreate the same software stack every time. Basically,
+Here we describe how to recreate the same software stack every
+time:
 
 1. Use a checked out git repository of GNU Guix packages
 2. The checked out git HASH value defines the origin of the dependency graph
 3. Build software of fetch binary substitutes against that git repo/graph
 
-And next to create a caching server
+And next, to create a caching server
 
 1. Create a key for the server
 2. Publish the server on the network
@@ -56,21 +59,24 @@ in its use of bandwidth if you opt for rolling upgrades.
 * Reproducible software deployment
 ** Git checkout of GNU Guix repository
 
-The entry point for the reproducible software graph, at this point, is
-handled via a git checkout of the Guix package repository. Follow the
-guidelines in [[INSTALL.org]] to get a git checkout and make of the
-repository. You should be able to run
+The current entry point for the reproducible software graph is handled
+via a git checkout of the Guix package repository (this will improve,
+as discussed below in the sectioin on [[#source-reproducible-graphs][Source reproducible
+graphs]]). Follow the guidelines in [[INSTALL.org]] to get a git checkout
+and make of the repository. Inside the repository you should be able
+to run
 
 : ./pre-inst-env guix package -A
 
-At this point your source repo defines your graph. So if you do a `git
-log' you can see the SHA value which is the current version of your
-guix git repo/graph, e.g.
+At this point your source repo really defines your graph. So if you do
+a `git log' you can see the SHA value which is the current version of
+your guix git repo/graph, e.g.
 
 : commit 96250294012c2f1520b67f12ea80bfd6b98075a2
 
-Anywhere you install software this SHA value you will get the exact
-same result. For example using this version of the git repo/graph
+Anywhere you install software based on the git checkout with this SHA
+value you will get the *exact* same result. For example using this
+version of the git repo/graph
 
 : ./pre-inst-env guix package -A ruby
 
@@ -78,19 +84,20 @@ Will install the exact same Ruby, for x86_64 this can be
 
 : /gnu/store/pgks1l9cl696j34v9mb35lk8x6lac3b0-ruby-2.2.4
 
-In fact, the only external non-Guix dependency is the Linux kernel API
-which, fortunately, does not change much. There is no (external) glibc
-dependency because glibc is *part* of the graph. GNU Guix comes with
-its own dependencies (i.e., batteries included).
+In fact, the only external outside-Guix run-time dependency is the
+Linux kernel API which, fortunately, does not change much. There is no
+(external) glibc dependency because glibc is *part* of the
+graph. GNU Guix comes with its own dependencies (i.e.,
+batteries included).
 
 ** Set up an authoritative git
 
-For our deployment we set up a git server somewhere which contains the
-tree that gets used to deploy software in a reproducible way. Git
+For our deployment we set up a git repo which contains the tree that
+gets used to deploy software in a reproducible way. Note that git
 branches can be helpful when dealing with different deployment
-versions.
+versions (e.g., development, testing, staging, production).
 
-* Using GNU Guix archive
+* Using the GNU Guix archive feature
 
 With the archive option a package with all its dependencies can be
 copied from one machine to another. For rapid reproducible deployment
@@ -128,9 +135,7 @@ it with
 
 * Introducing a GNU Guix caching server
 
-Thanks to Florian Paul Schmidt I now know how to set up a public
-facing caching server for GNU Guix binaries. Make sure to
-run a recent guix daemon.
+But better than the archive option is to set up a Guix publish server.
 
 ** Set up server
 
@@ -138,11 +143,11 @@ It is important to use recent versions of the guix daemon and guix on
 both ends.
 
 1. Generate a key pair for the guix-publish service
-2. Add the guix-publish service to your services (and reconfigure your system)
-3. Either build or pull all the packages you want:
-4. Get a git checkout of the guix repository as described in [[INSTALL.org]].
-5. Checkout the revision you want (check tags and branches)
-6. Build it
+2. Run the guix-publish service (daemon)
+3. Either build or pull all the packages you want to distribute
+
+For the last, get a git checkout of the guix repository as described
+in [[INSTALL.org]].
 
 Then you need to add software to the cache by either (a)
 
@@ -173,15 +178,15 @@ And you might also want to look into the --cache-failures option for
 the guix-daemon. And instead of just using a for-loop you might
 want to use gnu parallel or something.
 
-To publish the server
+To publish the server is a trivial
 
 : guix publish -p 8080 -u guixpublisher
 
 ** Use server
 
-Example for http://penguin:8080
+Example for Guix published on http://penguin.org:8080
 
-The public key is
+The public key on the publishing server is defined in /etc/guix
 
 #+begin_src scheme
 (public-key
@@ -197,17 +202,18 @@ Run
 Paste in the scheme expression for the key above and finish with
 ctrl-D. After that you can use e.g.
 
-: guix package -i boost --substitute-urls="http://penguin:8080"
+: guix package -i boost --substitute-urls="http://penguin.org:8080"
 
 Or use it with the guix-daemon using hydra as a fallback
 
-: guix-daemon --build-users-group=guixbuild --substitute-urls="http://penguin:8080 http://mirror.guixsd.org http://hydra.gnu.org"
+: guix-daemon --build-users-group=guixbuild --substitute-urls="http://penguin.org:8080 http://mirror.guixsd.org http://hydra.gnu.org"
 
-(for multiple substitutes to work make sure you are running Guix > 0.9)
+(for multiple substitutes to work make sure you are running Guix >
+0.9, note that the Guix mirror automatically fetches the master too)
 
 To test the server by hand go to the URL
 
-wget http://penguin:8080/nix-cache-info
+curl http://penguin.org:8080/nix-cache-info
 
 and check the contents, it should show something like
 
@@ -217,7 +223,7 @@ and check the contents, it should show something like
 
 ** Nginx as a proxy
 
-To use Nginx as a proxy I use:
+To use Nginx as a proxy use the following settings:
 
      server {
         listen 80;
@@ -245,8 +251,10 @@ which can probably be simplified.  Start nginx with something like
 
 : /root/.guix-profile/sbin/nginx -c /etc/nginx/nginx-genenetwork.conf -p /var/spool/nginx
 
-** Trouble shooting
+** Trouble shooting guix publish
 
 The guix substitute server is not very helpful giving messages - i.e.,
 it fails silently to comply if an authorization key is missing, or if
 you pass in a wrong URL.
+
+* Source reproducible graphs
