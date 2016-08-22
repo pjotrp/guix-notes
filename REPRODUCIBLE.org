@@ -289,7 +289,7 @@ proposal is not to use GUIX_PACKAGE_PATH at all:
 ** guix git remote
 
 If we assume the standard packages in ~/.config/guix/latest (which
-point to a directory in the use profile) are the 'origin' and a simple
+point to a directory in the user profile) are the 'origin' and a simple
 version of the package directory we could add a new Guix git
 repository with
 
@@ -304,7 +304,7 @@ To use myrepo simply tag it in standard guix commands:
 lists all packages in myrepo. Note that we do not mix in the default
 existing Guix repository! This implies that the remote myrepo should
 contain the relevant Guix packages to build the package - which are
-fixated in git this way.  Clean separation is the name of the game
+fixated in git this way.  Clean separation is the name of the game,
 with the additional advantage that it will be easier to compare and
 synchronize repositories against the main Guix one (myrepo is a git
 clone of guix trunk).
