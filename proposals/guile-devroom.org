@@ -63,7 +63,7 @@ on software development:
   + Encouraging and mentoring newbies; encourage diversity
   + Tutorials and documentation
 
-An complete list of currently considered talks can be found at
+A complete list of currently considered talks can be found at
 https://libreplanet.org/wiki/Group:Guix/TalkProposals.
 
 The purpose of the dev room is to present latest developments in Guile
@@ -104,3 +104,5 @@ whilst giving back to the free software community as a whole.
   - Ricardo Wurmus (ricardo.wurmus@mdc-berlin.de)
   - Pjotr Prins (pjotr.public445@thebird.nl)
   - Alex Sassmannshausen (alex.sassmannshausen@gmail.com)
+  - Tobias Geerinckx-Rice <me@tobias.gr>
+  - Manolis Ragkousis <manolis837@gmail.com>
