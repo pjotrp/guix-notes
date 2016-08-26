@@ -1,0 +1,112 @@
+= A list of proposed talks for a GNU Guile/Guix track @FOSDEM 2017 =
+
+== A friendly introduction to GNU Guile and GNU Guix ==
+
+by Ricardo Wurmus
+
+== Guile programming and optimisations ==
+
+by Andy Wingo
+
+== Network freedom live at the REPL ==
+
+by Christopher Allan Webber
+
+Much has happened over the last year in terms of advancing network freedom both within and external to Guile.  We'll see a live demonstration of Pubstrate, a federated social networking toolkit as well as reference implementation for [ActivityPub https://www.w3.org/TR/activitypub/ ActivityPub] and [https://www.w3.org/TR/activitystreams-core/ ActivityStreams], written in and for GNU Guile.
+
+Asynchronous programming has also gotten much more interesting in the last year for Guile hackers, with improvements in Guile core and new libraries such as 8sync, A-Sync, and Fibers.  An overview of these systems will be given, as well as suggestions on how you can get hacking towards liberating network users today!
+
+== Adding GNU/Hurd support to GNU Guix and GuixSD ==
+
+by Manolis Ragkousis
+
+GNU Guix can successfully cross-build any package for the Hurd and produce
+the bootstrap-tarballs to build packages with Guix natively on such a system.
+It can also build and deploy a GuixSD image from a Debian/Hurd system.
+
+== Game programming with GNU Guile ==
+
+by David Thompson
+
+== Web programming with GNU Guile ==
+
+== Shepherd the systemd replacement ==
+
+== Programming language support in GNU Guix ==
+
+by Pjotr Prins
+
+== Software distribution using Gnunet ==
+
+== Latest Guile developments ==
+
+by Andy Wingo
+
+== Latest GNU Guix developments ==
+
+by Ludovic Courtès
+
+
+
+= Proposed talks for a GNU Guile/Guix track @FOSDEM 2016 =
+
+Consider this bit an archive! For the actual talks see
+[https://archive.fosdem.org/2016/schedule/track/gnu_guile/ FOSDEM 2016]
+
+== A friendly introduction to GNU Guile and GNU Guix ==
+
+by Ricardo Wurmus
+
+== Paving a path to greater network freedom ==
+
+by Christopher Allan Webber
+
+How can Guix and Guile participate in increasing network freedom?  Discussions include leveraging Guix to make server deployment and maintainance a better experience, as well as ideas in how Guile could provide leadership in web development and federation.
+
+== The Guile community we could have (Or: solving Worse is More Accessible) ==
+
+by Christopher Allan Webber
+
+Expanding on [https://lists.gnu.org/archive/html/guile-devel/2015-09/msg00049.html this email], an exploration of how we could grow Guile into a more diverse community while leveraging its existing strengths.  Examinations will be made of what has and hasn't worked for similar language and programming communities.
+
+== Latest Guile developments ==
+
+by Andy Wingo
+
+== Latest GNU Guix developments ==
+
+by Ludovic Courtès
+
+
+GNU Guix is the package manager for the GNU project. It is based on Guile and in this talk I am going to
+present gexps and related APIs
+
+== Adding GNU/Hurd support to GNU Guix and GuixSD ==
+
+by Manolis Ragkousis
+
+GNU Guix can successfully cross-build any package for the Hurd and produce
+the bootstrap-tarballs to build packages with Guix natively on such a system.
+It can also build and deploy a GuixSD image from a Debian/Hurd system.
+
+== Adding Python and Ruby support to GNU Guix ==
+
+by Dave Thompson & Pjotr Prins
+
+We added support for Python and Ruby packages to GNU Guix. We
+think the process of adding them is interesting for others who would
+like to support their language and or software stack.
+
+== GNUNet publishing of Guix using Guile ==
+
+by Remy
+
+As a GSoC project GNUNet support was added.
+
+== Adding reproducible bioinformatics pipeline support to GNU Guix ==
+
+by Ricardo Wurmus & Pjotr Prins
+
+Bioinformatics requires rapid turn around times in software packaging. This leads to many ad hoc installations
+which lead to hard to maintain systems and little chance of reproducibility. In this talk we will discuss
+software dependency graphs and explain why GNU Guix lends itself to deploying reproducible bioninformatics pipelines.

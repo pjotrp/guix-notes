@@ -4,7 +4,7 @@ GNU Guile — the official extension language for the GNU Project
 
 * Devroom description:
 
-The GNU Guile programming language is dynamically typed and
+The [[https://www.gnu.org/software/guile/][GNU Guile]] programming language is dynamically typed and
 multi-paradigm.  Guile allows for functional approaches,
 object-oriented programming using GOOPs (a CLOS-like object system),
 logic programming, and system scripting.  Guile is suited to
@@ -18,17 +18,17 @@ features an implementation of the Scheme programming language, a
 dialect of Lisp with a mature community. Guile 2.0, released in 2011,
 was a major milestone with a new compiler infrastructure, a virtual
 machine implementation, a switch to the Boehm-Demers-Weiser garbage
-collector, many improvements to the Guile Scheme language itself, and
-other major changes which will be complemented by the forthcoming
-Guile 2.2 release (FIXME).
+collector, many improvements to the Guile Scheme language itself.
+Other major changes, including performance improvements, will be in
+the next 2.2 release.
 
 The use of GNU Guile is growing.  Amongst the current
 applications written in Guile, there are OA, a new 3D CAD engine;
 Scribolo, Artanis and haunt, (web) templating engines; Sly, a gaming
 engine; and (of course) GNU Guix, a functional software deployment
 manager for the GNU Project which also underpins GuixSD a new
-functional GNU\Linux Distribution.  GNU Guix distinguishes
-itself by creating 100% reproducibly software installations generated
+functional GNU/Linux Distribution.  GNU Guix distinguishes
+itself by creating 100% reproducible software installations generated
 by a hackable system.
 
 GNU Guix is a young rapidly growing project of approx. 200K lines of
@@ -40,8 +40,9 @@ Clojure, Perl, Ruby, Python, Haskell, GO, D, Erlang, and Elixir.
 Other noteworthy GNU Guile applications include GNU Lilypond, Gnucash,
 shepherd (previously named dmd) which is an init system and
 replacement for systemd; and mcron a cron-compatible task scheduler.
-A more exhaustive list can be found at
-https://en.wikipedia.org/wiki/GNU_Guile(?).
+More GNU Guile projects can be found at
+https://en.wikipedia.org/wiki/GNU_Guile and
+https://www.gnu.org/software/guile/libraries/.
 
 The devroom will provide at least the following content with a focus
 on software development:
@@ -58,7 +59,7 @@ on software development:
 - Guile and the network:
   + Software distribution using Gnunet
   + Paving a path to greater network freedom using Guix and Guile
-- The Guile community we can have
+- The Guile community
   + Freedom can be expressed in multiple ways
   + Encouraging and mentoring newbies; encourage diversity
   + Tutorials and documentation
@@ -75,6 +76,7 @@ grow the Guile community.
 
   - GNU Project: http://www.gnu.org
   - GNU Guile: https://www.gnu.org/software/guile/
+  - GNU Guile libs: https://www.gnu.org/software/guile/libraries/
   - GNU Guix: http://www.gnu.org/software/guix
 
 * Why should FOSDEM accept this proposal?
