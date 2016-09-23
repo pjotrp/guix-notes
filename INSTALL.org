@@ -4,10 +4,10 @@
  - [[#introduction][Introduction]]
  - [[#install-with-an-existing-package-manager][Install with an existing package manager]]
  - [[#binary-installation][Binary installation]]
-     - [[#the-one-step-tarball-installation][The one-step tarball installation]]
-     - [[#from-an-existing-gnu-guix-installation][From an existing GNU Guix installation]]
- - [[#set-the-store-permissions][Set the store permissions]]
+   - [[#the-one-step-tarball-installation][The one-step tarball installation]]
+   - [[#from-an-existing-gnu-guix-installation][From an existing GNU Guix installation]]
  - [[#create-build-group-and-users][Create build group and users]]
+ - [[#set-the-store-permissions][Set the store permissions]]
  - [[#start-the-gnu-guix-daemon][Start the GNU Guix daemon]]
  - [[#set-the-key][Set the key]]
  - [[#update-the-package-list][Update the package list]]
@@ -15,13 +15,14 @@
  - [[#install-the-hello-package][Install the hello package]]
  - [[#add-symlinks-to-the-path][Add symlinks to the PATH]]
  - [[#set-locale][Set locale]]
+ - [[#sharing-profiles][Sharing profiles]]
  - [[#other-installation-routes][Other installation routes]]
-     - [[#install-repository-from-git][Install repository from git]]
-     - [[#bootstrap-from-source][Bootstrap from source]]
-     - [[#building-gnu-guix-from-source-using-guix][Building GNU Guix from source (using Guix)]]
-     - [[#building-gnu-guix-from-source-debian-native][Building GNU Guix from source (Debian native)]]
-     - [[#bootstrap-with-nix][Bootstrap with Nix]]
-     - [[#bootstrap-with-docker][Bootstrap with Docker]]
+   - [[#install-repository-from-git][Install repository from git]]
+   - [[#bootstrap-from-source][Bootstrap from source]]
+   - [[#building-gnu-guix-from-source-using-guix][Building GNU Guix from source (using Guix)]]
+   - [[#building-gnu-guix-from-source-debian-native][Building GNU Guix from source (Debian native)]]
+   - [[#bootstrap-with-nix][Bootstrap with Nix]]
+   - [[#bootstrap-with-docker][Bootstrap with Docker]]
  - [[#continue-with-ruby-installation-and-environment][Continue with Ruby installation and environment]]
  - [[#continue-with-python-installation-and-environment][Continue with Python installation and environment]]
  - [[#add-your-own-package][Add your own package]]
@@ -29,7 +30,7 @@
 * Introduction
 
 *NEWS FLASH*: GNU Guix can be installed in one go on most Linux installations!
- 
+
 See the [[#the-one-step-tarball-installation][The one-step tarball installation]] below
 
 Software packaging is part of the programmer's toolbox. First and
@@ -74,7 +75,7 @@ package, create the build group and permissions.
 Ricardo has written a nice [[http://elephly.net/posts/2015-06-21-getting-started-with-guix.html][introduction]]. Also the [[https://www.gnu.org/software/guix/download/][guix documentation]]
 may be more up-to-date. There may also be Docker images
 
-In principle, fetch the TAR ball 
+In principle, fetch the TAR ball
 
 : http://www.fdn.fr/~lcourtes/software/guix/guix-tarball-0.8.1.1140.tar.lz
 : http://www.fdn.fr/~lcourtes/software/guix/guix-tarball-0.8.1.1140.tar.lz.sig
@@ -83,7 +84,7 @@ In principle, fetch the TAR ball
 and unpack it in the root directory
 
 #+begin_src sh   :lang bash
-    tar -C / --lzip -xvf guix-tarball-0.8.1.1140.tar.lz 
+    tar -C / --lzip -xvf guix-tarball-0.8.1.1140.tar.lz
 #+end_src sh   :lang bash
 
 (on Debian you may need 'apt-get install lzip' first)
@@ -93,27 +94,27 @@ Add the guix-profile to the path
 #+begin_src sh   :lang bash
     export ~/.guix-profile/bin:$PATH
 #+end_src sh   :lang bash
-	
+
 Set the store permissions and start the daemon after creating the
-build users as described below. 
+build users as described below.
 
 ** From an existing GNU Guix installation
 
 I thought I would be able to bootstrap using a USB image and copy
 that to a local hard disk.
 
-To bootstrap I have successfully downloaded a GNU Guix tarball 
+To bootstrap I have successfully downloaded a GNU Guix tarball
 
 #+begin_src sh   :lang bash
     wget http://alpha.gnu.org/gnu/guix/gnu-usb-install-0.8.1.x86_64-linux.xz
-    xz -d gnu-usb-install-0.8.x86_64-linux.xz 
+    xz -d gnu-usb-install-0.8.x86_64-linux.xz
 #+end_src sh   :lang bash
-	
+
 mount it with kpartx
 
 #+begin_src sh   :lang bash
     kpartx -v -a gnu-usb-install-0.8.1.x86_64-linux
-    mkdir mnt 
+    mkdir mnt
     mkdir tmp
     mount /dev/mapper/loop0p1 mnt
     cp -vau mnt/gnu tmp
@@ -163,11 +164,11 @@ Now you should be able to run Guix with
 
 * Set the key
 
-To enable binary installs you need to authorize it with a key which can 
+To enable binary installs you need to authorize it with a key which can
 be found with guix
 
 #+begin_src sh   :lang bash
-  guix archive --authorize < ~/.guix-profile/share/guix/hydra.gnu.org.pub 
+  guix archive --authorize < ~/.guix-profile/share/guix/hydra.gnu.org.pub
 #+end_src sh   :lang bash
 
 Note that you can also call GNU Guix from its direct path, e.g.
@@ -181,7 +182,7 @@ Note that you can also call GNU Guix from its direct path, e.g.
 #+begin_src sh   :lang bash
    guix pull
 #+end_src sh   :lang bash
-   
+
 downloads the latest Guix source code and package descriptions, and
 deploys it.  Update guix (do this as root so the daemon does not get
 garbage collected later).
@@ -212,7 +213,7 @@ root version of guix has) and install guix client itself
 #+begin_src sh   :lang bash
   guix package -i hello
 
-    The following package will be installed:      
+    The following package will be installed:
       hello-2.9    out     /gnu/store/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9
     The following file will be downloaded:
       /gnu/store/yfipxvqnibw17ncp4c828hhcwsbxc3d7-hello-2.9
@@ -241,7 +242,7 @@ After adding to the path
   export PATH=$HOME/.guix-profile/bin:$PATH
 #+end_src sh   :lang bash
 
-we can run 
+we can run
 
 #+begin_src sh   :lang bash
   hello
@@ -249,7 +250,7 @@ we can run
     Hello, world!
 #+end_src sh   :lang bash
 
-Since GNU Guix development revolves around guile (the Scheme programming language) and emacs, let us 
+Since GNU Guix development revolves around guile (the Scheme programming language) and emacs, let us
 install
 
 #+begin_src sh   :lang bash
@@ -258,7 +259,7 @@ install
 #+end_src sh   :lang bash
 
 in both cases I got a successful install for guile and emacs.
-  
+
 To build a package from source, checkout the repository with git and run
 
 #+begin_src sh   :lang bash
@@ -279,14 +280,14 @@ path, presumably because these are different dependencies. This we can check:
 To get the other one
 
 #+begin_src sh   :lang bash
-  guix gc --references /gnu/store/77dzhv9yx5x2rq370swp8scsps961pj6-hello-2.9  
+  guix gc --references /gnu/store/77dzhv9yx5x2rq370swp8scsps961pj6-hello-2.9
 
     /gnu/store/3h38sfay2f02rk4i768ci8xabl706rf9-glibc-2.20
     /gnu/store/px5ks6hyjszqp269l9b91354zjclv6c2-gcc-4.8.3-lib
     /gnu/store/77dzhv9yx5x2rq370swp8scsps961pj6-hello-2.9
 #+end_src sh   :lang bash
 
-And you can tell that the dependencies are not the same. It gets better. You can list the 
+And you can tell that the dependencies are not the same. It gets better. You can list the
 build depencies too
 
 #+begin_src sh   :lang bash
@@ -302,7 +303,7 @@ How many package managers can achieve that?
 
 * Set locale
 
-If you see the message 
+If you see the message
 
    warning: failed to install locale: Invalid argument
 
@@ -327,6 +328,36 @@ Choose one from
 
 Alternatively set the LOCPATH to that of your underlying distribution
 
+* Sharing profiles
+
+Guix has this amazing facility called 'profiles' (originally coming
+from Nix) which does away with hacks like Unix modules and Debian
+[[https://wiki.debian.org/DebianAlternatives][alternatives]]. Any user can create any number of profiles in his/her
+home directory to, for example, address the need of running different
+Python versions. For the use of profiles see the [[https://www.gnu.org/software/guix/manual/html_node/Invoking-guix-package.html][GNU Guix
+documentation]].
+
+One thing we like to do is share profiles. The current situation is to
+have one 'master' user on the system that can install profiles in
+/usr/local/guix-profiles and these can easily be used by others. So
+
+: guix package -p /usr/local/guix-profiles/shared-profile -i vim
+
+and any user can add the profile to the path
+
+: export PATH="/usr/local/guix-profiles/shared-profile/bin:$PATH"
+
+and run vim. On Debian we can use the alternative system to link
+to these again (as root)
+
+: cd /etc/alternatives
+: ln -s /usr/local/guix-profiles/shared-profile/bin/vi
+: ln -s /usr/local/guix-profiles/shared-profile/bin/view
+: ln -s /usr/local/guix-profiles/shared-profile/bin/vim
+
+And now all users are all sharing the Guix installation of vim rather
+than then underlying Debian one.
+
 * Other installation routes
 ** Install repository from git
 
@@ -342,14 +373,14 @@ is surprisingly tricky because of the build dependencies. Your mileage
 may vary, but currently I recommend using the tar-ball install
 described above instead.
 
-For building from source I found it to be important to make sure not to 
+For building from source I found it to be important to make sure not to
 *mix* Guix and native dependencies. Also make sure you are using the
 proper localstatedir.
 
 ** Building GNU Guix from source (using Guix)
 
 You can re-build and re-install Guix using a system that already runs Guix.
-To do so (copied from the Guix README). After the binary tar install 
+To do so (copied from the Guix README). After the binary tar install
 described above:
 
 *** Install the dependencies and build tools using Guix:
@@ -365,7 +396,7 @@ Make sure Guix is at the *front* of the PATH
 I also run
 
 #+begin_src sh   :lang bash
-    guix package --install grep sed texinfo graphviz 
+    guix package --install grep sed texinfo graphviz
 #+end_src sh   :lang bash
 
 which may be used during build time.
@@ -383,7 +414,7 @@ so the full thing becomes
 Note that hydra can be slow when many people are using it. The download farm should
 become faster in the future (it is designed for scalability).
 
-***  Set the Guix environment variables 
+***  Set the Guix environment variables
 
 Guix recommends you to set during the package installation process: ACLOCAL_PATH, CPATH, LIBRARY_PATH, PKG_CONFIG_PATH
 
@@ -413,7 +444,7 @@ Or (for the build system)
    export LIBRARY_PATH="$HOME/opt/guix-build-system/lib"
    export ACLOCAL_PATH="$HOME/opt/guix-build-system/share/aclocal"
 #+end_src sh   :lang bash
-	
+
 Re-run the 'configure' script passing it the option
 '--with-libgcrypt-prefix=$HOME/.guix-profile/', as well as
 '--localstatedir=/somewhere', where '/somewhere' is the
@@ -443,7 +474,7 @@ and if you used a special build profile
 Run `make' (and optionally `make check') every time you change something in the
 repository. Make can do parallel builds so for 4 cores
 
-: make -j 4 
+: make -j 4
 
 You may want to avoid "make install" since it will probably install the guix
 binaries in /usr and you can run it in the source dir with
@@ -488,7 +519,7 @@ bootstrap from source. I.e.
 #+begin_src sh   :lang bash
   export BASH=/bin/bash
   export PATH=/usr/local/bin:/usr/bin:/bin
-  set|grep -i guix 
+  set|grep -i guix
 #+end_src sh   :lang bash
 
 With guix 0.7 and 0.8 I have built from source on Debian.
