@@ -1,0 +1,253 @@
+#+TITLE: Installing ARVADOS on Debian + GNU Guix
+
+* Table of Contents                                                     :TOC:
+ - [[#arvados-introduction-][Arvados Introduction ]]
+ - [[#creating-a-debian-base-install-][Creating a Debian base install ]]
+   - [[#choice-of-ext4-vs-xfs][Choice of ext4 vs XFS]]
+   - [[#usb-based-server-installation][USB-based server installation]]
+
+* Arvados Introduction 
+
+With Arvados+GNU Guix we aim to crack two bioinformatics problems
+at the same time (well, maybe even more, but these are our two main
+problems):
+
+1. Get rid of the central FS bottleneck
+2. Create shareable pipelines
+
+Arvados provides an answer to both, so in this document I'll try and
+install Arvados on a small compute cluster. For this we will create a
+number of GNU Guix packages.
+
+* Creating a Debian base install 
+
+The developers of Arvados use Debian Wheezy as a base install with an
+XFS file system. Wheezy also misses out on the systemd default. So
+Wheezy it is this time. Next time I do a cluster install it may be a
+native GUIX distribution which probably will miss out on systemd
+altogether (note I have systemd running on my desktop, I may change my
+mind about servers at some point).
+
+** Choice of ext4 vs XFS
+
+In general, storing data on Linux should be
+considered `unsafe'. Arvados, however, promises redundancy across
+nodes, so we ought to be not too concerned with the underlying storage. 
+Also, most of the jobs on this cluster will be transient. Similarly 
+GNU Guix is also resistant to disk failure because it is easy to copy
+across nodes.
+
+Taking a look at these [[http://www.ilsistemista.net/index.php/virtualization/47-zfs-btrfs-xfs-ext4-and-lvm-with-kvm-a-storage-performance-comparison.html?limitstart=0][benchmarks]] I decided to go for ext4
+initially. We use 1TB drives and ext4 is (still) the standard on
+Linux. File writing and reading is mostly linear with Arvados FS and
+most bioinformatics tools, so it won't make a huge difference. We can
+try XFS later.
+
+** USB-based server installation
+
+*** Create bootable USB
+
+Not all servers have a CDROM reader, so we need to create a bootable
+[[https://wiki.debian.org/BootUsb][USB stick]] with a bootable partition. Debian instructions are
+[[https://wiki.debian.org/BootUsb][here]]. Arvados requires amd64. So, basically, download an image (I
+usually take CD1 only) and dd it to the USB drive (directly; not to a
+partition):
+
+: dd if=imagefile of=/dev/sdxx bs=4M; sync
+:   679477248 bytes (679 MB) copied, 96.5819 s, 7.0 MB/s
+
+Now it should boot and we can start server installs. This is a manual
+job. An automated install will be interesting once we scale up, but
+for now I only have to install some 10 machines and can't be bothered.
+
+With one machine the USB and CDROM boot did not work. I used
+debootstrap instead (the latter if you have a Debian login as root on
+the machine already).
+
+*** Install server
+
+It needed a little bios nudging, but the installation was easy. 
+I just select the defaults for a minimal install (select ssh 
+server, not the full desktop). I installed machines
+
+: fedor311: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 3TB
+: fedor312: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 3TB
+: fedor313: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 3TB
+: fedor314: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 3TB
+: fedor315: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 1TB
+: fedor316: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 1TB
+: fedor317: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 3TB
+: fedor318: 8 x Intel 2.66Hz (6Mb, 5333bogomips), 32G RAM, 3TB
+: dellR410: 8 x Intel 2.16Hz (2Mb, 4255bogomips), 24G RAM, 500GB
+
+*** Partitioning the file system
+
+The partitioning I opt for is usually sda1 root 10GB (for Debian),
+sda2 8GB swap, sda3 root2 (for upgrades) and LVM for the rest. GUIX
+will get a partition in there, as well as the home directories etc.
+At installation time only the first two need to be defined.
+
+
+#+begin_src sh   :lang bash
+fdisk -l 
+
+Disk /dev/sda: 1000.2 GB, 1000204886016 bytes
+255 heads, 63 sectors/track, 121601 cylinders, total 1953525168 sectors
+Units = sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disk identifier: 0x000739e6
+
+   Device Boot      Start         End      Blocks   Id  System
+/dev/sda1   *        2048    20965375    10481664   83  Linux
+/dev/sda2        20965376    36589567     7812096   82  Linux swap / Solaris
+/dev/sda3        36589568    57487359    10448896   83  Linux
+/dev/sda4        57487360  1953525167   948018904    5  Extended
+/dev/sda5        57489408  1953525167   948017880   8e  Linux LVM
+
+Disk /dev/sdb: 2000.4 GB, 2000398934016 bytes
+255 heads, 63 sectors/track, 243201 cylinders, total 3907029168 sectors
+Units = sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 4096 bytes
+I/O size (minimum/optimal): 4096 bytes / 4096 bytes
+Disk identifier: 0x00000000
+
+   Device Boot      Start         End      Blocks   Id  System
+/dev/sdb1            2048    20973567    10485760   83  Linux
+/dev/sdb2        20973568    37750783     8388608   83  Linux
+/dev/sdb3        37750784    58722303    10485760   83  Linux
+/dev/sdb4        58722304  3907029167  1924153432    5  Extended
+/dev/sdb5        58724352  3907029167  1924152408   8e  Linux LVM
+#+end_src sh   :lang bash
+
+To get lvm use 'apt-get install lvm2'.
+
+Set up LVM
+
+: pvcreate /dev/sda5
+: pvcreate /dev/sdb5
+
+Create a partition for GNU Guix
+
+: vgcreate volume_group1 /dev/sda5
+: vgcreate volume_group2 /dev/sdb5
+: vgchange -a y volume_group1
+: vgchange -a y volume_group2
+: lvcreate --size 64G -ngnu volume_group1
+: mkfs.ext4 /dev/volume_group1/gnu
+
+And make sure it mounts on /gnu. In /etc/fstab
+
+: /dev/mapper/volume_group1-gnu  /gnu   ext4   defaults       0   2 
+
+
+*** Docker
+
+Docker is used by Arvados.  Docker should be latest (>1.5) and
+requires a Kernel upgrade.
+
+**** Update the Linux kernel
+
+To /etc/apt/sources.list add the line 
+
+: deb http://http.debian.net/debian wheezy-backports main contrib non-free
+
+and disable the CDROM ref in the file, while you are at it.
+
+and
+
+: apt-get update
+: apt-cache search linux-image
+
+will give the kernel to install, and
+
+: apt-get install -t wheezy-backports linux-image-amd64 linux-headers-amd64
+
+will install the kernel + headers and update grub2 (boot). In one go,
+at this stage, it probably makes sense to include a few more packages
+
+#+begin_src sh
+apt-get install -t wheezy-backports linux-image-amd64 \
+        linux-headers-amd64 lvm2 ssh vim pigz bzip2 screen unzip  \
+        sudo locales lynx mc rsync ncurses-bin \
+        tzdata htop iftop gnupg \
+        tree psmisc ntpdate pciutils screen
+# (downloads 316Mb and answer two stupid questions, doh!)
+locale-gen en_US.UTF-8 en_GB.UTF-8 nl_NL.UTF-8
+# dpkg-reconfigure locales
+#+end_src
+
+Arguably the last step is not needed, Guix comes with its own locale
+support. Make sure ssh still works after
+
+#+begin_src sh
+/etc/init.d/ssh reload
+#+end_src sh
+
+And test kernel reboot and ssh login before moving the box to a remote
+location (no kiddin').
+
+At this point we have an installed system. It takes about 15 minutes
+of working time assuming the hardware behaves (it is worth checking
+BIOS settings, at least check what the machine should do on power
+failure).
+
+From this point on the installation should be [[https://github.com/pjotrp/deploy/blob/master/doc/design.org][automated]]. For
+development and testing of automation I use a KVM virtual machine as
+described [[https://github.com/pjotrp/cloudbiolinux/blob/master/doc/linux_kvm.md][here]].
+
+*** Post install
+
+After logging in for the first time I create an arvados user and
+disable root ssh
+
+: PermitRootLogin no
+: PasswordAuthentication yes
+
+followed by setting stronger passwords for root and the user.
+PasswordAutenthication should be disabled later.
+
+*** Check
+
+: apt-get install firmware-linux
+
+*** Automate, automate, automate
+
+So far, it is pretty hard to automate things (though not impossible).
+
+When working on the 3rd server I decided I needed to automate things.
+In the past I have worked with Cfengine and Chef (for example), but
+those tools are not exactly what I want out of installation control
+(though I like some of the philosophy in there). I'll write out what I
+want and start simple (KISS). Arguably installation control can be
+part of GNU Guix - and I know people are doing that (even for VMs) so
+you can say deploy my-webserver with all configuration included. We
+aim to get there. But first Guix installation itself (which we can
+largely automate).
+
+** GNU Guix
+
+So far, we have created a base Debian install. From here on we are
+going to use GNU Guix as the default package manager. In fact,
+everything on the system should be managed through Guix so as to
+create fully reproducible installs (whether it is on Debian, Centos,
+or Guix itself as a base distribution).
+
+*** Install GNU Guix
+
+We install the binary distribution (0.9) of Guix. And follow the procedure
+described in [[INSTALL.org#binary-installation]] and the sections after 
+that for creating user-level access to Guix.
+
+*** User settings
+
+Assuming you have access to guix, we can set the environment in the
+user profile, especially the PATH and GUIX_LOCPATH, e.g.
+
+#+begin_src sh   :lang bash
+    export PATH=$HOME/.guix-profile/bin:$PATH
+    export GUIX_LOCPATH=$HOME/.guix-profile/lib/locale
+    export LC_ALL=en_US.UTF-8
+#+end_src sh   :lang bash
+
+

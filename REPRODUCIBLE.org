@@ -1,0 +1,350 @@
+#+TITLE: GNU Guix reproducible software deployment
+
+* Table of Contents                                                     :TOC:
+ - [[#introduction][Introduction]]
+ - [[#reproducible-software-deployment][Reproducible software deployment]]
+   - [[#git-checkout-of-gnu-guix-repository][Git checkout of GNU Guix repository]]
+   - [[#set-up-an-authoritative-git][Set up an authoritative git]]
+ - [[#using-the-gnu-guix-archive-feature-guix-archive][Using the GNU Guix archive feature (guix archive)]]
+   - [[#generate-the-key][Generate the key]]
+ - [[#introducing-a-gnu-guix-caching-server-guix-publish][Introducing a GNU Guix caching server (guix publish)]]
+   - [[#set-up-server][Set up server]]
+   - [[#use-server][Use server]]
+   - [[#nginx-as-a-proxy][Nginx as a proxy]]
+   - [[#trouble-shooting-guix-publish][Trouble shooting guix publish]]
+ - [[#source-reproducible-graphs-still-a-proposal][Source reproducible graphs (still a proposal)]]
+   - [[#introduction][Introduction]]
+   - [[#guix-git-remote][guix git remote]]
+
+* Introduction
+
+In this document I will describe how to have reproducible software
+deployment with GNU Guix adding a caching server for binaries (local
+or on the internet).
+
+GNU Guix gives full control over the software dependency graph. This
+is because Guix is a declarative software deployment system, unlike,
+for example, Debian, Docker and Brew which give different results
+depending on the *order* of installation and the *time* of
+installation. Guix has none of that. You get what you expect. More
+can be read about this in [[SYSCONFIG.org]].
+
+One of the great features of GNU Guix is that it supports rolling
+upgrades. I.e., when you do a 'guix pull' it will install the latest
+and the greatest - matching the state of the build-farm at that
+point. Because GNU Guix packages are isolated, i.e., packages can not
+overwrite each other or their dependencies, it is perfectly safe.
+
+But, this is not always what we want. Especially for production-type
+systems and software development we need to control what versions of
+software are *exactly* running. GNU Guix also allows for that.
+
+Here we describe how to recreate the same software stack every
+time:
+
+1. Use a checked out git repository of GNU Guix packages
+2. The checked out git HASH value defines the origin of the dependency graph
+3. Build software of fetch binary substitutes against that git repo/graph
+
+And next, to create a caching server
+
+1. Create a key for the server
+2. Publish the server on the network
+3. Tell your machines to use the server for substitute binaries
+
+It is all rather simple, really.
+
+A side-effect of taking this approach is that you'll spend less time
+downloading and installing large binaries. GNU Guix can be quite heavy
+in its use of bandwidth if you opt for rolling upgrades.
+
+* Reproducible software deployment
+** Git checkout of GNU Guix repository
+
+The current entry point for the reproducible software graph is handled
+via a git checkout of the Guix package repository (this will improve,
+as discussed below in the section on [[#source-reproducible-graphs][Source reproducible
+graphs]]). Follow the guidelines in [[INSTALL.org]] to get a git checkout
+and make of the repository. Inside the repository you should be able
+to run
+
+: ./pre-inst-env guix package -A
+
+At this point your source repo really defines your graph. So if you do
+a `git log' you can see the SHA value which is the current version of
+your guix git repo/graph, e.g.
+
+: commit 96250294012c2f1520b67f12ea80bfd6b98075a2
+
+Anywhere you install software based on the git checkout with this SHA
+value you will get the *exact* same result. For example using this
+version of the git repo/graph
+
+: ./pre-inst-env guix package -A ruby
+
+Will install the exact same Ruby, for x86_64 this can be
+
+: /gnu/store/pgks1l9cl696j34v9mb35lk8x6lac3b0-ruby-2.2.4
+
+In fact, the only external outside-Guix run-time dependency is the
+Linux kernel API which, fortunately, does not change much. There is no
+(external) glibc dependency because glibc is *part* of the
+graph. GNU Guix comes with its own dependencies (i.e.,
+batteries included).
+
+** Set up an authoritative git
+
+For our deployment we set up a git repo which contains the tree that
+gets used to deploy software in a reproducible way. Note that git
+branches can be helpful when dealing with different deployment
+versions (e.g., development, testing, staging, production).
+
+* Using the GNU Guix archive feature (guix archive)
+
+With the archive option a package with all its dependencies can be
+copied from one machine to another. For rapid reproducible deployment
+this can be a useful method.
+
+** Generate the key
+
+First, as root, generate a key for the machine:
+
+: guix archive --generate-key
+
+Note this can take forever on a server without a [[https://bugs.launchpad.net/ubuntu/+source/gnupg/+bug/706011][keyboard]] so you may
+want to generate a key on a local machine and copy it
+across. Depending on how Guix was installed the key may be stored in
+/etc/guix/ or /usr/local/etc/guix/, e.g.,
+
+#+begin_src scheme
+cat /usr/local/etc/guix/signing-key.pub
+
+    (public-key
+     (ecc
+      (curve Ed25519)
+      (q #11217788B41ADC8D5B8E71BD87EF699C65312EC387752899FE9C888856F5C769#)))
+#+end_src scheme
+
+Then create a signed tar ball with
+
+: guix archive --export -r ruby > guix_ruby.nar
+
+The NAR file is a 200Mb archive which contains the Ruby binary *with*
+all its run-time dependencies. Next on a new machine you can unpack
+it with
+
+: guix archive --import < guix_ruby.nar
+
+* Introducing a GNU Guix caching server (guix publish)
+
+But better than the archive option is to set up a Guix publish server.
+
+** Set up server
+
+It is important to use recent versions of the guix daemon and guix on
+both ends.
+
+1. Generate a key pair for the guix-publish service
+2. Run the guix-publish service (daemon)
+3. Either build or pull all the packages you want to distribute
+
+For the last, get a git checkout of the guix repository as described
+in [[INSTALL.org]].
+
+Then you need to add software to the cache by either (a)
+
+#+begin_src sh   :lang bash
+for n in `./pre-inst-env guix packages -A | cut -f1`; do
+  ./pre-inst-env guix build "$n"; done
+#+end_src
+
+or (b)
+
+#+begin_src sh   :lang bash
+for n in `./pre-inst-env guix packages -A | cut -f1`; do
+  ./pre-inst-env guix --no-substitutes build "$n"; done
+#+end_src
+
+(a) pulls packages available from hydra, (b) tries to
+rebuild them all. You can mix the two.
+
+These for-loops will fail altogether if a single build fails. This is
+probably not what you want. So try
+
+#+begin_src sh   :lang bash
+for n in `./pre-inst-env guix packages -A | cut -f1`; do
+  ./pre-inst-env guix build "$n" || true; done
+#+end_src
+
+And you might also want to look into the --cache-failures option for
+the guix-daemon. And instead of just using a for-loop you might
+want to use gnu parallel or something.
+
+To publish the server is a trivial
+
+: guix publish -p 8080 -u guixpublisher
+
+Note that it is also possible to use the GUIX_PACKAGE_PATH to
+distribute pre-built binaries.
+
+** Use server
+
+Example for Guix published on http://penguin.org:8080
+
+The public key on the publishing server is defined in /etc/guix
+
+#+begin_src scheme
+(public-key
+  (ecc
+    (curve Ed25519)
+      (q #AFF68C4E099401E85BE2D7375C1DB5E8A29F1DB83299038122AF5C0984099CF8#)))
+#+end_src scheme
+
+Run
+
+: sudo guix archive --authorize
+
+Paste in the scheme expression for the key above and finish with
+ctrl-D. After that you can use e.g.
+
+: guix package -i boost --substitute-urls="http://penguin.org:8080"
+
+Or use it with the guix-daemon using hydra as a fallback
+
+: guix-daemon --build-users-group=guixbuild --substitute-urls="http://penguin.org:8080 http://mirror.guixsd.org http://hydra.gnu.org"
+
+(for multiple substitutes to work make sure you are running Guix >
+0.9, note that the Guix mirror automatically fetches the master too)
+
+To test the server by hand go to the URL
+
+curl http://penguin.org:8080/nix-cache-info
+
+and check the contents, it should show something like
+
+: StoreDir: /gnu/store
+: WantMassQuery: 0
+: Priority: 100
+
+** Nginx as a proxy
+
+To use Nginx as a proxy use the following settings:
+
+     server {
+        listen 80;
+        server_name guix.genenetwork.org;
+        access_log  logs/guix.access.log;
+
+        proxy_connect_timeout       3000;
+        proxy_send_timeout          3000;
+        proxy_read_timeout          3000;
+        send_timeout                3000;
+
+        location / {
+            # proxy_set_header   Host $host;
+            proxy_set_header   Host      $http_host;
+            # proxy_redirect     off;
+            proxy_set_header   Connection keep-alive;
+            proxy_set_header   X-Real-IP $remote_addr;
+            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header   X-Forwarded-Host $server_name;
+            proxy_pass         http://127.0.0.1:8080;
+        }
+    }
+
+which can probably be simplified.  Start nginx with something like
+
+: /root/.guix-profile/sbin/nginx -c /etc/nginx/nginx-genenetwork.conf -p /var/spool/nginx
+
+** Trouble shooting guix publish
+
+The guix substitute server is not very helpful giving messages - i.e.,
+it fails silently to comply if an authorization key is missing, or if
+you pass in a wrong URL.
+
+* Source reproducible graphs (still a proposal)
+
+** Introduction
+
+In the above section we achieved source reproducibility by checking
+out a git version of the Guix package repository. We even managed to
+distribute binary packages from an external repository pointed at by
+the GUIX_PACKAGE_PATH.
+
+This system works - we use it ourselves - but it is hard on regular
+users to ask them to checkout Guix, to build Guix (successfully), and
+manage additional GUIX_PACKAGE_PATHs. But even for advanced GNU Guix
+users it would be useful to be able tag packages to certain versions
+of the package tree and track external source repositories. To me
+GNU Guix would reach a new level of awesomeness if we can easily
+manage reproducible distributed source trees of packages. The fun
+thing is that most of the infrastructure is already there! What
+we need to do is define behavior. Ricardo wrote some ideas
+up in on the [[http://lists.gnu.org/archive/html/guix-devel/2016-07/msg01156.html][mailing list]].
+
+I think it is a good idea and it can be generalized to manage versions
+of repositories, so reproducibility is also addressed. In fact, my
+proposal is not to use GUIX_PACKAGE_PATH at all:
+
+** guix git remote
+
+If we assume the standard packages in ~/.config/guix/latest (which
+point to a directory in the user profile) are the 'origin' and a simple
+version of the package directory we could add a new Guix git
+repository with
+
+: guix git remote add myrepo git-url
+
+This checks out myrepo somewhere in $HOME/.config/guix.
+
+To use myrepo simply tag it in standard guix commands:
+
+: guix package --remote myrepo -A
+
+lists all packages in myrepo. Note that we do not mix in the default
+existing Guix repository! This implies that the remote myrepo should
+contain the relevant Guix packages to build the package - which are
+fixated in git this way.  Clean separation is the name of the game,
+with the additional advantage that it will be easier to compare and
+synchronize repositories against the main Guix one (myrepo is a git
+clone of guix trunk).
+
+To install a package from myrepo
+
+: guix package --remote myrepo -i elixir
+
+Now, we would like to bring in reproducibility. This can be done with
+git branches, tags and or hashes. It requires new guix commands which
+can be passed through to git, e.g.,
+
+: guix git checkout myrepo branch
+
+checks out the branch, other git commands are simply pass
+throughs. All guix needs to do is run git in the proper
+directory. Actually these directories can be part of the user profile
+too, because guix is running with privileges!
+
+To update the repo to the latest (within its branch, it is really a
+git pull)
+
+: guix pull --remote myrepo
+
+For binary distribution there are no complications as long as the
+provider builds on the exact same version of the tree.
+
+The only complication that I see is that a version of guix on the
+user's machine does can not handle the checked out tree because of
+some incompatibility. In that case the user can opt to check out the
+git tree by hand and build guix in there - as that is the same one the
+provider is (supposed to be) using and comes with the tree. This also
+solves the incompatible API issue, referred to on the ML.
+
+With the mechanism described above. it would be less intimidating for
+users to add sources of Guix packages (or Guix features) and download
+binary substitutes.
+
+Third parties can distribute package descriptions (or experimental
+features) along with binary substitutes by simply hosting the modules
+and running “guix publish”.  The Guix project doesn’t need to care.
+Exactly how third-party collections are managed is completely up to the
+respective maintainers.

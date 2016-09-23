@@ -1,0 +1,300 @@
+#+TITLE: System configuration with GNU Guix
+
+* Table of Contents                                                       :TOC:
+ - [[#introduction][Introduction]]
+ - [[#gnu-guix-system-configuration][GNU Guix system configuration]]
+ - [[#the-sudo-package][The sudo package]]
+ - [[#how-does-guix-configure-sudo][How does Guix configure sudo?]]
+ - [[#system-configuration][System configuration]]
+   - [[#example-1-tell-guix-package-to-use-config-file-from-etc][Example 1: Tell Guix package to use config file from /etc]]
+   - [[#example-2-use-sudoers-from-the-store][Example 2: Use sudoers from the store]]
+ - [[#deterministic-system-configuration-and-maintenance][Deterministic system configuration and maintenance]]
+
+* Introduction
+
+GNU Guix is more than a package manager. Its definition system is so
+powerful that it can be used for full system configuration in a
+functional way, i.e., with versions, roll-back and non-interference
+between configurations. These are attractive properties not matched by
+non-deterministic systems, such as Cfengine, Chef and Puppet (in
+computer science, a nondeterministic algorithm is an algorithm that,
+even for the same input, can exhibit different behaviors on different
+runs, as opposed to a deterministic algorithm).
+
+In this document we explore sudo configuration as it can be handled 
+by Guix. sudo is of particular interest since it requires setuid and
+is fussy about its configuration file /etc/sudoers.
+
+* GNU Guix system configuration
+
+According to the GNU Guix [[https://www.gnu.org/software/guix/manual/html_node/System-Configuration.html#System-Configuration][System-Configuration]] manual, the Guix System
+Distribution (aka GuixSD) supports a consistent whole-system
+configuration mechanism. By that we mean that all aspects of the
+global system configuration—such as the available system services,
+timezone and locale settings and user accounts—are declared in a
+single place. Such a system configuration can be instantiated—i.e.,
+effected.
+
+One of the advantages of putting all the system configuration under
+the control of Guix is that it supports transactional system upgrades,
+and makes it possible to roll-back to a previous system instantiation,
+should something go wrong with the new one. Another one is that it
+makes it easy to replicate the exact same configuration across
+different machines, or at different points in time, without having to
+resort to additional administration tools layered on top of the
+system’s own tools.
+
+So, for example, user accounts and groups are entirely managed through
+the operating-system declaration. They are specified with the
+user-account and user-group forms:
+
+#+begin_src scheme
+(user-account
+  (name "alice")
+  (group "users")
+  (supplementary-groups '("wheel"   ;allow use of sudo, etc.
+                          "audio"   ;sound card
+                          "video"   ;video devices such as webcams
+                          "cdrom")) ;the good ol' CD-ROM
+  (comment "Bob's sister")
+  (home-directory "/home/alice"))
+#+end_src scheme
+
+When booting or upon completion of guix system reconfigure, the system
+ensures that only the user accounts and groups specified in the
+operating-system declaration exist, and with the specified
+properties. Thus, account or group creations or modifications made by
+directly invoking commands such as useradd are lost upon
+reconfiguration or reboot. This ensures that the system remains
+exactly as declared.
+
+How does it work?
+
+* The sudo package
+
+The sudo package can be installed with
+
+: guix package -i sudo
+
+This installs the sudo binary in /gnu/store and symlinks sudo and sudoers from
+~/.guix-profile/bin. Now trying to run either sudo or sudoedit results in
+
+: sudo: ~/.guix-profile/bin/sudo must be owned by uid 0 and have the setuid bit set
+
+also, if you check out the tree in /gnu/store there is no
+configuration file, though it includes documentation and examples.
+
+It all looks terrifically bare bones. The sudo package can be found in
+the file [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/packages/admin.scm][gnu/packages/admin.scm]]. There you can see sudo actually is
+configured to use system paths for logging, but avoids creating the
+paths and does not create the /etc/sudoers file:
+
+#+begin_src scheme
+    (arguments
+     `(#:configure-flags
+       (list "--with-logpath=/var/log/sudo.log"
+             "--with-rundir=/run/sudo"
+             "--with-vardir=/var/db/sudo"
+       #:phases (alist-cons-before
+                 'configure 'pre-configure
+                 (lambda _
+                   (substitute* (find-files "." "Makefile\\.in")
+                     (("-o [[:graph:]]+ -g [[:graph:]]+")
+                      ;; Allow installation as non-root.
+                      "")
+                     (("^install: (.*)install-sudoers(.*)" _ before after)
+                      ;; Don't try to create /etc/sudoers.
+                      (string-append "install: " before after "\n"))
+                     (("\\$\\(DESTDIR\\)\\$\\(rundir\\)")
+                      ;; Don't try to create /run/sudo.
+                      "$(TMPDIR)/dummy")
+                     (("\\$\\(DESTDIR\\)\\$\\(vardir\\)")
+                      ;; Don't try to create /var/db/sudo.
+                      "$(TMPDIR)/dummy")))
+                 %standard-phases)
+#+end_src scheme
+
+No need to understand the commands exactly, but you get the gist. It
+is important that sudo is configured to use /run/sudo.log, but it is
+not allowed to create this directory at build-time (if it would try it
+would be wrong because the build happens in an isolated `chroot',
+i.e., standard directories, such as /etc and /var, are simply not
+available).
+
+* How does Guix configure sudo?
+
+A GuixSD build already configures sudo as can be seen [[https://www.gnu.org/software/guix/manual/html_node/Using-the-Configuration-System.html#Using-the-Configuration-System][here]]. The
+example code (again) looks like
+
+#+begin_src scheme
+  ;; This is where user accounts are specified.  The "root"
+  ;; account is implicit, and is initially created with the
+  ;; empty password.
+  (users (cons (user-account
+                (name "alice")
+                (comment "Bob's sister")
+                (group "users")
+
+                ;; Adding the account to the "wheel" group
+                ;; makes it a sudoer.  Adding it to "audio"
+                ;; and "video" allows the user to play sound
+                ;; and access the webcam.
+                (supplementary-groups '("wheel"
+                                        "audio" "video"))
+                (home-directory "/home/alice"))
+               %base-user-accounts))
+#+end_src scheme
+
+So, GuixSD knows how to set up sudo! Note that Guix, the package
+manager, is not the same as GuixSD, the system distribution, though
+the come currently in the same source code repository. 
+
+Guix packages, such as that for sudo and ssh are building blocks for
+GuixSD, but can also be deployed independently.  Mentioned GuixSD
+template is available in [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/system/examples/bare-bones.tmpl][gnu/system/examples/bare-bones.tmpl]] and can
+be used to set up a VM, for example. The system install is managed by
+[[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/system/install.scm][gnu/system/install.scm]]. The workhorse, however, is [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/system.scm][gnu/system.scm]].
+
+In the last you can find that sudo is a required package, /etc/sudoers
+gets written and that setuid is set for the sudo command.
+
+#+begin_src scheme
+(sudoers-file operating-system-sudoers-file     ; file-like
+                (default %sudoers-specification))
+
+(define %setuid-programs
+  ;; Default set of setuid-root programs.
+  (let ((shadow (@ (gnu packages admin) shadow)))
+    (list #~(string-append #$shadow "/bin/passwd")
+          #~(string-append #$shadow "/bin/su")
+          #~(string-append #$sudo "/bin/sudo")
+          #~(string-append #$fuse "/bin/fusermount"))))
+
+(define %sudoers-specification
+  (plain-file "sudoers" "\
+root ALL=(ALL) ALL
+%wheel ALL=(ALL) ALL\n"))
+#+end_src scheme
+
+The role of setuid-programs is explained in the [[https://www.gnu.org/software/guix/manual/html_node/Setuid-Programs.html][Guix documentation]]
+where it states that the binaries are actually installed in
+/run/setuid-programs. It would be a security hazard to allow setuid
+inside the /gnu/store.
+
+In short the configuration of sudo is not part of the sudo package
+itself. It is 'lifted' by GuixSD to the level of system configuration
+at build time, which makes sense when you want determinism.
+
+Another intriguing file is [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/build/activation.scm][gnu/build/activation.scm]] which contains
+
+#+begin_src scheme
+;; Things such as /etc/sudoers must be regular files, not
+;; symlinks; furthermore, they could be modified behind our
+;; back---e.g., with 'visudo'.  Thus, make a copy instead of
+;; symlinking them.
+(if (file-is-directory? source)
+    (symlink source target)
+    (copy-file source target))
+(when (string=? (basename target) "sudoers")
+  (chmod target #o440))
+#+end_src scheme
+
+where you can see sudo getting special treatment at GuixSD build-time
+activation. First the file /etc/static/sudoers is created, next it is
+copied to /etc and finally its permissions are set.
+
+This happens every time you build a system. Note that on a running
+system when the sudo package gets updated nothing will happen to the
+configuration. I.e. you need to regenerate the full system to make use
+of an updated package which, essentially, is the right thing to do
+with determinism.
+
+* System configuration
+
+The above example shows that it is possible to install software with
+GuixSD outside /gnu/store directories (but not possible from within a
+Guix package install during the build phase). It should be stressed,
+however, that this should only be done there is a good reason to do
+so. Inside /gnu/store a package with its configuration is free from
+tampering because the store is immutable.
+
+sudo and passwd tools are special because they require special
+permissions and are fussy about file locations (well, you don't want
+to have passwd and group files in the store since many tools relate to
+them).
+
+So, what goes into a package is the generic stuff - so any target can
+use it. Anything specific to a system has to go into the system
+configuration layer. User settings, typically, are part of system
+configuration. But - and this is important - they can still be in the
+/gnu/store itself.
+
+This is the nice bit, you can create lighter-weight overrides
+of packages and put in some extra plumbing. E.g., the cheerful way of
+overriding a version of a package:
+
+#+begin_src scheme
+    (use-modules (guix) (gnu packages emacs))
+
+    (package
+      (inherit emacs)
+      (name "emacs-snapshot")
+      (source "/path/to/some-file-or-directory.tar.gz"))
+#+end_src scheme
+
+and then run:
+
+: guix package --install-from-file=that-file.scm
+
+Alternatively create 
+configuration modules that make use of the GUIX_PACKAGE_PATH. One such
+example lives [[https://github.com/genenetwork/guix-bioinformatics][here]].
+
+Essentially, you get new packages in the store that are specific for
+your purpose. These are building blocks for a full system
+configuration. Say we have the generic apache package, but we want to
+configure it for one type of webserver: simply create the package
+'apache-myserver' which either inherits from apache, or has apache as
+a dependency.
+
+** Example 1: Tell Guix package to use config file from /etc
+
+In fact we have done this. In the sudo example above sudo uses
+/etc/sudoers for its configuration. If we don't use GuixSD to
+configure the system (in the next step) we could do the same by hand
+(or chef or puppet) in a non-deterministic fashion by adding the
+/etc/sudoers file and by providing a copy of the sudo binary outside
+the store and suid'ing it.
+
+** Example 2: Use sudoers from the store
+
+Earlier we configured sudo by having the configuration system create
+/etc/sudoers. Another option would be to drop the configuration into
+the store itself. This is quite possible by configuring sudo to use
+$out/etc/sudoers instead and by writing $out/etc/sudoers from inside
+the package.
+
+* Deterministic system configuration and maintenance
+
+Cfengine, Chef and Puppet are non-deterministic system maintenance
+tools. There is no guarantee the resulting target system is
+consistent. These tools were invented out of the necessity of
+automating system administration, simply by overwriting packages and
+configuration files. The time and order of running these tools may
+result in different outcomes. The next evolutionary step in system
+administration is combining light-weight containers in conjunction
+with deterministic GNU Guix, so we can avoid non-determinism
+altogether. Note that light-weight containers on their own (such as
+Docker) are not enough to avoid non-determinism - though they can be a
+part of the solution.
+
+GNU Guix can also be configured to check its settings on reboot or when
+running 
+
+: guix system reconfigure
+
+From the sudo example above it should also be noted that systems can
+be updated in the traditional way, but that you need to update
+/run/suid-programs after a sudo update to make use of the updated
+sudo. You can still work the old way if you want to. Determinism is
+not an enforced policy ;)

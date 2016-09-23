@@ -1,0 +1,316 @@
+* GNU Guix with R
+
+Part of R's success it its inclusion of a full eco-system of packages
+that have proven to deploy reliably for most users. Not all is well,
+though. The most glaring downside of R's package system is that it
+ties versions of CRAN packages with R releases, i.e., to run the
+latest version of a package you need to run the latest version of
+R. Also, the acceptance and turnover of package versions is rather
+involved and slow. 
+
+Mostly thanks to Ricardo Wurmus' work GNU Guix comes to the rescue
+with rolling upgrades of both R and packages. 
+
+* Importing an existing CRAN module
+
+You can even have GNU Guix export CRAN and Bioconductor packages for
+future inclusion. E.g.
+
+: guix import cran WGCNA
+
+will spit out a package definition
+
+#+begin_src scheme
+(package
+  (name "r-wgcna")
+  (version "1.48")
+  (source
+    (origin
+      (method url-fetch)
+      (uri (cran-uri "WGCNA" version))
+      (sha256
+        (base32
+          "18yl2v3s279saq318vd5hlwnqfm89rxmjjji778d2d26vviaf6bn"))))
+  (properties `((upstream-name . "WGCNA")))
+  (build-system r-build-system)
+  (propagated-inputs
+    `(("r-annotationdbi" ,r-annotationdbi)
+      ("r-doparallel" ,r-doparallel)
+      ("r-dynamictreecut" ,r-dynamictreecut)
+      ("r-fastcluster" ,r-fastcluster)
+      ("r-foreach" ,r-foreach)
+      ("r-go.db" ,r-go.db)
+      ("r-grdevices" ,r-grdevices)
+      ("r-hmisc" ,r-hmisc)
+      ("r-impute" ,r-impute)
+      ("r-matrixstats" ,r-matrixstats)
+      ("r-parallel" ,r-parallel)
+      ("r-preprocesscore" ,r-preprocesscore)
+      ("r-splines" ,r-splines)
+      ("r-stats" ,r-stats)
+      ("r-survival" ,r-survival)
+      ("r-utils" ,r-utils)))
+  (home-page
+    "http://www.genetics.ucla.edu/labs/horvath/CoexpressionNetwork/Rpackages/WGCNA/")
+  (synopsis
+    "Weighted Correlation Network Analysis")
+  (description
+    "Functions necessary to perform Weighted Correlation Network Analysis on high-dimensional data.  Includes functions for rudimentary data cleaning, construction of correlation networks, module identification, summarization, and relating of variables and modules to sample traits.  Also includes a number of utility functions for data manipulation and visualization.")
+  (license gpl2+))
+#+end_src
+
+* Making R/lmmlite available
+
+Karl Broman wrote [[https://github.com/kbroman/lmmlite/][R/lmmlite]], an R+Cpp version of pylmm and I wanted to run it
+in GNU Guix' R. R/lmmlite is not (yet) in CRAN and the instructions were to
+
+#+begin_src bash
+git clone git:github.com/kbroman/lmmlite
+R -e "install.packages('RcppEigen')"
+R CMD build lmmlite
+R CMD INSTALL lmmlite_0.1-9.tar.gz
+#+end_src
+
+The first step was to install R with
+
+: guix package -i r
+
+which installed a recent version of R
+
+: R version 3.2.2 (2015-08-14) -- "Fire Safety"
+: Copyright (C) 2015 The R Foundation for Statistical Computing
+: Platform: x86_64-unknown-linux-gnu (64-bit)
+
+Next, installing RccEigen failed 
+
+: R -e "install.packages('RcppEigen')"
+
+with wanting to install Rcpp which already comes with GNU Guix, so
+
+: guix package -i r-rcpp
+
+r-rcppeigen did not exist so I exported the package definition
+
+#+begin_src scheme
+(package
+  (name "r-rcppeigen")
+  (version "0.3.2.5.1")
+  (source
+    (origin
+      (method url-fetch)
+      (uri (cran-uri "RcppEigen" version))
+      (sha256
+        (base32
+          "1j41kyr2xsq0ha3dhd0iz62kghkvhnf8zp15qb4kgj6www086b4s"))))
+  (properties `((upstream-name . "RcppEigen")))
+  (build-system r-build-system)
+  (propagated-inputs
+    `(("r-matrix" ,r-matrix)
+      ("r-rcpp" ,r-rcpp)
+      ("r-stats" ,r-stats)
+      ("r-utils" ,r-utils)))
+  (home-page "http://eigen.tuxfamily.org")
+  (synopsis
+    "'Rcpp' Integration for the 'Eigen' Templated Linear Algebra Library")
+  (description
+    "R and 'Eigen' integration using 'Rcpp'. 'Eigen' is a C++ template library for linear algebra: matrices, vectors, numerical solvers and related algorithms.  It supports dense and sparse matrices on integer, floating point and complex numbers, decompositions of such matrices, and solutions of linear systems.  Its performance on many algorithms is comparable with some of the best implementations based on 'Lapack' and level-3 'BLAS'. .  The 'RcppEigen' package includes the header files from the 'Eigen' C++ template library (currently version 3.2.5).  Thus users do not need to install 'Eigen' itself in order to use 'RcppEigen'. .  Since version 3.1.1, 'Eigen' is licensed under the Mozilla Public License (version 2); earlier version were licensed under the GNU LGPL version 3 or later. 'RcppEigen' (the 'Rcpp' bindings/bridge to 'Eigen') is licensed under the GNU GPL version 2 or later, as is the rest of 'Rcpp'.")
+  (license #f))
+#+end_src scheme
+
+and added that to our [[https://github.com/genenetwork/guix-bioinformatics][package incubator]] (finalized packages go into
+GNU Guix main line, with luck). Now, after setting the path
+
+: export GUIX_PACKAGE_PATH=~/genenetwork/guix-bioinformatics 
+
+the command 
+
+: guix package -i r-rcppeigen --no-substitutes
+
+complains 'ERROR: Unbound variable: r-matrix'. I.e., we need to also
+create that r-matrix package using export.
+
+: guix import cran Matrix
+
+Same for other dependencies, such as RGraphics. After including a few 
+missing packages 
+
+: guix package -i r-rcppeigen 
+
+it worked.
+
+Now the instructions become
+
+#+begin_src bash
+git clone git:github.com/kbroman/lmmlite
+guix package -i r-rcppeigen r-knitr
+cd lmmlite
+R CMD build . --no-build-vignettes
+R CMD INSTALL lmmlite_0.1-9.tar.gz
+#+end_src
+
+Now the last command complaints that ERROR: dependencies 'Rcpp',
+'RcppEigen' are not available for package 'lmmlite'. This is because R can't find
+the modules and we need to set
+
+: export R_LIBS_SITE="$HOME/.guix-profile/site-library/"
+
+Now that error goes away. But we get
+/gnu/store/qv7bk62c22ms9i11dhfl71hnivyc82k2-glibc-2.22/include/bits/local_lim.h:38:26:
+fatal error: linux/limits.h: No such file or directory. We need to bring in the 
+relevant headers which are 
+
+: export CPLUS_INCLUDE_PATH=$HOME/.guix-profile/include
+
+(note that this is not required when we run r-lmmlite into a proper
+GNU Guix package). Now the build fails with ld: cannot find crti.o: No
+such file or directory which again requires a search path:
+
+: export LIBRARY_PATH=~/.guix-profile/lib
+
+Next we get
+/gnu/store/mbr567lnr36q9bgz9bn25j3n4s0r7ckk-gfortran-4.9.3-lib/lib/libstdc++.so.6:
+version `GLIBCXX_3.4.21' not found (required by
+~/R/x86_64-unknown-linux-gnu-library/3.2/lmmlite/libs/lmmlite.so)
+
+which points out this should also be set
+
+: export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/.guix-profile/lib
+
+Next up, another shared library missing with
+~/R/x86_64-unknown-linux-gnu-library/3.2/lmmlite/libs/lmmlite.so:
+undefined symbol:
+_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE9_M_createERmm
+
+To solve this we need to go through the shared library dependencies. A bit 
+annoying and it won't happen if r-lmmlite were an actual GNU Guix package 
+(Guix resolves all this dependencies automatically). Anyway ascertain we
+have a clean target setup
+
+: export R_LIBS=$HOME/R_LIBS
+: rm -rf $R_LIBS
+: mkdir -p $R_LIBS
+
+Build
+
+: R CMD INSTALL -l $R_LIBS lmmlite_0.1-9.tar.gz --no-clean-on-error
+
+and see what shared libs are involved
+
+: ldd ~/R_libs/lmmlite/libs/lmmlite.so
+
+#+begin_src
+        linux-vdso.so.1 (0x00007ffd5a1a3000)
+        libR.so => /gnu/store/pm6q4716w4jvvcyjxw210w7a2g3n8dnd-r-3.2.2/lib/R/lib/libR.so (0x00007fd14eb91000)
+        libstdc++.so.6 => /gnu/store/2azffvsr28gnb03zxhhczrcv4x9f95cn-gcc-5.2.0-lib/lib/libstdc++.so.6 (0x00007fd14e816000)
+        libm.so.6 => /gnu/store/qv7bk62c22ms9i11dhfl71hnivyc82k2-glibc-2.22/lib/libm.so.6 (0x00007fd14e517000)
+        libgcc_s.so.1 => /gnu/store/2azffvsr28gnb03zxhhczrcv4x9f95cn-gcc-5.2.0-lib/lib/libgcc_s.so.1 (0x00007fd14e301000)
+        libc.so.6 => /gnu/store/qv7bk62c22ms9i11dhfl71hnivyc82k2-glibc-2.22/lib/libc.so.6 (0x00007fd14df5b000)
+        libRblas.so => /gnu/store/pm6q4716w4jvvcyjxw210w7a2g3n8dnd-r-3.2.2/lib/R/lib/libRblas.so (0x00007fd14dd57000)
+        libgfortran.so.3 => /gnu/store/mbr567lnr36q9bgz9bn25j3n4s0r7ckk-gfortran-4.9.3-lib/lib/libgfortran.so.3 (0x00007fd14da39000)
+        libquadmath.so.0 => /gnu/store/zy233badri3sffqi2s2kq8md6qz65iiz-gcc-4.9.3-lib/lib/libquadmath.so.0 (0x00007fd14d7fc000)
+        libreadline.so.6 => /gnu/store/ksgpmjqi9l8z012n18zbac1bijs1jdrn-readline-6.3/lib/libreadline.so.6 (0x00007fd14d5b5000)
+        libpcre.so.1 => /gnu/store/95jadxk1dhk5sdmpjra6drz7jy848qnr-pcre-8.38/lib/libpcre.so.1 (0x00007fd14d346000)
+        liblzma.so.5 => /gnu/store/fajrwz7b0ibypnrpqc8hqvza0v1s4n6v-xz-5.0.4/lib/liblzma.so.5 (0x00007fd14d124000)
+        libz.so.1 => /gnu/store/54wpn20cik292k5hl4nxsivv614xl8c2-zlib-1.2.7/lib/libz.so.1 (0x00007fd14cf09000)
+        librt.so.1 => /gnu/store/qv7bk62c22ms9i11dhfl71hnivyc82k2-glibc-2.22/lib/librt.so.1 (0x00007fd14cd01000)
+        libdl.so.2 => /gnu/store/qv7bk62c22ms9i11dhfl71hnivyc82k2-glibc-2.22/lib/libdl.so.2 (0x00007fd14cafd000)
+        libicuuc.so.55 => /gnu/store/4r01vksjh3vflv97qcv1cdwqdwdazqxm-icu4c-55.1/lib/libicuuc.so.55 (0x00007fd14c76d000)
+        libicui18n.so.55 => /gnu/store/4r01vksjh3vflv97qcv1cdwqdwdazqxm-icu4c-55.1/lib/libicui18n.so.55 (0x00007fd14c311000)
+        libgomp.so.1 => /gnu/store/zy233badri3sffqi2s2kq8md6qz65iiz-gcc-4.9.3-lib/lib/libgomp.so.1 (0x00007fd14c0fb000)
+        libpthread.so.0 => /gnu/store/qv7bk62c22ms9i11dhfl71hnivyc82k2-glibc-2.22/lib/libpthread.so.0 (0x00007fd14bedd000)
+        /gnu/store/qv7bk62c22ms9i11dhfl71hnivyc82k2-glibc-2.22/lib/ld-linux-x86-64.so.2 (0x00007fd14f379000)
+        libopenblas.so.0 => /gnu/store/hw9p1zyn1nh8pbm1cl69nm0i391lk6c7-openblas-0.2.15/lib/libopenblas.so.0 (0x00007fd14a533000)
+        libncursesw.so.6 => /gnu/store/mahpzasbp7i0v7aqq8970rl7paq5mwln-ncurses-6.0/lib/libncursesw.so.6 (0x00007fd14a2c3000)
+        libicudata.so.55 => /gnu/store/4r01vksjh3vflv97qcv1cdwqdwdazqxm-icu4c-55.1/lib/libicudata.so.55 (0x00007fd14880c000)
+#+end_src
+
+looks clean to me, what is missing? Let's find that symbol
+
+: ldd ~/R_libs/lmmlite/libs/lmmlite.so |xargs nm -g|grep traits|grep ERmm|less
+
+Turns out the symbol is part of
+/gnu/store/qv7bk62c22ms9i11dhfl71hnivyc82k2-glibc-2.22/lib/libm.so.6
+
+Next I tried the way cool LD_DEBUG setting
+
+: env LD_DEBUG=libs R 2> test.txt
+: library(lmmlite)
+
+which outputs all shared lib loading on the trot and
+
+#+begin_example
+     13377: find library=libm.so.6 [0]; searching
+     13377:  search path=/gnu/store/pm6q4716w4jvvcyjxw210w7a2g3n8dnd-r-3.2.2/lib/R/lib    (RUNPATH from file /gnu/store/pm6q4716w4jvvcyjxw210w7a2g3n8dn
+d-r-3.2.2/lib/R/bin/exec/R)
+     13377:   trying file=/gnu/store/pm6q4716w4jvvcyjxw210w7a2g3n8dnd-r-3.2.2/lib/R/lib/libm.so.6
+     13377:  search path=/usr/local/lib:/gnu/store/mbr567lnr36q9bgz9bn25j3n4s0r7ckk-gfortran-4.9.3-lib/lib/gcc/x86_64-unknown-linux-gnu/4.9.3:/gnu/stor
+e/mbr567lnr36q9bgz9bn25j3n4s0r7ckk-gfortran-4.9.3-lib/lib    (LD_LIBRARY_PATH)
+     13377:   trying file=/usr/local/lib/libm.so.6
+     13377:   trying file=/gnu/store/mbr567lnr36q9bgz9bn25j3n4s0r7ckk-gfortran-4.9.3-lib/lib/gcc/x86_64-unknown-linux-gnu/4.9.3/libm.so.6
+     13377:   trying file=/gnu/store/mbr567lnr36q9bgz9bn25j3n4s0r7ckk-gfortran-4.9.3-lib/lib/libm.so.6
+     13377:  search path=/gnu/store/pm6q4716w4jvvcyjxw210w7a2g3n8dnd-r-3.2.2/lib/R/lib    (RUNPATH from file /gnu/store/pm6q4716w4jvvcyjxw210w7a2g3n8dn
+d-r-3.2.2/lib/R/bin/exec/R)
+     13377:   trying file=/gnu/store/pm6q4716w4jvvcyjxw210w7a2g3n8dnd-r-3.2.2/lib/R/lib/libm.so.6
+     13377:  search path=/gnu/store/qv7bk62c22ms9i11dhfl71hnivyc82k2-glibc-2.22/lib   (system search path)
+     13377:   trying file=/gnu/store/qv7bk62c22ms9i11dhfl71hnivyc82k2-glibc-2.22/lib/libm.so.6
+#+end_example
+
+Hmmm. It found the correct libm.so.6 during startup.
+
+So, R finds the shared library earlier but does not honour what it
+built locally. Apparently it can't resolve the paths at dynamic
+library load time which is an R thing - it disregards the embedded
+hard coded shared library paths!  
+
+Maybe I am trying to this the hard
+way and should just install r-lmmlite via Guix. Writing the package,
+even with the git-fetch proved rather easy:
+
+#+begin_src scheme
+(define-public r-lmmlite
+  (package
+    (name "r-lmmlite")
+    (version "0.1-9")
+    (source (origin
+              ;; We use the git reference, because there's CRAN package
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/kbroman/lmmlite.git")
+                    (commit "5b833d5")))
+              (file-name (string-append name "-" version "-checkout"))
+              (sha256
+               (base32
+                "0v4z4qxa8ki9hlmdwlgslchvg21nqkkq6135nx6w63xikjffxcba"))))
+    (build-system r-build-system)
+    (propagated-inputs
+     `(("r-rcppeigen" ,r-rcppeigen)))
+    (synopsis "R/lmmlite")
+    (description
+     "R/lmmlite")
+    (home-page "https://github.com/kbroman/")
+    (license license:asl2.0)))
+#+end_src 
+
+The latest edition can be found [[https://github.com/genenetwork/guix-bioinformatics/blob/master/gn/packages/statistics.scm][here]] (or in GNU Guix if it was
+accepted in mainline). Install with
+
+: env GUIX_PACKAGE_PATH=$HOME/genenetwork/guix-bioinformatics guix package -i r-lmmlite
+
+and
+
+: R
+: library(lmmlite)
+
+Success!
+
+* Conclusion
+
+Going through this process you can see how many dependencies there
+really are! And unlike R, GNU Guix does not insist on downloading
+everything every time something goes wrong. Something I find really
+annoying with R.
+
+The main reason to package these CRAN packages into GNU Guix is that
+once a package is included it becomes *reproducible*. Not only that,
+updates of R and packages are no longer tied with each other. GNU Guix
+provides rolling upgrades of either.

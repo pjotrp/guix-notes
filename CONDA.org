@@ -1,0 +1,33 @@
+#+TITLE: Python CONDA on GNU Guix
+
+* Table of Contents                                                     :TOC:
+ - [[#introduction][Introduction]]
+
+* Introduction
+
+CONDA support in Guix is work-in-progress. Watch this place.
+
+CONDA has come out on top and is becoming a popular choice for
+scientific software deployment. In intention it is similar to language
+packaging systems, such as Python pip with virtualenv and Rubygems
+with bundler, but its scope is wider.
+
+CONDA itself builds on top of the underlying software distribution
+using C compilers, D compilers, and such. In addition it manages a
+subset of low level libraries (including readline, ncurses,
+libxml2). It rather is a distribution in a distribution that can act
+fully in user land and provides source and binary deployment.
+
+GNU Guix, as you can read elsewhere in my notes (e.g. [[RUBY.org]]), also
+addresses all of CONDA features with security and reproducibility
+thrown in - i.e., CONDA can never be fully reproducible and still
+suffers from dependency hell.
+
+For bioinformatics, a lot of work is going into CONDA. GNU Guix is not
+going to compete with that in the short term. To leverage CONDA we can
+get CONDA support into Guix - i.e., if the base distribution is
+reproducible, at least the CONDA packages will be predictable (on
+Linux) and somewhat reproducible, similar to the way we are supporting
+[[RUBY.org]] in Guix. It is a win-win. We can use CONDA packages if we
+have no alternative, and the CONDA users can use Guix to get a
+predictable system with less deployment hassles.
