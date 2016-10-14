@@ -19,6 +19,8 @@
    - [[#step-4-submit-the-expression-to-the-mailing-list][Step 4 Submit the expression to the mailing list]]
  - [[#generating-gnu-guix-gem-packages][Generating GNU Guix Gem packages]]
  - [[#more-on-creating-ruby-packages][More on creating Ruby packages]]
+ - [[#troubleshooting][Troubleshooting]]
+   - [[#gem-certificates][gem certificates]]
 
 * Introduction
 
@@ -83,26 +85,30 @@ faster without bundler wrapping!
 * Getting rid of RVM, rbenv and bundler
 
 Ruby gems are natively supported from GNU Guix. This means we can get
-rid of the RVM-rbenv-bundler trinity. All we use here is the *ruby* interpreter with
-the accompanying *gem* tool.
+rid of the RVM-rbenv-bundler trinity. All we use here is the *ruby*
+interpreter with the accompanying *gem* tool. An example of a patch in
+which I removed bundler and jeweler from a gem can be found [[https://github.com/pjotrp/bioruby-alignment/commit/77ee81675190cc592e2566b5ccab7f99f415ff63][here]]. Note
+that you can still use bundler, if you want, but I no longer have
+a use for it (note that Trevor-CI still uses the gemspec with bundler
+for the [[https://travis-ci.org/pjotrp/bioruby-alignment][tests]]).
 
 * GNU Guix installation
 
-The achilles heel of introducing GNU Guix at this point (2015) is that
-it is not standard in Linux distributions. That support will come
-because GNU Guix is the official packaging system of the GNU project
-and is orthogonal to existing software packaging systems (everything
-is installed in /gnu). It will happen. And even without distribution
-support, guix is easy to support and install on any Linux system (and
-soon other targets).
+The achilles heel of introducing GNU Guix at this point is that it is
+not standard in Linux distributions. That support will come because
+GNU Guix is the official packaging system of the GNU project and is
+orthogonal to existing software packaging systems (everything is
+installed in /gnu). It will happen. And even without distribution
+support, guix is trivial to install and easy to support on any Linux
+system (and soon other targets).
 
 Currently there are multiple ways of installing GNU Guix. See the
 [[https://github.com/pjotrp/guix-notes/blob/master/INSTALL.org][INSTALL]] document in this repository. There is a binary installer (i.e.
 unpack tarball in root) which should make things easier. Note that if
 you have Guix installed and running from /guix/store you can just
 transfer the setup to another machine! Make sure to copy the database
-in /var too. The only actual dependency is the Linux kernel. To add
-packages see [[https://github.com/pjotrp/guix-notes/blob/master/HACKING.org][HACKING]].
+in /var too. The only actual dependency is the Linux kernel (not even
+glibc)! To add packages see [[https://github.com/pjotrp/guix-notes/blob/master/HACKING.org][HACKING]].
 
 * Ruby
 
@@ -499,3 +505,14 @@ Take a gem name and try
 * More on creating Ruby packages
 
 If you are hungry for more internals, see the file [[RUBY-NOKOGIRI.org]] for more information.
+* Troubleshooting
+** gem certificates
+
+When you get
+
+: ERROR:  Could not find a valid gem 'cucumber' (>= 0), here is why:
+:         Unable to download data from https://rubygems.org/ - SSL_connect returned=1 errno=0 state=error: certificate verify failed (https://api.rubygems.org/specs.4.8.gz)
+
+set
+
+: export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
