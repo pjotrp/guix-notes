@@ -4,6 +4,12 @@ Want to get rid of Ruby RVM and/or have a controlled Python
 environment?  These documents tell you how. The Guix solution is
 simple and at the same time robust.
 
+Unlike apt, rpm, modules, Brew and Docker, GNU Guix allows you deploy
+software in a [reproducible](./REPRODUCIBLE.org) way and have full
+control over the dependency graph. You can run multiple versions of
+the same software (say Ruby 1.8.7, 2.1.1 and 2.3.0) with their fixated
+dependencies and no interference.
+
 The software graph is getting increasingly complex over time. GNU Guix
 is the one solution that can handle that complexity. Rather than going
 for ad hoc solutions, such as Docker and Brew, we champion using
@@ -43,6 +49,16 @@ List all recommended environment settings
 List all python packages (that contain the word 'python')
 
     guix package -A python
+
+Install a version of python using a profile
+
+    guix package -p ~/opt/python-2.7.11 -i python@2.7.11
+
+Now you can run this specific version of Python with
+
+    ~/opt/python-2.7.11/bin/python -V
+
+Such profiles can be shared with other users on the system!
 
 Show the contents of a package
 
