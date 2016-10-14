@@ -1,18 +1,17 @@
-# GNU Guile devroom call for talks @FOSDEM 2016
+* GNU Guile devroom call for talks @FOSDEM 2016
 
 We are excited to announce that we have a GNU Guile devroom at FOSDEM
-on February 4th
-2017. The call for talk proposals is open! Important members of the
-      GNU Guile
-and GNU Guix community will attend. We are excited because FOSDEM is
-one of the most important free software conferences and is hosted
-annually at [[https://fosdem.org/2017/practical/transportation/][Université libre de Bruxelles in Brussels, Belgium]]; the
-devroom will host up to 80 people. FOSDEM is fantastic, check last
-year's schedule for [[https://archive.fosdem.org/2016/schedule/day/saturday/][Saturday]] and the GNU Guile Devroom [[https://archive.fosdem.org/2016/schedule/track/gnu_guile/][track]].
+on February 4th 2017. The call for talk proposals is open! Important
+members of the GNU Guile and GNU Guix community will attend. We are
+excited because FOSDEM is one of the most important free software
+conferences and is hosted annually at [[https://fosdem.org/2017/practical/transportation/][Université libre de Bruxelles in
+Brussels, Belgium]]; the devroom will host up to 80 people. FOSDEM is
+fantastic, check last year's schedule for [[https://archive.fosdem.org/2016/schedule/day/saturday/][Saturday]] and the GNU Guile
+Devroom [[https://archive.fosdem.org/2016/schedule/track/gnu_guile/][track]].
 
 Submissions for talks are due on November 18th, 2016.
 
-## Topics
+** Topics
 
 GNU Guile is the preferred extension system for the GNU Project which
 features an implementation of the Scheme programming language, a
@@ -37,7 +36,7 @@ Lisp. Examples of (already [[https://libreplanet.org/wiki/Group:Guix/TalkProposa
 12. Latest GNU Guix developments
 13. Getting started with guile-wiredtiger
 
-## Submit talk
+** Submit talk
 
 Feel free to submit your own topic or even run with one of these.  The
 most interesting talks will be selected.  Talks will be about 20
