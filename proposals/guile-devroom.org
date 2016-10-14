@@ -102,9 +102,9 @@ whilst giving back to the free software community as a whole.
 
 * Devroom organisers
 
-  - Ludovic Courtès (ludo@gnu.org) - GNU Guile project leader
-  - Ricardo Wurmus (ricardo.wurmus@mdc-berlin.de)
-  - Pjotr Prins (pjotr.public445@thebird.nl)
-  - Alex Sassmannshausen (alex.sassmannshausen@gmail.com)
-  - Tobias Geerinckx-Rice <me@tobias.gr>
-  - Manolis Ragkousis <manolis837@gmail.com>
+  - Ludovic Courtès (ludo@xxx) - GNU Guile project leader
+  - Ricardo Wurmus (ricardo.wurmus@xxx)
+  - Pjotr Prins (pjotr.public445@xxx)
+  - Alex Sassmannshausen (alex.sassmanns@xxx)
+  - Tobias Geerinckx-Rice <me@xxx>
+  - Manolis Ragkousis <manolis837@xxx>
