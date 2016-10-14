@@ -1,4 +1,4 @@
-* GNU Guile devroom call for talks @FOSDEM 2016
+* GNU Guile devroom call for talks @FOSDEM 2017
 
 We are excited to announce that we have a GNU Guile devroom at FOSDEM
 on February 4th 2017. The call for talk proposals is open! Important
@@ -23,7 +23,7 @@ opportunity to attract people interested in GNU Guile and
 Lisp. Examples of (already [[https://libreplanet.org/wiki/Group:Guix/TalkProposals][proposed]] talks could be
 
 1. A friendly introduction to GNU Guile and GNU Guix
-2. Guile programming and optimisations
+2. Guile programming and optimisation
 3. Network freedom live at the REPL
 4. Adding GNU/Hurd support to GNU Guix and GuixSD
 5. Game programming with GNU Guile
@@ -53,7 +53,7 @@ an account, so make sure that you log in with your existing account.
 You should only need to create an account if you have not submitted a
 talk to FOSDEM in recent years.  After you have your account
 configured (you will receive a confirmation email), create the event,
-and click on "Show all" in the top right corner to diplay the full
+and click on "Show all" in the top right corner to display the full
 form. When submitting your talk make doubly sure to select "GNU Guile
 devroom" as track (if you don't we won't find it), and include the
 following information:
