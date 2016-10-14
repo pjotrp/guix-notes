@@ -7,10 +7,8 @@ on February 4th
 and GNU Guix community will attend. We are excited because FOSDEM is
 one of the most important free software conferences and is hosted
 annually at [[https://fosdem.org/2017/practical/transportation/][Université libre de Bruxelles in Brussels, Belgium]]; the
-devroom will host up to 80 people. FOSDEM is fantastic, look at last
-year's schedule for
-[[[[https://archive.fosdem.org/2016/schedule/day/saturday/]]][Saturday]]
-and the GNU Guile Devroom [[https://archive.fosdem.org/2016/schedule/track/gnu_guile/][track]].
+devroom will host up to 80 people. FOSDEM is fantastic, check last
+year's schedule for [[https://archive.fosdem.org/2016/schedule/day/saturday/][Saturday]] and the GNU Guile Devroom [[https://archive.fosdem.org/2016/schedule/track/gnu_guile/][track]].
 
 Submissions for talks are due on November 18th, 2016.
 
