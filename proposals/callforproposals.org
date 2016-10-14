@@ -1,51 +1,57 @@
-# GNU Guile devroom call for talks @FOSDEM 2016 
+# GNU Guile devroom call for talks @FOSDEM 2016
 
-For the first time ever, we have a GNU Guile devroom at FOSDEM on January 30,
-2016. The call for talk proposals is open! Important members of the GNU Guile
+We are excited to announce that we have a GNU Guile devroom at FOSDEM
+on February 4th
+2017. The call for talk proposals is open! Important members of the
+      GNU Guile
 and GNU Guix community will attend. We are excited because FOSDEM is one of the
 most important free software conferences and is hosted annually at [Université libre de
 Bruxelles in Brussels,
-Belgium](https://fosdem.org/2016/practical/transportation/); the devroom will
-host up to 80 people.
+Belgium](https://fosdem.org/2017/practical/transportation/); the devroom will
+host up to 80 people. FOSDEM is fantastic, look at last year's schedule for
+[Saturday](https://archive.fosdem.org/2016/schedule/day/saturday/) and the
+GNU Guile Devroom [track](https://archive.fosdem.org/2016/schedule/track/gnu_guile/).
 
-Submissions for talks are due on November 30, 2015. 
+Submissions for talks are due on November 18th, 2016.
 
 ## Topics
 
 GNU Guile is the preferred extension system for the GNU Project which
-features an implementation of the Scheme programming language, a dialect of
-Lisp. Especially technical talks are invited on topics concerning GNU Guile and
-applications that use Guile (such as GNU Guix, Lilypond and Gnucash). In the
-talks both experienced Guile programmers and newbies should be addressed.
-FOSDEM is a great opportunity to attract people interested in GNU Guile and
-Lisp. Examples of (already proposed) talks could be
+features an implementation of the Scheme programming language, a
+dialect of Lisp. Especially technical talks are invited on topics
+concerning GNU Guile and applications that use Guile (such as GNU
+Guix, Lilypond and Gnucash). In the talks both experienced Guile
+programmers and newbies should be addressed.  FOSDEM is a great
+opportunity to attract people interested in GNU Guile and
+Lisp. Examples of (already
+[proposed](https://libreplanet.org/wiki/Group:Guix/TalkProposals))
+talks could be
 
-- Guile programming:
-  + functors and monads in Guile
-  + composable continuations in Guile
-  + POSIX programming in Guile and the FFI
-- Web frameworks with GNU Guile
-- GNU Guix:
-  + GNU/Hurd support in Guix
-  + R, Perl, Python and Ruby support in GNU Guix
-  + Reproducible pipelines for Guix
-  + Guix environments (VM, containers etc.)
-- Guile and the network:
-  + Software distribution using GNUnet
-  + Paving a path to greater network freedom using Guix and Guile
+1. A friendly introduction to GNU Guile and GNU Guix
+2. Guile programming and optimisations
+3. Network freedom live at the REPL
+4. Adding GNU/Hurd support to GNU Guix and GuixSD
+5. Game programming with GNU Guile
+6. Web programming with GNU Guile
+7. Shepherd the systemd replacement
+8. Programming language support in GNU Guix
+9. Virtual environments and targets such as CONDA in GNU Guix
+10. Software distribution using Gnunet
+11. Latest Guile developments
+12. Latest GNU Guix developments
+13. Getting started with guile-wiredtiger
 
 ## Submit talk
 
 Feel free to submit your own topic or even run with one of these.  The
-most interesting talks will be selected.  Talks are 15 or 30 minutes
-(including Q&A; please notify in the application your preference) on
-GNU Guile related projects.
+most interesting talks will be selected.  Talks will be about 20
+minutes (including setup and Q&A).
 
 Please note that presenting at FOSDEM implies giving permission to be
 recorded. The recordings will be published under the same licence as
 all FOSDEM content (CC-BY).
 
-Submit your proposal here: https://penta.fosdem.org/submission/FOSDEM16
+Submit your proposal here: https://penta.fosdem.org/submission/FOSDEM17
 
 If you submitted a talk to a previous FOSDEM, you should already have
 an account, so make sure that you log in with your existing account.
@@ -54,10 +60,10 @@ talk to FOSDEM in recent years.  After you have your account
 configured (you will receive a confirmation email), create the event,
 and click on "Show all" in the top right corner to diplay the full
 form. When submitting your talk make doubly sure to select "GNU Guile
-devroom" as track, and include the following information:
+devroom" as track (if you don't we won't find it), and include the
+following information:
 
   * The title and subtitle of your talk
   * A short abstract of one paragraph
   * A longer description if you wish to do so
   * Links to related websites/blogs etc
-
