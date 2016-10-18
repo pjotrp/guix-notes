@@ -1,8 +1,7 @@
 * GNU Guile devroom call for talks @FOSDEM 2017
 
 We are excited to announce that we have a GNU Guile devroom at FOSDEM
-on February 4th 2017. The call for talk proposals is open! Important
-members of the GNU Guile and GNU Guix community will attend. We are
+on February 4th 2017. The call for talk proposals is open! We are
 excited because FOSDEM is one of the most important free software
 conferences and is hosted annually at [[https://fosdem.org/2017/practical/transportation/][Université libre de Bruxelles in
 Brussels, Belgium]]; the devroom will host up to 80 people. FOSDEM is
@@ -20,7 +19,7 @@ concerning GNU Guile and applications that use Guile (such as GNU
 Guix, Lilypond and Gnucash). In the talks both experienced Guile
 programmers and newbies should be addressed.  FOSDEM is a great
 opportunity to attract people interested in GNU Guile and
-Lisp. Examples of (already [[https://libreplanet.org/wiki/Group:Guix/TalkProposals][proposed]] talks could be
+Lisp. Examples of (already) [[https://libreplanet.org/wiki/Group:Guix/TalkProposals][proposed]] talks could be
 
 1. A friendly introduction to GNU Guile and GNU Guix
 2. Guile programming and optimisation
