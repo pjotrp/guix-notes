@@ -7,7 +7,7 @@
 The GNU software packaging project is packaging done right. The Python
 packages support Python 2 and 3 and a host of modules installs out
 of the box.
-You should look at Guix when you 
+You should look at Guix when you
 
 1. are serious about software deployment
 2. need to handle multiple versions of Python
@@ -58,7 +58,7 @@ the Linux kernel.
 
 # Python
 
-The basic idea of GNU Guix is simple. A HASH value (SHA256) is calculated 
+The basic idea of GNU Guix is simple. A HASH value (SHA256) is calculated
 over the inputs to a build. This includes the source code of Python, and the
 switches used over configure and make. The software is installed under the
 HASH, for example I have Python 2.7.6 and 2.7.5 on my system sitting under
@@ -109,11 +109,13 @@ that directory! The Python installation is carved in stone.
 To make sure Python finds the default guix Python modules that are symlinked use
 
     export PYTHONPATH="$HOME/.guix-profile/lib/python2.7/site-packages"
-    
-# TODO Adding Python modules in user land
+
+# Adding Python modules in user land
+
+## With virtualenv
 
 Guix supports python virtualenv. Install
-    
+
     guix package -i python-virtualenv
 
 or
@@ -122,10 +124,51 @@ or
 
 And running
 
+```sh
     virtualenv newdir
+    cd newdir
+    source bin/activate
     ~/newdir/bin/pip list
+```
 
 will give access to pip etc.
+
+## Without virtualenv
+
+Of course you do not need virtualenv with GNU Guix - as isolation is
+part of its job. Pip and other Python installation tools install into
+a lib dir based on the prefix (normally /usr, and with virtualenv you
+override just that). So pass in a prefix:
+
+```sh
+    pip install --install-option="--prefix=$PREFIX_PATH" package_name
+```
+
+To guarantee isolation, set the PREFIX_PATH to something that contains
+the HASH value of the installed python. This can be fetched:
+
+```sh
+    PYTHONBIN=$(readlink -f `which python3`)
+    PYTHONHASH=$(basename $(dirname $(dirname $PYTHONBIN)))
+    echo $PYTHONHASH
+      2brzns9bli52ma7f3g8cb4q92wd72lr4-python-3.4.3
+    export PREFIX_PATH=$HOME/.python_guix/$PYTHONHASH
+```
+
+Now use this to install a module and make sure PATH and PYTHONPATH
+are updated accordingly
+
+```sh
+    pip3 install --install-option="--prefix=$PREFIX_PATH" package_name
+    export PATH=$PREFIX_PATH/bin:$PATH
+    export PYTHONPATH=$PREFIX_PATH/lib/python2.7/site-packages:$PYTHONPATH
+```
+
+Using setup you can do similarly
+
+```sh
+python setup.py install --prefix=$PREFIX_PATH
+```
 
 # TODO Adding system shared modules
 
@@ -139,4 +182,3 @@ HASH dir, e.g.
 
 This means (again) you can support multiple versions of modules. Under GNU Guix gems become
 first-rate citizens in a software stack.
-
