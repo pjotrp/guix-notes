@@ -1,0 +1,92 @@
+-*- mode: org; coding: utf-8; -*-
+
+#+TITLE: GNU Guix containers
+
+* Introduction
+
+GNU Guix is an excellent implementation of Linux container managers
+and compares favourably to other container systems, such as Docker.
+In addition to the advantages that Guix offers as a deployment system,
+Guix containers share the same software repository as the host, i.e.,
+Guix containers are extremely light-weight! This is possible because
+Guix software is immutable and versioned. And because it is Guix,
+everything installation is both build and binary reproducible.
+
+See also the official GNU Guix [[https://www.gnu.org/software/guix/manual/html_node/Invoking-guix-environment.html#][documentation]].
+
+* Running a container
+
+Containers can be run as regular users in X, provided the Kernel
+gives permission.
+
+** Usage
+
+Give the package name(s), here emacs and coreutils (for ls etc.), you want to have in the container:
+
+#+begin_src sh
+    guix environment --container --network --ad-hoc emacs coreutils
+#+end_src
+
+You can run a command once:
+
+#+begin_src sh
+guix environment --ad-hoc --container coreutils -- df
+#+end_src
+
+prints the loaded home dir and the store profile:
+
+#+begin_src sh
+Filesystem                  1K-blocks      Used Available Use% Mounted on
+none                          3956820         0   3956820   0% /dev
+udev                            10240         0     10240   0% /dev/tty
+tmpfs                           65536         0     65536   0% /dev/shm
+/dev/sda1                    38057472  19874684  16226540  56% /export2/izip
+/dev/mapper/volume_group-vm 165008748 109556608  47047148  70% /gnu/store/ikkks8c56g56znb5jgl737wkq7w9847c-profile
+#+end_src
+
+Note that 'guix environment --ad-hoc --container' will mount your
+current working directory (here /export2/izip). If you start from an
+empty $HOME/tmp directory - that will be mounted. Any files you put
+here will be persistent between container runs.
+
+Note you can point HOME to any path on startup from the shell
+
+#+begin_src sh
+guix environment --ad-hoc coreutils --container bash -- env HOME=$HOME/tmp/newhome/ bash
+#+end_src
+
+which allows you to run specific startup scripts and keep
+configurations between runs.
+** Browser
+
+Run icecat, a browser, in a container with
+
+#+begin_src sh
+    guix environment --container --network --share=/tmp/.X11-unix
+--ad-hoc icecat
+    export DISPLAY=":0.0"
+    icecat
+#+end_src
+
+You only need to install the package once.
+
+** Running Windows tools in Wine
+
+Wine can also be run in a container:
+
+#+begin_src sh
+    guix environment --container --network --share=/tmp/.X11-unix
+--ad-hoc wine
+    export DISPLAY=":0.0"
+    wine explorer
+#+end_src
+
+which is great. I used to have to use VirtualBox and such to run the
+occassoinal Windows tool. Now it runs in a container with access to
+the local file system.
+
+To run the tool in one go and set the HOME dir:
+
+#+begin_src sh
+guix environment --network --expose=/mnt/cdrom --share=/tmp/.X11-unix --container --ad-hoc wine vim bash coreutils -- env HOME=`pwd` DISPLAY=":0.0" wine explorer
+#+end_src sh
