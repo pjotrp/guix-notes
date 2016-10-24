@@ -358,8 +358,30 @@ Choose one from
    export LC_ALL=en_US.UTF-8
 #+end_src sh   :lang bash
 
-Alternatively set the LOCPATH to that of your underlying
-distribution - though incompatibilities may exist.
+When you keep getting locale errors it may mean that you are actually
+running tools linked against a different glibc version (!2.22).
+Say you get an error with bash
+
+: ldd `which bash`
+
+lists
+
+: libc.so.6 => /gnu/store/m9vxvhdj691bq1f85lpflvnhcvrdilih-glibc-2.23/lib/libc.so.6 (0x00007f4905aec000)
+
+Aha, version 2.23. So you need to install also the locale that ends up
+in $GUIX_LOCPATH/2.23/
+
+: guix package -A locale
+:   glibc-locales   2.23    out     gnu/packages/base.scm:763:2
+: guix package -i glibc-locales@2.23
+
+: export GUIX_LOCPATH=~/.guix-profile/lib/locale/
+: export LC_ALL=en_GB.UTF-8
+
+and all should be well - at least for tools installed with Guix.
+
+Not recommended: set the LOCPATH to that of your underlying
+distribution - incompatibilities may exist.
 
 * Fonts
 
