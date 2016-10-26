@@ -368,8 +368,8 @@ lists
 
 : libc.so.6 => /gnu/store/m9vxvhdj691bq1f85lpflvnhcvrdilih-glibc-2.23/lib/libc.so.6 (0x00007f4905aec000)
 
-Aha, version 2.23. So you need to install also the locale that ends up
-in $GUIX_LOCPATH/2.23/
+Aha, here we have version 2.23. You need to install also the locale
+that ends up in $GUIX_LOCPATH/2.23/
 
 : guix package -A locale
 :   glibc-locales   2.23    out     gnu/packages/base.scm:763:2

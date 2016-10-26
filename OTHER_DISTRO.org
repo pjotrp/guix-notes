@@ -21,11 +21,15 @@
 
 This section deals with running GNU Guix as a package manager inside
 an existing distribution. Before I make the full jump to runnning
-GuixSD I decided to run a bare bones Debian with SysV on my laptop (I
-am one of the people who does not like systemd) so I still get apt and
-Debian firmware support when I need it. And then one day, when I know
-I no longer need apt, I may take the plunge into running GuixSD on my
-laptop (servers will be easier).
+GuixSD I decided to run a bare bones Debian with SysV on my laptop
+(apparently I am one of the few people who does not like systemd) so I
+still get apt and Debian firmware support when I need it. And then one
+day, when I know I no longer need apt, I may take the plunge into
+running GuixSD on my laptop (running stock servers will be easier).
+
+The setup is on a Thinkpad T42. Pretty much everything works. Since I
+use the minimalistic i3 windo manager almost everything is invoked
+from the command line.
 
 * Install a bare Debian
 
@@ -259,6 +263,8 @@ and LOCPATH and next the locale:
 : export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
 : export LC_ALL=en_GB.UTF-8
 
+Note that Guix can have multiple locales (tied to glibc), see [[INSTALL.org]].
+
 * Setting up the desktop
 
 ** Graphics driver
@@ -434,6 +440,69 @@ need to add a proper package!)
 
 : root@monza:/gnu/store/cqwv78pirkfka92flin1hs34sb5i8v1k-xkeyboard-config-2.17# cp /home/pjotr/workman share/X11/xkb/symbols/
 
+** External screen
+
+: xrandr --output LVDS-1 --same-as VGA-1 --output VGA-1 --auto
+
+** Sleep mode
+
+: echo -n mem > /sys/power/state
+
+
 * Other services
 
+** Wifi
+
+*** Connect to eduroam
+
+No need for networkmanager!! This works at University of Utrecht and
+Wageningen University:
+
+: pkill wpa_supplicant
+: wpa_supplicant -Dwext -iwlan0 -c /etc/wpa_supplicant_eduroam.conf &
+: dhclient -v wlan0
+
+where /etc/wpa_supplicant_eduroam.conf contains
+
+#+begin_src sh
+ctrl_interface=/var/run/wpa_supplicant
+eapol_version=1
+ap_scan=1
+fast_reauth=1
+
+network={
+        ssid="eduroam"
+        key_mgmt=IEEE8021X WPA-NONE WPA-EAP
+        eap=PEAP
+        identity="email/account"
+        password="****"
+        #ca_cert="/location/of/cert" # This might not be required.
+        phase2="auth=MSCHAPV2"
+        priority=2
+        auth_alg=OPEN
+}
+#+end_src sh
+
+** Fan control
+
+Create /etc/modprobe.d/thinkpad_acpi.conf with:
+
+: options thinkpad_acpi fan_control=1
+
+and install thinkfan.
+
 ** stunnel
+
+Currently use Debian stunnel (I know).
+
+* Conclusion
+
+Complicated screen, keyboard, power management and wifi setup work
+fine. I switch for my daily work seamlessly between work station and
+laptop since they have the exact same tools. Reproducibility between
+machines is a Guix feature.
+
+I have a few minor niggles I need to improve. I am still seeing locale
+error messages (mostly harmless), I would like to improve the fonts
+and the external mouse needs to slow down. Also the fan needs improved
+regulation.
