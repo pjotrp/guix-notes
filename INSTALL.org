@@ -395,6 +395,20 @@ issues. E.g.
 will show the fonts in scope which tend to be the underlying
 distribution's.
 
+: fc-list :scalable=true:spacing=mono: family
+: FreeMono
+: xterm -fa "FreeMono:size=16:antialias=false"
+
+or
+
+: fc-match fixed
+: n019003l.pfb: "Nimbus Sans L" "Regular"
+: xterm -fn 7x13 -fa "Nimbus Sans L:size=16"
+
+another option I use is
+
+: xterm -fa Fixed-20
+
 The majority of graphical applications uses Fontconfig to locate and
 load font and perform X11-client-side rendering.  Guix's ddress@hidden
 package looks for fonts in the user's profile by default, so you have

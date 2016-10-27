@@ -266,7 +266,6 @@ and LOCPATH and next the locale:
 Note that Guix can have multiple locales (tied to glibc), see [[INSTALL.org]].
 
 * Setting up the desktop
-
 ** Graphics driver
 
 First thing we need is a driver for X. My laptop has an intel card.
@@ -440,6 +439,21 @@ need to add a proper package!)
 
 : root@monza:/gnu/store/cqwv78pirkfka92flin1hs34sb5i8v1k-xkeyboard-config-2.17# cp /home/pjotr/workman share/X11/xkb/symbols/
 
+** Mouse
+
+I find the speed of the external mouse to be high. Get the id
+
+: xinput list
+
+list properties
+
+: xinput list-props 6
+
+Decerate using the mouse id, the propedty id and a new value. On my
+system:
+
+: xinput set-prop 6 243 3.0
+
 ** External screen
 
 : xrandr --output LVDS-1 --same-as VGA-1 --output VGA-1 --auto
@@ -448,6 +462,12 @@ need to add a proper package!)
 
 : echo -n mem > /sys/power/state
 
+** Battery status
+
+i3wm comes with a status bar. To get battery info:
+
+: acpi -b
+:   Battery 0: Discharging, 98%, 04:42:42 remaining
 
 * Other services
 
@@ -489,7 +509,26 @@ Create /etc/modprobe.d/thinkpad_acpi.conf with:
 
 : options thinkpad_acpi fan_control=1
 
-and install thinkfan.
+Reload the module and switch off the fan with
+
+:  echo level 0 > /proc/acpi/ibm/fan
+
+It is recommended to have a daemon running such as thinkfan. The settings I use now are
+
+#+begin_src sh
+hwmon /sys/devices/platform/coretemp.0/hwmon/hwmon2/temp1_input
+hwmon /sys/devices/platform/coretemp.0/hwmon/hwmon2/temp2_input
+hwmon /sys/devices/platform/coretemp.0/hwmon/hwmon2/temp3_input
+(0,     0,      65)
+(1,     65,     70)
+(2,     70,     72)
+(3,     72,     74)
+(4,     74,     76)
+(5,     76,     78)
+(6,     78,     80)
+(7,     80,     32767)
+#+end_src sh
+
 
 ** stunnel
 
@@ -497,12 +536,15 @@ Currently use Debian stunnel (I know).
 
 * Conclusion
 
-Complicated screen, keyboard, power management and wifi setup work
-fine. I switch for my daily work seamlessly between work station and
-laptop since they have the exact same tools. Reproducibility between
-machines is a Guix feature.
+Complicated screen, keyboard, power management, fan control and wifi
+setup work fine. I switch for my daily work seamlessly between work
+station and laptop since they have the exact same
+tools.
 
-I have a few minor niggles I need to improve. I am still seeing locale
-error messages (mostly harmless), I would like to improve the fonts
-and the external mouse needs to slow down. Also the fan needs improved
-regulation.
+Reproducibility between machines is a Guix feature.
+
+I have a few minor niggles I still need to improve. The remaining item
+is that I would like to improve the fonts.
+
+For the rest it is rather perfect!! Next time I may try a pure
+Guix setup!
