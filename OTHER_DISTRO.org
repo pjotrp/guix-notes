@@ -548,3 +548,10 @@ is that I would like to improve the fonts.
 
 For the rest it is rather perfect!! Next time I may try a pure
 Guix setup!
+
+Note: ultimately I did cave in to run cups, Chrome, FireFox and Skype
+on top of Debian dependencies. Now dbus is also running. But still,
+most software is Guix installed and the number of background processes
+is minimal. Cups has a Guix package - I just did not bother to figure
+out how to run it. And if you can live without these tools you can go
+a long way with pure Guix!
