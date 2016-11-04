@@ -1,0 +1,141 @@
+-*- mode: org; coding: utf-8; -*-
+
+#+TITLE: Distribute software with GNU Guix
+
+* Introduction
+
+Here we discuss 'easy' tar-ball deployment of GNU Guix packages
+similar to the binary distribution of GNU Guix itself (see [[https://www.gnu.org/software/guix/download/][download]]).
+
+* How does Guix do it?
+
+WARNING: this is an advanced topic, you may want to skip to the next
+section.
+
+The source tree contains [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/system/install.scm][./gnu/system/install.scm]]. This module
+provides an 'operating-system' definition for use on images for USB
+sticks etc., for the installation of the GNU system. It has the
+function 'self-contained-tarball'.
+
+This in turn gets invoked from ./build-aux/make-binary-tarball.scm
+which is invoked from the command line with (see the main ./Makefile).
+
+#+begin_src make
+  # The self-contained tarball.
+  guix-binary.%.tar.xz:
+    $(AM_V_GEN)GUIX_PACKAGE_PATH= \
+    $(top_builddir)/pre-inst-env "$(GUILE)"     \
+      "$(top_srcdir)/build-aux/make-binary-tarball.scm" "$*" "$@"
+#+end_src make
+
+The function 'self-contained-tarball' returns a compressed tar ball
+containing a store initialized with the closure of GUIX.  The tarball
+contains /gnu/store, /var/guix, and a profile under
+/root/.guix-profile where GUIX is installed. It is a short function, so
+we can list it here with a few extra comments
+
+#+begin_src scheme
+(define* (self-contained-tarball #:key (guix guix))
+  ;; fetch the derivation for the guix package:
+  (mlet %store-monad ((profile (profile-derivation
+                                (manifest
+                                 (list (package->manifest-entry guix))))))
+    (define build
+      ;; import build-time modules from the Guix source
+      (with-imported-modules '((guix build utils)
+                               (guix build store-copy)
+                               (gnu build install))
+        #~(begin
+            (use-modules (guix build utils)
+                         (gnu build install))
+
+            (define %root "root")
+
+            ;; set the search path for binaries to find tar and xz
+            (setenv "PATH"
+                    (string-append #$guix "/sbin:" #$tar "/bin:" #$xz "/bin"))
+            ;; create the root ~/.guix-profile/ for guix
+            (populate-single-profile-directory %root
+                                               #:profile #$profile
+                                               #:closure "profile"
+                                               #:deduplicate? #f)
+
+            ;; Create the tarball.  Use GNU format so there's no file name
+            ;; length limitation.
+            (with-directory-excursion %root
+              (zero? (system* "tar" "--xz" "--format=gnu"
+                              ;; Avoid non-determinism in the archive.  Use
+                              ;; mtime = 1, not zero, because that is what the
+                              ;; daemon does for files in the store (see the
+                              ;; 'mtimeStore' constant in local-store.cc.)
+                              "--sort=name"
+                              "--mtime=@1"        ;for files in /var/guix
+                              "--owner=root:0"
+                              "--group=root:0"
+
+                              "--check-links"
+                              "-cvf" #$output
+                              ;; Avoid adding / and /var to the tarball, so
+                              ;; that the ownership and permissions of those
+                              ;; directories will not be overwritten when
+                              ;; extracting the archive.  Do not include /root
+                              ;; because the root account might have a
+                              ;; different home directory.
+                              "./var/guix"
+                              (string-append "." (%store-directory))))))))
+
+    ;; and build it using above build function
+    (gexp->derivation "guix-tarball.tar.xz" build
+                      #:references-graphs `(("profile" ,profile)))))
+#+end_src
+
+In short the derivation gets build from its derivation and the result gets packed into
+a tar ball. Let's try it:
+
+: make guix-binary.x86_64-linux.tar.xz
+
+Runs the tests and creates the tarball. Pretty cool!
+
+* Rolling our own
+
+Our users will want to deploy our tar ball on a fresh system. If they
+already have GNU Guix they can use the normal Guix installation
+path. The feature of a binary installation (here) is specifically for
+new users.
+
+Guix also has the archive option which can create an archive of a
+software package with its dependencies. To unpack the archive you need
+GNU guix installed and update the access key. We can also provide that,
+but here we discuss creating a one-time binary installation.
+
+We could include Guix itself in the tar ball - which would allow us to
+build a store that is guix 'ready'.
+
+Anyway, there are a few options.  The one thing I would like to try is
+to create an archive, install that in a [[./CONTAINERS.org][container]] and tarball that up
+for distribution.
+
+* Creating the tarball
+
+To package up the 'hello' package:
+
+: ./pre-inst-env guix environment --container --ad-hoc hello tar gzip -- tar cvzf test.tgz /gnu/store
+
+results in a minimalistic hello package with all dependencies - sized 28Mb.
+
+That was one single command.
+
+Next, unpack the software on a fresh Linux (e.g. using a VM or container):
+
+: cd /
+: tar xvzf test.tgz
+
+Now the files are in /gnu and you should be able to run either directly
+
+: /gnu/store/zy5aanymkq37l91yhq0xa6rddv1skl6s-hello-2.10/bin/hello
+:   Hello, world!
+
+or by using the profile
+
+: /gnu/store/hfmsjsvx1p68wbx0fli4icg20jsb5j4v-profile/bin/hello
+:   Hello, world!
