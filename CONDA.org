@@ -1,33 +1,104 @@
-#+TITLE: Python CONDA on GNU Guix
+#+TITLE: Python CONDA and BIOCONDA on GNU Guix
 
 * Table of Contents                                                     :TOC:
  - [[#introduction][Introduction]]
+   - [[#testing-miniconda-and-bioconda][Testing miniconda and bioconda]]
 
 * Introduction
 
 CONDA support in Guix is work-in-progress. Watch this place.
 
-CONDA has come out on top and is becoming a popular choice for
-scientific software deployment. In intention it is similar to language
-packaging systems, such as Python pip with virtualenv and Rubygems
-with bundler, but its scope is wider.
+CONDA has come out on top in some ways and is becoming a popular
+choice for scientific software deployment. In intention it is similar
+to language packaging systems, such as Python pip with virtualenv and
+Rubygems with bundler, but its scope is wider because it includes a
+build environment.
 
 CONDA itself builds on top of the underlying software distribution
-using C compilers, D compilers, and such. In addition it manages a
-subset of low level libraries (including readline, ncurses,
-libxml2). It rather is a distribution in a distribution that can act
-fully in user land and provides source and binary deployment.
+using C compilers and such. In addition it manages a subset of low
+level libraries (including readline, ncurses, libxml2). It rather is a
+distribution in a distribution that can act fully in user land and
+provides source and binary deployment.
 
 GNU Guix, as you can read elsewhere in my notes (e.g. [[RUBY.org]]), also
 addresses all of CONDA features with security and reproducibility
-thrown in - i.e., CONDA can never be fully reproducible and still
-suffers from dependency hell.
+thrown in - i.e., unlike Guix CONDA can never be fully reproducible
+and still suffers from dependency hell.
 
 For bioinformatics, a lot of work is going into CONDA. GNU Guix is not
-going to compete with that in the short term. To leverage CONDA we can
-get CONDA support into Guix - i.e., if the base distribution is
-reproducible, at least the CONDA packages will be predictable (on
-Linux) and somewhat reproducible, similar to the way we are supporting
-[[RUBY.org]] in Guix. It is a win-win. We can use CONDA packages if we
-have no alternative, and the CONDA users can use Guix to get a
-predictable system with less deployment hassles.
+going to compete with that in the short term. For example in the
+[[https://docs.galaxyproject.org/en/master/admin/conda_faq.html#how-do-conda-dependencies-work-where-do-things-get-installed][GALAXY]] project they are introducing CONDA by default. To leverage
+CONDA we can get CONDA support into Guix - i.e., if the base
+distribution is reproducible, at least the CONDA packages will be
+predictable (on Linux) and somewhat reproducible, similar to the way
+we are supporting [[RUBY.org]] in Guix. It is a win-win. We can use CONDA
+packages if we have no alternative, and the CONDA users can use Guix
+to get a predictable system with less deployment hassles
+
+** Testing miniconda and bioconda
+
+To install CONDA start with miniconda which pulls in a number of
+python tar balls and installs them in a PATH of your preference (say
+$HOME/opt/miniconda).  When grepping through the files this PATH is
+nicely propagated. Once conda is in the path you can add channels for
+bioconda:
+
+#+begin_src sh   :lang bash
+conda config --add channels conda-forge
+conda config --add channels defaults
+conda config --add channels r
+conda config --add channels bioconda
+conda search sambamba
+Fetching package metadata .............
+sambamba                     0.5.9                         0  bioconda
+                             0.5.9                         1  bioconda
+                             0.6.1                         0  bioconda
+                             0.6.2                         0  bioconda
+                             0.6.3                         0  bioconda
+                             0.6.5                         0  bioconda
+conda install sambamba
+The following NEW packages will be INSTALLED:
+
+    bcftools: 1.3.1-1  bioconda
+    curl:     7.45.0-2 bioconda
+    libgcc:   5.2.0-0
+    ncurses:  5.9-8
+    sambamba: 0.6.5-0  bioconda
+    samtools: 1.3.1-4  bioconda
+#+end_src
+
+installs sambamba in ~/opt/miniconda2/bin. Likewise if you install
+Ruby it will install openssl in ~/opt/miniconda2. An ldd shows that it
+picks up a mixture of local libs and libs installed inside
+miniconda. During the installation phase these binaries get patched to
+match the new CONDA PATH:
+
+#+begin_src sh   :lang bash
+ldd lib/ruby/2.2.0/x86_64-linux/openssl.so
+        linux-vdso.so.1 (0x00007ffd9fa91000)
+        libruby.so.2.2 => /home/wrk/opt/miniconda2/lib/ruby/2.2.0/x86_64-linux/../../../libruby.so.2.2 (0x00007f2f5ce95000)
+        libssl.so.1.0.0 => /home/wrk/opt/miniconda2/lib/ruby/2.2.0/x86_64-linux/../../../libssl.so.1.0.0 (0x00007f2f5cc1e000)
+        libcrypto.so.1.0.0 => /home/wrk/opt/miniconda2/lib/ruby/2.2.0/x86_64-linux/../../../libcrypto.so.1.0.0 (0x00007f2f5c7e7000)
+        libpthread.so.0 => /gnu/store/qv7bk62c22ms9i11dhfl71hnivyc82k2-glibc-2.22/lib/libpthread.so.0 (0x00007f2f5c5ca000)
+        librt.so.1 => /gnu/store/qv7bk62c22ms9i11dhfl71hnivyc82k2-glibc-2.22/lib/librt.so.1 (0x00007f2f5c3c2000)
+        libjemalloc.so.1 => /home/wrk/opt/miniconda2/lib/ruby/2.2.0/x86_64-linux/../../../libjemalloc.so.1 (0x00007f2f5c180000)
+        libgmp.so.10 => /home/wrk/opt/miniconda2/lib/ruby/2.2.0/x86_64-linux/../../../libgmp.so.10 (0x00007f2f5bf0d000)
+        libdl.so.2 => /gnu/store/qv7bk62c22ms9i11dhfl71hnivyc82k2-glibc-2.22/lib/libdl.so.2 (0x00007f2f5bd09000)
+        libcrypt.so.1 => /gnu/store/qv7bk62c22ms9i11dhfl71hnivyc82k2-glibc-2.22/lib/libcrypt.so.1 (0x00007f2f5bad2000)
+        libm.so.6 => /gnu/store/qv7bk62c22ms9i11dhfl71hnivyc82k2-glibc-2.22/lib/libm.so.6 (0x00007f2f5b7d3000)
+        libc.so.6 => /gnu/store/qv7bk62c22ms9i11dhfl71hnivyc82k2-glibc-2.22/lib/libc.so.6 (0x00007f2f5b42e000)
+        /gnu/store/qv7bk62c22ms9i11dhfl71hnivyc82k2-glibc-2.22/lib/ld-linux-x86-64.so.2 (0x00007f2f5d5f0000)
+#+end_src
+
+Apparently there is work going on to package the basic dependencies in
+CONDA too (incl. glibc) in the conda-forge project. At appears to me
+that CONDA would benefit from a Guix build platform instead - making
+reproducible environment truely feasible.
+
+After discussing bioconda+Guix with Brad Chapman we are going to
+pursue the following steps:
+
+1. Create a miniconda/bioconda base environment in Guix, essentially a
+   bootstrap that has the features of Guix
+2. Look into path rewriting as is doen in CONDA
+3. See if we can distribute a Guix tarball and rewrite it into CONDA
