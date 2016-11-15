@@ -14,8 +14,15 @@
    - [[#graphics-driver][Graphics driver]]
    - [[#fonts][Fonts]]
    - [[#keyboard-layout][Keyboard layout]]
+   - [[#mouse][Mouse]]
+   - [[#external-screen][External screen]]
+   - [[#sleep-mode][Sleep mode]]
+   - [[#battery-status][Battery status]]
  - [[#other-services][Other services]]
+   - [[#wifi][Wifi]]
+   - [[#fan-control][Fan control]]
    - [[#stunnel][stunnel]]
+ - [[#conclusion][Conclusion]]
 
 * Introduction
 
@@ -528,7 +535,6 @@ hwmon /sys/devices/platform/coretemp.0/hwmon/hwmon2/temp3_input
 (6,     78,     80)
 (7,     80,     32767)
 #+end_src sh
-
 
 ** stunnel
 

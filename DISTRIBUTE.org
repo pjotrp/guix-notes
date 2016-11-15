@@ -139,3 +139,11 @@ or by using the profile
 
 : /gnu/store/hfmsjsvx1p68wbx0fli4icg20jsb5j4v-profile/bin/hello
 :   Hello, world!
+
+This implies we can combine any number of software packages with
+dependencies and tar it all up for distribution. It will also unpack
+in a Docker container without special privileges.
+
+* Install script
+
+WIP
