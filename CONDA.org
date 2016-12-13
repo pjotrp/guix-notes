@@ -90,10 +90,24 @@ ldd lib/ruby/2.2.0/x86_64-linux/openssl.so
         /gnu/store/qv7bk62c22ms9i11dhfl71hnivyc82k2-glibc-2.22/lib/ld-linux-x86-64.so.2 (0x00007f2f5d5f0000)
 #+end_src
 
+Path rewriting is documented in the [[http://conda-test.pydata.org/docs/build.html#making-packages-relocatable][CONDA documentation]] as:
+
+: Files that should have the placeholder prefix
+: (/opt/anaconda1anaconda2anaconda3) replaced with the install prefix at
+: installation.  Note that conda build does this automatically for the
+: build prefix.
+:
+: Binary files that should have their build prefix replaced with the
+: install prefix at installation time.  Due to the way this works, the
+: install prefix cannot be longer than the build prefix.  It is
+: recommended to build against a very long prefix. The easiest way to do
+: this is to install miniconda into a very long path.  Future versions
+: of conda build may do this automatically.
+
 Apparently there is work going on to package the basic dependencies in
 CONDA too (incl. glibc) in the conda-forge project. At appears to me
 that CONDA would benefit from a Guix build platform instead - making
-reproducible environment truely feasible.
+reproducible environment feasible.
 
 After discussing bioconda+Guix with Brad Chapman we are going to
 pursue the following steps:
