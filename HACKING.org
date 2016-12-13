@@ -32,6 +32,7 @@
    - [[#running-a-guile-script][Running a Guile script]]
    - [[#in-progress-using-guile-in-emacs-geiser][IN PROGRESS Using guile in emacs (geiser)]]
  - [[#fixing-problems][Fixing problems]]
+   - [[#using-gdb-the-debugger-to-find-issues][Using gdb (the debugger) to find issues]]
  - [[#installing-the-package][Installing the package]]
  - [[#using-the-search-path][Using the search path]]
  - [[#making-a-patch-to-submit-to-the-mailing-list][Making a patch to submit to the mailing list]]
@@ -44,6 +45,7 @@
    - [[#filing-a-bug][Filing a bug]]
    - [[#git-ca-certificates][Git CA certificates]]
    - [[#recovering-from-a-guix-pull][Recovering from a 'guix pull']]
+   - [[#dealing-with-slow-internet-connection][Dealing with slow internet connection]]
  - [[#the-ruby-package][The Ruby package]]
    - [[#ruby-gems][Ruby Gems]]
  - [[#dealing-with-special-packages][Dealing with special packages]]
@@ -706,13 +708,14 @@ Start geiser and you should be able to replicate above commands.
 Compiling the package there may be build problems. cd into the build directory
 
 #+begin_src scheme
-  cd /tmp/nix-build-ruby-2.1.3.drv-0
+  cd /gnu/tmp/guix-build-ldc-0.17.2.drv-0
 #+end_src
 
 and
 
 #+begin_src scheme
   . environment-variables
+  make
 #+end_src
 
 will recreate the build environment. Now you can see where the build stopped by running
@@ -753,7 +756,7 @@ Directory: /gnu/tmp/guix-build-ldc-0.17.2.drv-0/ldc-0.17.2/runtime
 "std.datetime" start time: Dec 11 16:16 Europe
 Output:
 ----------------------------------------------------------
-****** FAIL release64 std.datetime
+FAIL release64 std.datetime
 core.time.TimeException@/gnu/tmp/guix-build-ldc-0.17.2.drv-0/ldc-0.17.2/runtime/phobos/std/datetime.d(560):
   Fractional seconds must be less than one second.
 ----------------
@@ -865,6 +868,7 @@ monza:/gnu/tmp/guix-build-ldc-0.17.2.drv-0/ldc-0.17.2$   make
 [ 59%] Linking C static library ../lib/libphobos2-ldc-debug.a
 [ 75%] Built target phobos2-ldc-debug
 [100%] Built target druntime-ldc
+
 monza:/gnu/tmp/guix-build-ldc-0.17.2.drv-0/ldc-0.17.2$   ctest -R build-phobos2-test-runner-debug --build-noclean
 Test project /gnu/tmp/guix-build-ldc-0.17.2.drv-0/ldc-0.17.2
     Start 8: build-phobos2-test-runner-debug
@@ -873,6 +877,22 @@ Test project /gnu/tmp/guix-build-ldc-0.17.2.drv-0/ldc-0.17.2
 100% tests passed, 0 tests failed out of 1
 
 Total Test time (real) =  17.84 sec
+
+monza:/gnu/tmp/guix-build-ldc-0.17.2.drv-0/ldc-0.17.2$   runtime/phobos2-test-runner-debug std.datetime
+****** FAIL release64 std.datetime
+core.exception.AssertError@/gnu/tmp/guix-build-ldc-0.17.2.drv-0/ldc-0.17.2/runtime/phobos/std/datetime.d(594): assertThrown failed: No TimeException was thrown.
+----------------
+
+#+end_src
+
+See below section on gdb if you get an exception.
+
+It may be some build stuff gets messed up. You can regenerate all relevant binaries with
+
+#+begin_src bash
+make clean
+make
+ctest -R build-phobos2-test-runner-debug\|build-phobos2-ldc-unittest-debug\|build-druntime-test-runner-debug\|build-druntime-ldc-unittest-debug\|std.datetime-debug
 #+end_src
 
 When all tests are 'fixed' we can create the patch with
@@ -885,6 +905,44 @@ When we have done these we can look at fixing some tests - and perhaps
 communicating with upstream to see if they want to fix/patch some of
 these in turn, so we don't need to redo this work next time round. But
 at least we can run most of the ldc tests now in Guix.
+
+Note also, because we are using git, we can roll back to an earlier
+edition of the build dir, e.g., to roll back on changes you have not
+commited
+
+: git reset --hard
+
+** Using gdb (the debugger) to find issues
+
+In above section I had a segfault at some point and needed to find out
+where it went wrong. Similar to the earlier command run with gdb in the
+build directory
+
+#+begin_src bash
+~/.guix-profile/bin/gdb --args runtime/phobos2-test-runner-debug std.datetime
+#+end_src
+
+And inside GDB:
+
+#+begin_src bash
+GNU gdb (GDB) 7.12
+Copyright (C) 2016 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+(gdb) r
+Starting program: /gnu/tmp/guix-build-ldc-0.17.2.drv-0/ldc-0.17.2/runtime/phobos2-test-runner-debug std.datetime
+/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.utf8)
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/gnu/store/m9vxvhdj691bq1f85lpflvnhcvrdilih-glibc-2.23/lib/libthread_db.so.1".
+
+Program received signal SIGSEGV, Segmentation fault.
+0x000000000082cf9e in std.datetime.SysTime.this(const(std.datetime.DateTime), const(core.time.Duration), immutable(std.datetime.TimeZone)) (
+    dateTime=<incomplete type>, fracSecs=<incomplete type>,
+    tz=0x614a2d313030302d, this=...) at datetime.d:567
+567             immutable standardTime = nonNullTZ.tzToUTC(adjustedTime.total!"hnsecs");
+(gdb)
+#+end_src
+
+You can spot the problem is at line number 567.
 
 * Installing the package
 
@@ -1178,6 +1236,13 @@ guix git repository (for example).
 
 : ls ~/.config/guix/latest
 : gnu  gnu.go  gnu.scm  guix  guix.go  guix.scm
+
+** Dealing with slow internet connection
+
+When working over mobile networks Guix can be painful. The options to
+check are --no-substites - so you only download source tarballs which
+can sometimes be less bulky than binaries. Also the --no-grafts option
+may prevent large downloads of rebuilt (grafted) packages.
 
 * The Ruby package
 ** Ruby Gems
