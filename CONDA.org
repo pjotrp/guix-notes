@@ -132,6 +132,7 @@ limitation we should be fine rewriting lib paths!
 
 This makes it possible to relocate binaries.
 
+#+begin_src sh   :lang bash
 ldd $HOME/.guix-profile/bin/hello
         linux-vdso.so.1 (0x00007ffc71374000)
         libgcc_s.so.1 => /gnu/store/zy233badri3sffqi2s2kq8md6qz65iiz-gcc-4.9.3-lib/lib/libgcc_s.so.1 (0x00007f13692d5000)
@@ -156,10 +157,12 @@ strings -t d hellop | grep /gnu/store
     512 /gnu/store/qv7bk62c22ms9i11dhfl71hnivyc82k2-glibc-2.22/lib/ld-linux-x86-64.so.2
   14920 /gnu/store/a49zfzc6xr6g20azlpjs8sikj6v5lnkp-hello-2.10/share/locale
   17024 /gnu/store/a49zfzc6xr6g20azlpjs8sikj6v5lnkp-hello-2.10/lib
+#+end_src
 
 We are still using the Guix elf loader ld-linux. Let's patch it with
 dd:
 
+#+begin_src sh   :lang bash
 printf "/lib64/ld-linux-x86-64.so.2\x00" > newpath
 dd if=newpath of=hellop obs=1 seek=512 conv=notrunc
 0+1 records in
@@ -171,6 +174,7 @@ ldd hellop
         libgcc_s.so.1 => $HOME/opt/lib/libgcc_s.so.1 (0x00007fa20ef94000)
         libc.so.6 => $HOME/opt/lib/libc.so.6 (0x00007fa20ebef000)
         /lib64/ld-linux-x86-64.so.2 (0xi00007fa20f1aa000)
+#+end_src
 
 and it still works. To relocate stuff, I'll want to retain the hash
 value. But this is just a first try. I think I have the pieces now to
