@@ -144,6 +144,17 @@ This implies we can combine any number of software packages with
 dependencies and tar it all up for distribution. It will also unpack
 in a Docker container without special privileges.
 
-* Install script
+* Create relocatable installer
 
-WIP
+Starting from above tar ball we can make a relocatable binary
+installer using a few tricks. Unpack the tar ball somewhere
+
+: mkdir hello
+: cd hello
+: tar xvzf ../test.tgz
+
+Now the files should be in ./gnu/store
+
+: ls ./gnu/store
+
+Next

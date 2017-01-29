@@ -176,9 +176,12 @@ ldd hellop
         /lib64/ld-linux-x86-64.so.2 (0xi00007fa20f1aa000)
 #+end_src
 
-and it still works. To relocate stuff, I'll want to retain the hash
-value. But this is just a first try. I think I have the pieces now to
-relocate Guix built binaries into other dirs.
+and it still works. To patch the interpreter ld-xxx.so.2 also patchelf
+can be used.
+
+To relocate stuff, I'll want to retain the hash value. But this is
+just a first try. I think I have the pieces now to relocate Guix built
+binaries into other dirs.
 
 Other tools of interest for dealing with elf binaries are [[http://linux.die.net/man/1/readelf][readelf]],
 [[http://www.gentoo.org/proj/en/hardened/pax-utils.xml][dumpelf]], [[http://www.eresi-project.org/][eresi]] and [[https://sourceware.org/binutils/docs/binutils/objcopy.html][objdump]].
