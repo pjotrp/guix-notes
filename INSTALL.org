@@ -199,6 +199,8 @@ Note that you can also call GNU Guix from its direct path, e.g.
 
 * Update the package list (guix pull)
 
+(see the health warning at the end of this section)
+
 #+begin_src sh   :lang bash
    guix pull
 #+end_src sh   :lang bash
@@ -213,9 +215,10 @@ garbage collected later).
 
 you may want to restart the daemon after a successful upgrade.
 
-Health warning: at this point 'guix pull' is considered a liability for two reasons
+Health warning: at this point 'guix pull' is considered a liability
+for two reasons
 
-1. You don't know what you get even it is considered 'latest'
+1. You don't know what you get even if it is considered 'latest'
 2. Guix pull runs over http and is not considered safe
 
 * Use guix as a normal user
