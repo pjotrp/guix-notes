@@ -6,10 +6,10 @@ though. The most glaring downside of R's package system is that it
 ties versions of CRAN packages with R releases, i.e., to run the
 latest version of a package you need to run the latest version of
 R. Also, the acceptance and turnover of package versions is rather
-involved and slow. 
+involved and slow.
 
 Mostly thanks to Ricardo Wurmus' work GNU Guix comes to the rescue
-with rolling upgrades of both R and packages. 
+with rolling upgrades of both R and packages.
 
 * Importing an existing CRAN module
 
@@ -81,7 +81,7 @@ which installed a recent version of R
 : Copyright (C) 2015 The R Foundation for Statistical Computing
 : Platform: x86_64-unknown-linux-gnu (64-bit)
 
-Next, installing RccEigen failed 
+Next, installing RccEigen failed
 
 : R -e "install.packages('RcppEigen')"
 
@@ -120,9 +120,9 @@ r-rcppeigen did not exist so I exported the package definition
 and added that to our [[https://github.com/genenetwork/guix-bioinformatics][package incubator]] (finalized packages go into
 GNU Guix main line, with luck). Now, after setting the path
 
-: export GUIX_PACKAGE_PATH=~/genenetwork/guix-bioinformatics 
+: export GUIX_PACKAGE_PATH=~/genenetwork/guix-bioinformatics
 
-the command 
+the command
 
 : guix package -i r-rcppeigen --no-substitutes
 
@@ -131,10 +131,10 @@ create that r-matrix package using export.
 
 : guix import cran Matrix
 
-Same for other dependencies, such as RGraphics. After including a few 
-missing packages 
+Same for other dependencies, such as RGraphics. After including a few
+missing packages
 
-: guix package -i r-rcppeigen 
+: guix package -i r-rcppeigen
 
 it worked.
 
@@ -156,8 +156,8 @@ the modules and we need to set
 
 Now that error goes away. But we get
 /gnu/store/qv7bk62c22ms9i11dhfl71hnivyc82k2-glibc-2.22/include/bits/local_lim.h:38:26:
-fatal error: linux/limits.h: No such file or directory. We need to bring in the 
-relevant headers which are 
+fatal error: linux/limits.h: No such file or directory. We need to bring in the
+relevant headers which are
 
 : export CPLUS_INCLUDE_PATH=$HOME/.guix-profile/include
 
@@ -181,8 +181,8 @@ Next up, another shared library missing with
 undefined symbol:
 _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE9_M_createERmm
 
-To solve this we need to go through the shared library dependencies. A bit 
-annoying and it won't happen if r-lmmlite were an actual GNU Guix package 
+To solve this we need to go through the shared library dependencies. A bit
+annoying and it won't happen if r-lmmlite were an actual GNU Guix package
 (Guix resolves all this dependencies automatically). Anyway ascertain we
 have a clean target setup
 
@@ -260,7 +260,7 @@ Hmmm. It found the correct libm.so.6 during startup.
 So, R finds the shared library earlier but does not honour what it
 built locally. Apparently it can't resolve the paths at dynamic
 library load time which is an R thing - it disregards the embedded
-hard coded shared library paths!  
+hard coded shared library paths!
 
 Maybe I am trying to this the hard
 way and should just install r-lmmlite via Guix. Writing the package,
@@ -289,7 +289,7 @@ even with the git-fetch proved rather easy:
      "R/lmmlite")
     (home-page "https://github.com/kbroman/")
     (license license:asl2.0)))
-#+end_src 
+#+end_src
 
 The latest edition can be found [[https://github.com/genenetwork/guix-bioinformatics/blob/master/gn/packages/statistics.scm][here]] (or in GNU Guix if it was
 accepted in mainline). Install with
@@ -302,6 +302,48 @@ and
 : library(lmmlite)
 
 Success!
+
+* Dealing with certificates and shared libraries
+
+To install software from R it may be you run into certain errors.
+
+One of them was an annoying
+
+#+begin_src
+Error in download.file("https://cran.r-project.org/CRAN_mirrors.csv",  :
+  cannot download all files
+In addition: Warning message:
+In download.file("https://cran.r-project.org/CRAN_mirrors.csv",  :
+  URL 'https://cran.r-project.org/CRAN_mirrors.csv': status was 'Peer certificate cannot be authenticated with given CA certificates'
+#+end_src
+
+This has to to with certificates. You can print current settings with
+
+: Sys.getenv(c("GIT_SSL_CAINFO","CURL_CA_BUNDLE","SSL_CERT_FILE"))
+
+which on my Debian system shows
+
+:                       GIT_SSL_CAINFO                       CURL_CA_BUNDLE
+: "/etc/ssl/certs/ca-certificates.crt"                     "/etc/ssl/certs"
+:                        SSL_CERT_FILE
+: "/etc/ssl/certs/ca-certificates.crt"
+
+It may temporarily be fixed by switching from curl to wget:
+
+: options(download.file.method="wget")
+
+To build stuff by hand you also need to get the library paths correct.
+R in Guix actually uses LD_LIBRARY_PATH and you can do something
+similar. Invoke with something like
+
+: env GIT_SSL_CAINFO=/etc/ssl/certs/ca-certificates.crt \
+:   CURL_CA_BUNDLE=/etc/ssl/certs \
+:   LD_LIBRARY_PATH=/gnu/store/n8gz1l470ss7zampng3403jiqplj5i0j-openssl-1.1.0b/lib:$HOME/.guix-profile/lib
+:   CFLAGS="-I$HOME/.guix-profile/include" CPPFLAGS="-I$HOME/.guix-profile/include" R
+
+and make sure you check it with
+
+: Sys.getenv(c("R_HOME","LD_LIBRARY_PATH","CFLAGS","CPPFLAGS"))
 
 * Conclusion
 
