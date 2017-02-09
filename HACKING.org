@@ -1353,6 +1353,12 @@ Save it as a file named pylmm.scm (the name of the module!) and add the path
 : env GUIX_PACKAGE_PATH=~/python/pylmm_gn2/guix guix package -A python-pylmm
 :   python-pylmm    1.0.0   out     ~/python/pylmm_gn2/guix/pylmm.scm:15:2
 
+Note that, even though GUIX_PACKAGE_PATH can be a feasible way of
+adding and maintaining packages, it has two largish downsides: (1) it
+is removed from the main package tree and therefore not easily shared
+and integrated and (2) to remain compatible you need to juggle two git
+trees which may go out of synch.
+
 * Create a caching server
 
 The Guix daemon contains a build server. It also can distribute built binaries.

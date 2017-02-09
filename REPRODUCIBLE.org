@@ -188,7 +188,8 @@ To publish the server is a trivial
 : guix publish -p 8080 -u guixpublisher
 
 Note that it is also possible to use the GUIX_PACKAGE_PATH to
-distribute pre-built binaries.
+distribute pre-built binaries. Please note the section [[HACKING.org#dealing-with-special-packages][Dealing with
+special packages]].
 
 ** Use server
 
