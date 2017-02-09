@@ -213,6 +213,11 @@ garbage collected later).
 
 you may want to restart the daemon after a successful upgrade.
 
+Health warning: at this point 'guix pull' is considered a liability for two reasons
+
+1. You don't know what you get even it is considered 'latest'
+2. Guix pull runs over http and is not considered safe
+
 * Use guix as a normal user
 
 As a normal user you can now install software (see below install the
@@ -560,15 +565,6 @@ guix package --search-paths
 export PATH="$HOME/.guix-profile/bin:$HOME/.guix-profile/sbin"
 export INFOPATH="$HOME/.guix-profile/share/info"
 #+end_src sh   :lang bash
-
-Optional: are we on the latest versions?
-
-#+begin_src sh   :lang bash
-guix pull
-#+end_src sh   :lang bash
-
-If 'guix pull' fails or messes up, see trouble shooting in
-[[HACKING.org]].
 
 Note that if you want full isolation you may want to use 'guix
 environment', but here we opt for the lazy version. E.g.

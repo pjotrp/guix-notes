@@ -33,7 +33,10 @@ One of the great features of GNU Guix is that it supports rolling
 upgrades. I.e., when you do a 'guix pull' it will install the latest
 and the greatest - matching the state of the build-farm at that
 point. Because GNU Guix packages are isolated, i.e., packages can not
-overwrite each other or their dependencies, it is perfectly safe.
+overwrite each other or their dependencies, it is safe in that way.
+Unfortunately 'guix pull' is no longer recommended. Mostly because you
+don't know what you get and because it runs unencrypted. Still, it may
+work for you.
 
 But, this is not always what we want. Especially for production-type
 systems and software development we need to control what versions of

@@ -33,11 +33,6 @@ Start the daemon (normally as root)
 
     guix-daemon --build-users-group=guixbuild
 
-Update guix and guix binary packages to the latest and greatest
-version
-
-    guix pull
-
 Update guix itself
 
     guix package -i guix
