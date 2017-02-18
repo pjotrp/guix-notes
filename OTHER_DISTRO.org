@@ -27,16 +27,19 @@
 * Introduction
 
 This section deals with running GNU Guix as a package manager inside
-an existing distribution. Before I make the full jump to runnning
-GuixSD I decided to run a bare bones Debian with SysV on my laptop
-(apparently I am one of the few people who does not like systemd) so I
-still get apt and Debian firmware support when I need it. And then one
-day, when I know I no longer need apt, I may take the plunge into
-running GuixSD on my laptop (running stock servers will be easier).
+an existing distribution - which can be any distro. Before I make the
+full jump to runnning GuixSD I decided to run a bare bones Debian with
+SysV on my laptop (apparently I am one of the few people who does not
+like systemd) so I still get apt and Debian firmware support when I
+need it. And then one day, when I know I no longer need apt, I may
+take the plunge into running GuixSD on my laptop (running stock
+servers will be easier). Do note that there are quite a few people
+running GuixSD on their laptops too! But it is not for the faint of
+heart.
 
-The setup is on a Thinkpad T42. Pretty much everything works. Since I
-use the minimalistic i3 windo manager almost everything is invoked
-from the command line.
+The setup is on an older Thinkpad T420. Pretty much everything
+works. And because I use the minimalistic i3 windo manager almost
+everything is invoked from the command line.
 
 * Install a bare Debian
 
@@ -50,17 +53,18 @@ partition.
 That installs about 170 packages(!) and we may start purging some
 later.
 
-After the chroot, install SysV and purge systemd according to [[http://without-systemd.org/wiki/index.php/How_to_remove_systemd_from_a_Debian_jessie/sid_installation][info]]. Edit
-/etc/fstab to match your system and install kernel and headers
+After the chroot, install SysV and you can optionally purge systemd
+according to [[http://without-systemd.org/wiki/index.php/How_to_remove_systemd_from_a_Debian_jessie/sid_installation][info]]. Edit /etc/fstab to match your system and install
+kernel and headers
 
 : apt-get install linux-image-amd64 linux-headers-3.16.0-4-all-amd64
 
 which also fetches the free firmware. I also added a networking
 interface and the openssh software so I can configure remotely.  Now
-we are at 270-odd packages.  Also add users/groups in the new
-partition so you can login.
+we are at 270-odd packages (a minimal Debian is easily 1GB and with X
+2GB).  Also add users/groups in the new partition so you can login.
 
-Install grub2 on the boot partition
+Install grub2 on the boot partition, typically
 
 #+begin_src sh
 apt-get install grub2
@@ -68,8 +72,17 @@ update-grub2
 grub-install /dev/sda
 #+end_src
 
-and reboot (boot with grub console if the menu is not up to date). At
-850Gb installed it is still a surprising amount of software!
+and reboot. Recently I also installed an Intel NUC this way. To get it
+booting a [[https://arstechnica.com/gadgets/2014/02/linux-on-the-nuc-using-ubuntu-mint-fedora-and-the-steamos-beta/][few extra steps]] were required booting the kernel from
+grub-efi and following https://wiki.debian.org/GrubEFIReinstall. Note
+with the Debian installer you can *both* chroot in console to update
+grub-efi and remote ssh login from the rescue part of the installer
+(very nice if you use a non-standard keyboard layout). Don't forget to
+rename grubx64.efi to bootx64.efi and add the grub menu:
+
+: grub-mkconfig -o /boot/grub/grub.cfg
+: grub-install --boot-directory=/boot /dev/nvme0(n1)
+
 
 * Copy GNU Guix
 
@@ -79,7 +92,8 @@ that because it does not interfere with anything else. Simple way is
 to copy all files in /gnu/store, /var/guix and the .guix-profile
 directory in your home dir (note that the proper way to do this is via
 guix archive).  The store on my running laptop is 12Gb in size. It
-probably is a good idea to reserve at least 20GB.
+probably is a good idea to reserve at least 20GB, the larger the
+better.
 
 You may need to set the key and update guix according to [[https://github.com/pjotrp/guix-notes/blob/master/INSTALL.org#binary-installation][guix-notes]].
 
@@ -91,8 +105,8 @@ There is no smoother way to move from one machine to another.
 * Start replacing services
 ** Running services
 
-On my bare system only the following services are running (outside
-kernel stuff):
+On my freshly installed bare system only the following services are
+running (outside kernel stuff):
 
 #+begin_src sh
 ps xau|grep bin
@@ -110,7 +124,7 @@ root      2457  0.0  0.0  20312  3352 pts/3    Ss   00:58   0:00 /bin/bash
 root      2458  0.0  0.0  33872  4008 pts/3    S+   00:58   0:00 /home/pjotr/.guix-profile/bin/guix-daemon --build-users-group=guixbuild
 #+end_src
 
-Nice and minimalistic.
+Nice and minimalistic!
 
 ** Wifi
 
@@ -143,79 +157,24 @@ The last two lines can go into the startup script.
 Note that this is the barebones way of running wifi and may not be
 good enough with more complicated setups, such as eduroam (easily
 handled using networkmanager). Here is one [[https://www.wireless.bris.ac.uk/eduroam/instructions/go-wpasup/][example]] using
-wpa_supplicant which includes:
+wpa_supplicant, and here is the one I am using today:
 
 #+begin_src js
+ctrl_interface=/var/run/wpa_supplicant
+eapol_version=1
+ap_scan=1
+fast_reauth=1
+
 network={
-	# --- MUST CONFIGURE THE FOLLOWING THREE OPTIONS --
-
-	# The 'identity' is the username actually used for authentication.
-	# This must be your Bristol username, all lowercase.
-        identity="ab12345"
-
-	# Your normal Bristol password (so make sure the permissions on
-	# your wpa_supplicant config file are not world readable!)
-        password="myUOBpassword"
-
-	# CA cert from here:
-	# https://www.wireless.bris.ac.uk/certs/eaproot/uob-net-ca.crt
-	# Change the path to where you downloaded the file
-        ca_cert="/etc/certs/uob-net-ca.crt"
-
-	# --- ONLY CHANGE BELOW IF YOU ARE NOT A MEMBER --
-	# --- OF THE UNIVERSITY OF BRISTOL, UK          --
-
-	# Bristol supports PEAP and TTLS.
-        eap=PEAP TTLS
-
-	# The 'anonymous_identity' is the identity used for routing
-	# the authentication to Bristol. It must end with '@bris.ac.uk'
-	# or '@bristol.ac.uk'. It must be all lowercase. If you have
-	# anything preceding the @ it must be all lowercase letters or
-	# a hyphen (no spaces, punctuation etc)
-	# e.g. "wireless-user@bristol.ac.uk" would be ok
-        anonymous_identity="nobody@bristol.ac.uk"
-
-	# Bristol use MS-CHAPv2 as the inner authentication scheme,
-	# with the traditional label
-	phase1="peaplabel=0"
-	phase2="auth=MSCHAPV2"
-
-	# Set priority to a big number
-	priority=999
-
-	# --- DONT CHANGE THE REST OF THIS BLOCK --
-
-	# Enable this network block
-	disabled=0
-
-	# eduroam please
         ssid="eduroam"
-
-	# SSID should be broadcast, so don't scan.
-	scan_ssid=0
-
-	# Infrastructure mode
-	mode=0
-
-	# WPA/WPA2 require OPEN
-	auth_alg=OPEN
-
-	# WPA and WPA2 (RSN) are both used for eduroam
-	# (depending on which organisation you are at)
-	# In the future 'WPA' can be removed (WPA2 only).
-	proto=WPA RSN
-
-	# CCMP (AES) is stronger, but some organisations use TKIP.
-	# In the future 'TKIP' can be removed.
-	pairwise=CCMP TKIP
-
-	# Use EAP
-        key_mgmt=WPA-EAP
-
-	# Use PMKSA caching
-        proactive_key_caching=1
-
+        key_mgmt=IEEE8021X WPA-NONE WPA-EAP
+        eap=PEAP
+        identity="pjort@university.edu"
+        password="*****"
+        #ca_cert="/location/of/cert" # This might not be required.
+        phase2="auth=MSCHAPV2"
+        priority=2
+        auth_alg=OPEN
 }
 #+end_src
 
