@@ -602,8 +602,24 @@ full thing becomes (with some additional tools I use)
 #+end_src sh   :lang bash
 
 Note: hydra can be slow when many people are using it. The download
-should become faster in the near future (it is designed for scalability and
-GNU Guix is getting new hardware).
+should become faster in the near future (it is designed for
+scalability and GNU Guix is getting new hardware). You can also use
+your own caching server as described in [[REPRODUCIBLE.org]], so it becomes
+
+#+begin_src sh   :lang bash
+   mkdir $HOME/opt
+   guix package -p $HOME/opt/guix-build-system --substitute-urls=http://caching-server \
+      --no-grafts --install autoconf \
+      automake bzip2 gcc-toolchain gettext guile libgcrypt \
+      pkg-config sqlite m4 make grep sed texinfo graphviz bash \
+      help2man binutils coreutils xz tar findutils gawk git less \
+      time which diffutils vim help2man
+   export PATH=$HOME/opt/guix-build-system/bin:$PATH
+   guix package -p ~/opt/guix-build-system --search-paths
+#+end_src sh   :lang bash
+
+Note that the --no-grafts should align with that of your caching
+server.
 
 ***  Set the Guix environment variables
 

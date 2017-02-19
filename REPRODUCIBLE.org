@@ -264,7 +264,25 @@ which can probably be simplified.  Start nginx with something like
 
 The guix substitute server is not very helpful giving messages - i.e.,
 it fails silently to comply if an authorization key is missing, or if
-you pass in a wrong URL.
+you pass in a wrong URL. Best is to test the URL, e.g.
+
+: curl http://guix.mycachingserver.org
+: Resource not found: /
+
+Next, look at the output of guix publish when querying. It should show
+
+: GET /nar/vxdm2dqckv3yvwihr4hs6f886v6104az-zlib-1.2.8
+: GET /nar/601j6j3fa9nf37vyzy8adcaxcfddw4m1-libsm-1.2.2
+
+Typical things to go wrong are:
+
+1. Webserver not visible
+2. Key not working
+3. Package tree differs
+4. Packages created with or without --no-grafts option
+
+It is advisable to use the same versions of guix and guix-daemon at
+the same time.
 
 * Source reproducible graphs (still a proposal)
 
