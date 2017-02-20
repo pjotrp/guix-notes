@@ -700,7 +700,9 @@ which builds on my machine in
 : user    3m35.616s
 : sys     0m1.624s
 
-Those cores get used well!
+Those cores get used well! When you got to this point you can always
+rebuild the Guix tools from the git checkout of the master branch. All
+you need to do is (re)use the tools installed in ~/opt/guix-build-system/.
 
 *** Troubleshooting
 
@@ -715,12 +717,13 @@ suggests! Maybe check
 
 : set|grep guix
 
-should show the same environment.
+which should show the same environment.
 
 *** And run it
 
-You may want to avoid "make install" since it will probably install the guix
-binaries in /usr and you can run it in the source dir with
+You may want to avoid "make install" since it will probably install
+the guix binaries in /usr and you want to run it in the source dir
+with ./pre-inst-env, e.g.,
 
 #+begin_src sh   :lang bash
     ./pre-inst-env guix package -A ruby
@@ -732,8 +735,9 @@ binaries in /usr and you can run it in the source dir with
       (... 137 more gems as per Feb 2016 ...)
 #+end_src sh   :lang bash
 
-At this point check whether the database path (localstatedir) was correct by checking
-what packages it can find and what packages you have installed with
+At this point check whether the database path (localstatedir) was
+correct by checking what packages it can find and what packages you
+have installed with
 
 #+begin_src sh   :lang bash
     ./pre-inst-env guix package -I
