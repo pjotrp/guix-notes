@@ -1,0 +1,183 @@
+* On Channels
+
+Related to debbugs [[https://debbugs.gnu.org/cgi/bugreport.cgi?bug=22629][Towards a new 'guix pull']] and [[https://debbugs.gnu.org/cgi/bugreport.cgi?bug=22883#103][Trustable "guix
+pull"]]. Also bugs in 'guix pull' can be [[https://debbugs.gnu.org/cgi/bugreport.cgi?bug=25775][nasty]].
+
+** Updating package definitions through channels
+
+*** Introduction
+
+The main purpose of creating Guix channels is to allow users to use
+different versions of the Guix package tree that differ from the
+master branch, i.e., have people share packages with each other that
+are not in the GNU Guix distribution itself.
+
+Within Guix there are good reasons to handle such cases. For example,
+to support an older package, such as, ruby 1.8.7 (currently in the
+master tree, but could be removed), and to have different editions of
+combinations of packages. This versioning we currently achieve by
+explicitely working from git checkouts of trees - not trivial for
+everyone. Channels will just make versioning easier and accessible for
+everyone.
+
+Outside Guix, channels can support also different combinations of
+packages, e.g., such as for easily deploying different versions of the
+GeneNetwork webservice (development/staging/testing/production
+branches). Channels will also make it possible to switch testing off
+in certain packages, for example, or to distribute data packages that
+do not belong or are not wanted in GNU Guix.
+
+In short, channels allow for easy specialization of deployments.
+
+Also, channels and 'guix publish' distributed services can go hand in
+hand in providing such specializations.
+
+*** Usage
+
+Proposed syntax for adding a channel
+
+  guix channel add channel-name URI branch
+
+Examples
+
+  guix channel add guix-stable git://git.sv.gnu.org/guix.git stable
+  guix channel add guix-master git://git.sv.gnu.org/guix.git master
+  guix channel add ruby-1.8.7 git:URI/my-ruby-repo.git ruby-1.8.7
+  guix channel add genenetwork-development git:URI/genenetwork-staging.git development
+  guix channel add genenetwork-staging git:URI/genenetwork-staging.git staging
+
+To keep things simple I propose a channel simply reflects a fixed
+version of a git tree of a Guix package list. I.e., the exact *state*
+of the combined list of packages is what we support in a channel. The
+git checkout can be stored in something like
+
+  ~/.guix-channels/ruby-1.8.7/...
+
+There will only be one directory for one channel. Channels are not
+shared between users so they can go somewhere in $HOME.
+
+To get to a certain state, or update a channel, we should allow for
+tree updating based on a git SHA value, a tag or just the HEAD. Many
+channels will go by HEAD, but it is unwanted because a tree may be in
+an unstable and even unusable state. Especially for Guix itself we
+should not be using HEAD - the current default with a 'guix pull'.
+Ideally 'guix pull' should be tried by core developers before giving
+it to everyone. I think we can figure out the last tagged release and
+have that as a default rather than HEAD. When someone wants HEAD it
+should be explicit. So to get the actual HEAD the syntax can be:
+
+  guix channel update guix-master origin/HEAD
+
+To get to a specific SHA value on origin
+
+  guix channel update guix-master 9cf265449f88f89c900e510fe29baba26f30159b
+
+To get a named tagged release
+
+  guix channel update guix-master v0.12.0-8
+
+To get the latest tagged release (default behaviour)
+
+  guix channel update guix-master
+
+To switch channels for use
+
+  guix channel set guix-master
+
+When a channel gets updated I think we ought to check it out fully
+from scratch by default. Reason being that we can't deal with
+conflicts and maybe changed upstream trees - git also allows rewriting
+history and that can be nasty. If some person feels confident, we
+could still add a switch
+
+  guix channel update guix-master --pull
+
+or
+
+  guix channel update guix-master --checkout v0.12.0-8
+
+which would do what you expect it to do.
+
+Obviously all this behaviour reflects the way git behaves. I think it
+is fine because if we start adding other transports (say https,
+mercurial or darcs) it would be clear from the channel URI what it was
+and we can change the commands.
+
+** Channel metadata
+
+The channel should describe its purpose and set certain prerequisites,
+such as a description and the version of guile it requires. This can
+be added as a channel-meta.scm file in the root of the source tree in
+git. It could also point to one or more 'guix publish' servers.
+
+** Compiling the package tree
+
+So far, we have only discussed the package tree. To compile it we need
+guile. One thing the current 'guix pull' does is compile guile to
+compile the tree. This behaviour does not make use of substitute
+servers, takes time and is somewhat error prone. I think what we
+should do is reuse a guile already on the system or install it as a
+binary using a substitute server and then compile the packages.
+
+** Updating guix and guix-daemon
+
+Now we come to updating guix and guix-daemon itself. I think that this
+functionality does not belong in channel. Not least because not all
+users have the privileges to restart the daemon.
+
+To update guix essentially one will add a relevant channel, update the
+channel to point and install guix from that package tree using 'guix
+package'.
+
+It can be that the currently running guix tools, for some reason, can
+not support a package tree. To notify that, I suggest we use that same
+meta data in the channel tree. The metadata can tell what version of
+guix and guix-daemon should be used (say >=0.11.0) and advise the user
+and system administrator.
+
+** Guix pull
+
+Where channels take the role of giving state to the package tree, a
+new 'guix pull' could have the task of *upgrading* guix and the guix
+daemon to latest. As stated above the package tree should not move to
+^HEAD, but instead to the latest tagged release (which can happen more
+often then we are doing today - say on a weekly basis). Starting from
+an approved Guix version 'guix pull' could build/download the guix
+package itself and suggest updating the daemon to latest.
+
+** Security and trusted channels
+
+Guix has a security mechanism for its substitute servers, i.e., you
+need to install a key to trust a 'guix publish' server. For channels
+using git the model is to use git trees which is open to security
+concerns. To introduce the concept of trusted channels we can use the
+same 'guix publish' servers which can also provide the binary
+substitutes for a channel. In fact, I think secure channels should be
+the default, and we should be able to install packages using such a
+server, after switching to a channel, with
+
+  guix channel set genenetwork-staging
+  guix package -i genenetwork2 --substitute-urls=https://guix.genenetwork.org
+
+which would validate the URL of the channel (a git URI) with the
+substitute server, i.e., guix, by default, will only install channels
+that are known by the publish/substitute server.
+
+Even so, we have to allow for convenience and the fact that not
+everyone wants to run a 'guix publish' server. To install an insecure
+channel we should allow
+
+  guix channel set genenetwork-staging
+  guix package -i genenetwork2 --force-untrusted
+
+which bypasses the 'trusted' mechanism of asking permission from the
+substitute server.
+
+To take the trusted model further, the 'guix publish' server could
+also serve SHA values of the channel git trees. I.e., if a user requests
+
+  guix channel update guix-master v0.12.0-8
+
+the server could say that tagged release v0.12.0-8 can be checked out
+and the SHA values should be such and such. This would give full
+security for guix-master checkouts.
