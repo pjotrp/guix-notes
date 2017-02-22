@@ -36,22 +36,22 @@ hand in providing such specializations.
 
 Proposed syntax for adding a channel
 
-  guix channel add channel-name URI branch
+:  guix channel add channel-name URI branch
 
 Examples
 
-  guix channel add guix-stable git://git.sv.gnu.org/guix.git stable
-  guix channel add guix-master git://git.sv.gnu.org/guix.git master
-  guix channel add ruby-1.8.7 git:URI/my-ruby-repo.git ruby-1.8.7
-  guix channel add genenetwork-development git:URI/genenetwork-staging.git development
-  guix channel add genenetwork-staging git:URI/genenetwork-staging.git staging
+:  guix channel add guix-stable git://git.sv.gnu.org/guix.git stable
+:  guix channel add guix-master git://git.sv.gnu.org/guix.git master
+:  guix channel add ruby-1.8.7 git:URI/my-ruby-repo.git ruby-1.8.7
+:  guix channel add genenetwork-development git:URI/genenetwork-staging.git development
+:  guix channel add genenetwork-staging git:URI/genenetwork-staging.git staging
 
 To keep things simple I propose a channel simply reflects a fixed
 version of a git tree of a Guix package list. I.e., the exact *state*
 of the combined list of packages is what we support in a channel. The
 git checkout can be stored in something like
 
-  ~/.guix-channels/ruby-1.8.7/...
+:  ~/.guix-channels/ruby-1.8.7/...
 
 There will only be one directory for one channel. Channels are not
 shared between users so they can go somewhere in $HOME.
@@ -66,23 +66,23 @@ it to everyone. I think we can figure out the last tagged release and
 have that as a default rather than HEAD. When someone wants HEAD it
 should be explicit. So to get the actual HEAD the syntax can be:
 
-  guix channel update guix-master origin/HEAD
+:  guix channel update guix-master origin/HEAD
 
 To get to a specific SHA value on origin
 
-  guix channel update guix-master 9cf265449f88f89c900e510fe29baba26f30159b
+:  guix channel update guix-master 9cf265449f88f89c900e510fe29baba26f30159b
 
 To get a named tagged release
 
-  guix channel update guix-master v0.12.0-8
+:  guix channel update guix-master v0.12.0-8
 
 To get the latest tagged release (default behaviour)
 
-  guix channel update guix-master
+:  guix channel update guix-master
 
 To switch channels for use
 
-  guix channel set guix-master
+:  guix channel set guix-master
 
 When a channel gets updated I think we ought to check it out fully
 from scratch by default. Reason being that we can't deal with
@@ -90,11 +90,11 @@ conflicts and maybe changed upstream trees - git also allows rewriting
 history and that can be nasty. If some person feels confident, we
 could still add a switch
 
-  guix channel update guix-master --pull
+:  guix channel update guix-master --pull
 
 or
 
-  guix channel update guix-master --checkout v0.12.0-8
+:  guix channel update guix-master --checkout v0.12.0-8
 
 which would do what you expect it to do.
 
@@ -156,8 +156,8 @@ substitutes for a channel. In fact, I think secure channels should be
 the default, and we should be able to install packages using such a
 server, after switching to a channel, with
 
-  guix channel set genenetwork-staging
-  guix package -i genenetwork2 --substitute-urls=https://guix.genenetwork.org
+:  guix channel set genenetwork-staging
+:  guix package -i genenetwork2 --substitute-urls=https://guix.genenetwork.org
 
 which would validate the URL of the channel (a git URI) with the
 substitute server, i.e., guix, by default, will only install channels
@@ -167,8 +167,8 @@ Even so, we have to allow for convenience and the fact that not
 everyone wants to run a 'guix publish' server. To install an insecure
 channel we should allow
 
-  guix channel set genenetwork-staging
-  guix package -i genenetwork2 --force-untrusted
+:  guix channel set genenetwork-staging
+:  guix package -i genenetwork2 --force-untrusted
 
 which bypasses the 'trusted' mechanism of asking permission from the
 substitute server.
@@ -176,7 +176,7 @@ substitute server.
 To take the trusted model further, the 'guix publish' server could
 also serve SHA values of the channel git trees. I.e., if a user requests
 
-  guix channel update guix-master v0.12.0-8
+:  guix channel update guix-master v0.12.0-8
 
 the server could say that tagged release v0.12.0-8 can be checked out
 and the SHA values should be such and such. This would give full
