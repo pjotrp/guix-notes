@@ -35,11 +35,9 @@
    - [[#using-gdb-the-debugger-to-find-issues][Using gdb (the debugger) to find issues]]
  - [[#installing-the-package][Installing the package]]
  - [[#using-the-search-path][Using the search path]]
- - [[#making-a-patch-to-submit-to-the-mailing-list][Making a patch to submit to the mailing list]]
+ - [[#making-a-patch-and-submit-to-the-guix-project][Making a patch and submit to the Guix project]]
    - [[#using-the-debbugs-interface][Using the debbugs interface]]
    - [[#the-patch-system][The patch system]]
-   - [[#using-the-mailing-list-obsolete][Using the mailing list (obsolete)]]
-   - [[#mailing-the-patch][Mailing the patch]]
    - [[#using-git-branches][Using git branches]]
    - [[#dealing-with-the-review-process][Dealing with the review process]]
  - [[#workflow-for-packaging][Workflow for packaging]]
@@ -990,22 +988,24 @@ See <http://www.gnu.org/software/guix/manual/html_node/Invoking-guix-package.htm
 And nowadays one can also use --search-paths=suffix or
 --search-paths=prefix, for more flexibility.
 
-* Making a patch to submit to the mailing list
+* Making a patch and submit to the Guix project
 
 ** Using the debbugs interface
 
 Patches are now handled through the GNU debbugs server. A current list
-can be seen at:
-https://debbugs.gnu.org/cgi/pkgreport.cgi?package=guix-patches or
+can be seen at https://debbugs.gnu.org/cgi/pkgreport.cgi?package=guix-patches or
 https://bugs.gnu.org/guix-patches.  A mailing list is attached
-https://lists.gnu.org/mailman/listinfo/guix-patches.
+you can [[https://lists.gnu.org/mailman/listinfo/guix-patches][subscribe]] to.
 
 In emacs (guix package -i emacs-debbugs) the same list can be browsed
-with 'M-x debbugs-gnu-search <RET> guix-patches' or
+with
 
+:   M-x debbugs-gnu-search <RET> guix-patches
+
+ or
 :   C-u M-x debbugs-gnu <RET> <RET> guix-patches <RET> n y
 
-Possibly you need to add this to your .emacs
+Possibly you need to add this to your .emacs configuration
 
 #+begin_src scheme
   (add-to-list 'debbugs-gnu-all-packages "guix-patches")
@@ -1016,9 +1016,7 @@ Use the 'C' key from the emacs interface to tag bugs.
 ** The patch system
 
 A first time patch is submitted by E-mail to guix-patches@gnu.org. Use
-the parameters as described in [[https://www.debian.org/Bugs/Reporting][bug reporting]].  And add the header:
-
-:  Tags: patch
+the parameters as described in [[https://www.debian.org/Bugs/Reporting][bug reporting]].
 
 Each message sent to guix-patches creates a Debbugs entry, as is the
 case with bug-guix.  One can then follow up to NNN@debbugs.gnu.org,
@@ -1032,7 +1030,12 @@ questions about Debbugs, see [[https://debbugs.gnu.org/Advanced.html][this]].
 Check the Guix guidelines [[https://www.gnu.org/software/guix/manual/html_node/Submitting-Patches.html#Submitting-Patches][first]]. Note that submitting patches
 is handled via the debbugs interface now, see above section.
 
-Make sure your terminal and editors are running in UTF-8.
+Make sure your terminal and editors are running in UTF-8.  With vim
+you can force encoding with
+
+: :set bomb
+: :set fileencoding=utf-8
+: :wq
 
 Use 'git rebase --interactive' to merge and [[http://gitready.com/advanced/2009/02/10/squashing-commits-with-rebase.html][squash patches]] into
 one. E.g.,
@@ -1070,6 +1073,7 @@ Which creates a file 0001-gnu-patchname.patch and mail it with something like
 
 : git send-email --from pjotr.guix@mymail.nl --to guix-patches@gnu.org 0001-gnu-patchname.patch
 
+Probably a good idea to try and send the mail to yourself first.
 Don't send the same E-mail twice ;).  You may also need to install
 'guix package -i git:send-email' to get E-mail support.
 
@@ -1102,105 +1106,6 @@ patch -p1 < intermediate.patch
 git commit -a
 #+end_src
 
-and use
-
-
-** Using the mailing list (obsolete)
-
-Check the Guix guidelines [[https://www.gnu.org/software/guix/manual/html_node/Submitting-Patches.html#Submitting-Patches][first]]. Note that submitting patches
-is handled via the debbugs interface now, see above section.
-
-Make sure your terminal and editors are running in UTF8. See locales
-in [[INSTALL.org]].
-
-A patch can be sent to the mailing list. Use git rebase --interactive
-to merge and [[http://gitready.com/advanced/2009/02/10/squashing-commits-with-rebase.html][squash patches]] into one. E.g.,
-
-: git rebase -i HEAD~4
-
-Next use the GNU ChangeLog
-format which is a header with a filewise change description:
-
-#+begin_src scheme
-  gnu: Add Ruby.
-
-  * gnu/packages/ruby.scm (Ruby): New file.
-  * guix/licenses.scm: Add Ruby license information.
-#+end_src
-
-Use git format-patch to send a patch to the mailing list.
-
-You can set up an environment to hack on Guix by entering the clone
-directory and running
-
-#+begin_src scheme
-    guix environment guix
-#+end_src
-
-Then you can just run make to see if everything builds fine.  If it
-does, make a commit with an appropriate commit message, e.g. by using
-git rebase (see the guix manual) or by creating a diff between
-branches (useful when there are conflicts etc.)
-
-#+begin_src bash
-git diff master > intermediate.patch
-git checkout master
-git checkout -b submit_branch
-patch -p1 < intermediate.patch
-git commit -a
-#+end_src
-
-and use
-
-#+begin_src bash
-    git format-patch -1
-#+end_src
-
-to generate a patch file, which you can then send to the Guix-devel
-mailing list (guix-devel@gnu.org). To generate the last 2 patches use -2.
-
-To change the last commit message do
-
-: git commit --amend
-
-Which creates a file 0001-gnu-patchname.patch.
-
-Make sure tabs are turned into spaces. The emacs commands are
-[[http://www.emacswiki.org/emacs/NoTabs][here]]. Lines should be broken (use M-q in emacs). And use the Emacs TAB
-in guix-prettify-mode to find the right LISP indendation.
-
-To change credentials for the patch use the [[https://help.github.com/articles/setting-your-email-in-git/][git config]] command.
-
-** Mailing the patch
-
-Sending patches can be done from the comforts of emacs. But sometimes
-it is easier over the command line. E.g.,
-
-#+begin_src bash
-cat 0001-*.patch |formail -t -I "To: guix-devel@gnu.org" \
-   -I "From: Pjotr Prins <my@email>" \
-   -I "In-Reply-To: <20160213102825.GA19194@debian>" > mail.patch
-cat mail.patch|formail -s mail -t ; rm mail.patch
-#+end_src bash
-
-after making sure the header contains something like
-
-: From: Pjotr Prins <my.email>
-: To: guix-devel <guix-devel@gnu.org>
-: Subject: [PATCH]     gnu: Add ruby-libxml.
-:
-:    * gnu/packages/ruby.scm (ruby-libxml): New variable.
-: ---
-: etc.
-
-Check the file encoding - it should be UTF8. With vim you can force
-encoding with
-
-: :set bomb
-: :set fileencoding=utf-8
-: :wq
-
-Probably a good idea to try and send the mail to yourself first.
 
 Note that the GNU Guix developers want one patch per variable. So
 submit packages one at a time.
