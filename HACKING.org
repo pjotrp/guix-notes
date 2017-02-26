@@ -989,7 +989,6 @@ And nowadays one can also use --search-paths=suffix or
 --search-paths=prefix, for more flexibility.
 
 * Making a patch and submit to the Guix project
-
 ** Using the debbugs interface
 
 Patches are now handled through the GNU debbugs server. A current list
@@ -1011,7 +1010,8 @@ Possibly you need to add this to your .emacs configuration
   (add-to-list 'debbugs-gnu-all-packages "guix-patches")
 #+end_src
 
-Use the 'C' key from the emacs interface to tag bugs.
+In debbugs mode hit '?' for key-bindings.  Use the 'C' key from the
+emacs interface to tag bugs.
 
 ** The patch system
 
@@ -1029,6 +1029,12 @@ questions about Debbugs, see [[https://debbugs.gnu.org/Advanced.html][this]].
 
 Check the Guix guidelines [[https://www.gnu.org/software/guix/manual/html_node/Submitting-Patches.html#Submitting-Patches][first]]. Note that submitting patches
 is handled via the debbugs interface now, see above section.
+
+To avoid conflictes, before you start, ascertain the Guix tree is at
+HEAD
+
+: git pull guix master
+: git log
 
 Make sure your terminal and editors are running in UTF-8.  With vim
 you can force encoding with
@@ -1069,20 +1075,29 @@ Create the patch
 
 : git format-patch -1 --to guix-patches@gnu.org
 
+Before sending the patch(es) out, make sure tabs are turned into
+spaces. The emacs commands are [[http://www.emacswiki.org/emacs/NoTabs][here]]. Lines should be broken (use M-q
+in emacs). And use the Emacs TAB in guix-prettify-mode to find the
+right LISP indendation.
+
 Which creates a file 0001-gnu-patchname.patch and mail it with something like
 
-: git send-email --from pjotr.guix@mymail.nl --to guix-patches@gnu.org 0001-gnu-patchname.patch
+: git send-email --from "Pjotr Prins <pjotr.guix@mymail.nl>" --to guix-patches@gnu.org 0001-gnu-patchname.patch
 
-Probably a good idea to try and send the mail to yourself first.
-Don't send the same E-mail twice ;).  You may also need to install
-'guix package -i git:send-email' to get E-mail support.
+You may also need to install 'guix package -i git:send-email' to get
+E-mail support.
 
-Before sending, make sure tabs are turned into spaces. The emacs
-commands are [[http://www.emacswiki.org/emacs/NoTabs][here]]. Lines should be broken (use M-q in emacs). And use
-the Emacs TAB in guix-prettify-mode to find the right LISP
-indendation.
+Multiple patches can be passed in. Probably a good idea to try and
+send the mail to yourself first.  Don't send the same E-mail twice ;).
 
-To change credentials for the patch use the [[https://help.github.com/articles/setting-your-email-in-git/][git config]] command.
+To change credentials for the patch use [[https://help.github.com/articles/setting-your-email-in-git/][git config]].
+
+*** Once a debbugs entry exists
+
+You can simply reply to the patch with the bug number in the header. So,
+to resubmit a revised patch with bug number 25704
+
+: git send-email --from "Pjotr Prins <pjotr.guix@mymail.nl>" --to 25704@debbugs.gnu.org 0001-gnu-patchname.patch
 
 *** Environment
 
