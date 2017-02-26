@@ -35,6 +35,7 @@
  - [[#trouble-shooting][Trouble shooting]]
    - [[#failed-to-connect-to-daemon][Failed to connect to daemon]]
    - [[#error-build-failed-substituter-substitute-died-unexpectedly][error: build failed: substituter `substitute' died unexpectedly]]
+   - [[#packagesscm-error][packages.scm error]]
 
 * Introduction
 
@@ -862,3 +863,17 @@ to install a latest guix
 : ./pre-inst-env guix package -i guix
 
 so you can recover from that later.
+
+** packages.scm error
+
+This error means you have to upgrade the guix daemon:
+
+: guix/packages.scm:871:27: In procedure thunk:
+: guix/packages.scm:871:27: In procedure struct_vtable: Wrong type argument in position 1 (expecting struct): #f
+
+In this case you may need the --no-grafts switch. See also the
+procedure described in bug#25775: Can't install packages after guix
+pull.
+
+When you run into unexplainable errors upgrading the guix daemon is a
+good thing to try anyway.

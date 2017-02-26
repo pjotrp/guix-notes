@@ -36,10 +36,15 @@
  - [[#installing-the-package][Installing the package]]
  - [[#using-the-search-path][Using the search path]]
  - [[#making-a-patch-to-submit-to-the-mailing-list][Making a patch to submit to the mailing list]]
-   - [[#mail-the-patch][Mail the patch]]
+   - [[#using-the-debbugs-interface][Using the debbugs interface]]
+   - [[#the-patch-system][The patch system]]
+   - [[#using-the-mailing-list-obsolete][Using the mailing list (obsolete)]]
+   - [[#mailing-the-patch][Mailing the patch]]
    - [[#using-git-branches][Using git branches]]
    - [[#dealing-with-the-review-process][Dealing with the review process]]
  - [[#workflow-for-packaging][Workflow for packaging]]
+ - [[#hacking-tips][Hacking tips]]
+   - [[#the-guile-write-function][The guile write function]]
  - [[#hints][Hints]]
    - [[#using-emacs][Using emacs]]
    - [[#filing-a-bug][Filing a bug]]
@@ -987,7 +992,123 @@ And nowadays one can also use --search-paths=suffix or
 
 * Making a patch to submit to the mailing list
 
-Check the Guix guidelines [[https://www.gnu.org/software/guix/manual/html_node/Submitting-Patches.html#Submitting-Patches][first]].
+** Using the debbugs interface
+
+Patches are now handled through the GNU debbugs server. A current list
+can be seen at:
+https://debbugs.gnu.org/cgi/pkgreport.cgi?package=guix-patches or
+https://bugs.gnu.org/guix-patches.  A mailing list is attached
+https://lists.gnu.org/mailman/listinfo/guix-patches.
+
+In emacs (guix package -i emacs-debbugs) the same list can be browsed
+with 'M-x debbugs-gnu-search <RET> guix-patches' or
+
+:   C-u M-x debbugs-gnu <RET> <RET> guix-patches <RET> n y
+
+Possibly you need to add this to your .emacs
+
+#+begin_src scheme
+  (add-to-list 'debbugs-gnu-all-packages "guix-patches")
+#+end_src
+
+Use the 'C' key from the emacs interface to tag bugs.
+
+** The patch system
+
+A first time patch is submitted by E-mail to guix-patches@gnu.org. Use
+the parameters as described in [[https://www.debian.org/Bugs/Reporting][bug reporting]].  And add the header:
+
+:  Tags: patch
+
+Each message sent to guix-patches creates a Debbugs entry, as is the
+case with bug-guix.  One can then follow up to NNN@debbugs.gnu.org,
+where NNN is the bug number.
+
+For patch series, please read [[https://debbugs.gnu.org/15361][Glenn’s suggestions]].  For general
+questions about Debbugs, see [[https://debbugs.gnu.org/Advanced.html][this]].
+
+*** Creating a patch
+
+Check the Guix guidelines [[https://www.gnu.org/software/guix/manual/html_node/Submitting-Patches.html#Submitting-Patches][first]]. Note that submitting patches
+is handled via the debbugs interface now, see above section.
+
+Make sure your terminal and editors are running in UTF-8.
+
+Use 'git rebase --interactive' to merge and [[http://gitready.com/advanced/2009/02/10/squashing-commits-with-rebase.html][squash patches]] into
+one. E.g.,
+
+: git rebase -i HEAD~4
+
+This can be done with emacs magit.  Next use the GNU ChangeLog format
+which is a header with a filewise change description, for example
+
+#+begin_src scheme
+  gnu: Add Ruby.
+
+  * gnu/packages/ruby.scm (Ruby): New file.
+  * guix/licenses.scm: Add Ruby license information.
+#+end_src
+
+To change the last commit message do
+
+: git commit --amend
+
+Use git format-patch to send a patch to the mailing list.
+
+#+begin_src bash
+    git format-patch -1
+#+end_src
+
+to generate a patch file, which you can then send to the Guix debbugs
+(guix-patches@gnu.org). Note: to generate the last 2 patches use -2.
+
+Create the patch
+
+: git format-patch -1 --to guix-patches@gnu.org
+
+Which creates a file 0001-gnu-patchname.patch and mail it with something like
+
+: git send-email --from pjotr.guix@mymail.nl --to guix-patches@gnu.org 0001-gnu-patchname.patch
+
+Don't send the same E-mail twice ;).  You may also need to install
+'guix package -i git:send-email' to get E-mail support.
+
+Before sending, make sure tabs are turned into spaces. The emacs
+commands are [[http://www.emacswiki.org/emacs/NoTabs][here]]. Lines should be broken (use M-q in emacs). And use
+the Emacs TAB in guix-prettify-mode to find the right LISP
+indendation.
+
+To change credentials for the patch use the [[https://help.github.com/articles/setting-your-email-in-git/][git config]] command.
+
+*** Environment
+
+You can set up an environment to hack on Guix by entering the clone
+directory and running
+
+#+begin_src scheme
+    guix environment guix
+#+end_src
+
+Then you can just run make to see if everything builds fine.  If it
+does, make a commit with an appropriate commit message, e.g. by using
+git rebase (see the guix manual) or by creating a diff between
+branches (useful when there are conflicts etc.)
+
+#+begin_src bash
+git diff master > intermediate.patch
+git checkout master
+git checkout -b submit_branch
+patch -p1 < intermediate.patch
+git commit -a
+#+end_src
+
+and use
+
+
+** Using the mailing list (obsolete)
+
+Check the Guix guidelines [[https://www.gnu.org/software/guix/manual/html_node/Submitting-Patches.html#Submitting-Patches][first]]. Note that submitting patches
+is handled via the debbugs interface now, see above section.
 
 Make sure your terminal and editors are running in UTF8. See locales
 in [[INSTALL.org]].
@@ -1046,15 +1167,14 @@ Which creates a file 0001-gnu-patchname.patch.
 
 Make sure tabs are turned into spaces. The emacs commands are
 [[http://www.emacswiki.org/emacs/NoTabs][here]]. Lines should be broken (use M-q in emacs). And use the Emacs TAB
-to find the right LISP indendation.
+in guix-prettify-mode to find the right LISP indendation.
 
 To change credentials for the patch use the [[https://help.github.com/articles/setting-your-email-in-git/][git config]] command.
 
-** Mail the patch
+** Mailing the patch
 
-Initially you can mail the patch as an attachment to the mailing
-list. But better is to mail it as it is with something like (I use two steps
-to validate the mail and send it from a different mail server)
+Sending patches can be done from the comforts of emacs. But sometimes
+it is easier over the command line. E.g.,
 
 #+begin_src bash
 cat 0001-*.patch |formail -t -I "To: guix-devel@gnu.org" \
@@ -1108,23 +1228,14 @@ Squash the commits into one
 
 When you write many patches that potentially depend on each other and
 the review system get choked (the reviewers can't allways keep up) I
-resort to a system where I develop patches in a separate source
-repository. The patches I feed to the reviewers one at a time, so that
-only when a patch gets accepted (or fully rejected) I send in the next
-one. This is the most relaxed way of dealing with the GNU Guix patch
-submission protocol. Remember that reviewers are people who put in
-their spare time to to make sure GNU Guix is great. It can be annoying
-when you disagree with a reviewer, but stay calm, be nice and try to
-discuss the underlying issue. One example is the R-qtl thread.
+resort to a system where I develop patches in a separate branch or
+even source repository.
 
-One great advantage of handling one patch at a time is that it is much
-easier to keep track with git and the mailing list. And because I have
-a separate git tree, I can still use my own patches. For the separate
-tree is makes sense to use a different name space (not the gnu
-directory) and give the packages different names too - so that when
-you overlap with the GNU Guix package tree there is no packaging
-conflict. With the GeneNetwork tree we use the gn directory and
-prepend package names with gn- so r-qtl becomes gn-r-qtl.
+If you are using GUIX_PACKAGE_PATH for the separate tree is makes
+sense to use a different name space (not the gnu directory) and give
+the packages different names too - so that when you overlap with the
+GNU Guix package tree there is no name conflict. With the GeneNetwork
+tree we use the gn/packages path (so modules are in the gn namespace).
 
 * Workflow for packaging
 
@@ -1142,10 +1253,9 @@ labours will get rewarded. So, how to start?
 4. If tests are there, make sure they pass
 5. Test your work with 'guix lint'
 6. Create a patch as described above
-7. Send it to the mailing list as described above
+7. Send it to debbugs as described above
 8. Submit one patch at a time and submit the next one when it goes in
-9. Be patient, review can take a while - if it is a trivial patch
-   monitor the git log
+9. Be patient, review can take a while - monitor debbugs
 
 With small problems the reviewers will often modify the patch for you.
 Larger problems you need to fix yourself. See it as a learning
@@ -1155,6 +1265,12 @@ Note: sometimes I use an older GNU Guix tree since it is a work in
 progress and the master may fail for whatever reason. Simply use git
 cherry-pick to update a single module and it should still work to
 submit a patch.
+
+* Hacking tips
+** The guile write function
+
+Guile has a 'write' function which writes to stdout by default. This
+can be very useful to generate output on package install.
 
 * Hints
 
