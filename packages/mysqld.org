@@ -1,0 +1,21 @@
+* MySQL on GNU Guix
+
+Getting MySQL up and running with a GNU Guix package is fairly
+trivial, mostly because MySQL provides initialization and decent
+error messages.
+
+The short of it is:
+
+Install mysql
+
+: guix package -i mysql
+
+First create a mysql user and group and start mysqld from Guix as the
+mysql user where the loc
+
+: mkdir /run/mysql
+: chown mysql.mysql /run/mysql
+: mkdir /var/mysql
+: chown mysql.mysql /var/mysql
+: su mysql
+: ~/.guix-profile/bin/mysqld -h /var/mysql
