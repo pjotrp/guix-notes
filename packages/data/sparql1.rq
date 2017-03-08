@@ -1,0 +1,5 @@
+SELECT ?id
+WHERE
+{
+  ?id   <http://biobeat.org/rdf/ns#chr>    "X".
+}

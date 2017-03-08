@@ -1,0 +1,1051 @@
+@prefix : <http://biobeat.org/rdf/ns#> .
+:chr1_22848972_C
+  :query_id "chr1_22848972_C";
+  :chr "1" ;
+  :alt "C" ;
+  :pos 22848972 ;
+  :dp 4 .
+:chr1_33133968_C
+  :query_id "chr1_33133968_C";
+  :chr "1" ;
+  :alt "C" ;
+  :pos 33133968 ;
+  :dp 4 .
+:chr1_60466814_C
+  :query_id "chr1_60466814_C";
+  :chr "1" ;
+  :alt "C" ;
+  :pos 60466814 ;
+  :dp 4 .
+:chr1_60466840_T
+  :query_id "chr1_60466840_T";
+  :chr "1" ;
+  :alt "T" ;
+  :pos 60466840 ;
+  :dp 4 .
+:chr1_62516683_C
+  :query_id "chr1_62516683_C";
+  :chr "1" ;
+  :alt "C" ;
+  :pos 62516683 ;
+  :dp 8 .
+:chr1_66058513_G
+  :query_id "chr1_66058513_G";
+  :chr "1" ;
+  :alt "G" ;
+  :pos 66058513 ;
+  :dp 4 .
+:chr1_95709821_C
+  :query_id "chr1_95709821_C";
+  :chr "1" ;
+  :alt "C" ;
+  :pos 95709821 ;
+  :dp 4 .
+:chr1_109806834_T
+  :query_id "chr1_109806834_T";
+  :chr "1" ;
+  :alt "T" ;
+  :pos 109806834 ;
+  :dp 4 .
+:chr1_114354942_G
+  :query_id "chr1_114354942_G";
+  :chr "1" ;
+  :alt "G" ;
+  :pos 114354942 ;
+  :dp 4 .
+:chr1_144873962_C
+  :query_id "chr1_144873962_C";
+  :chr "1" ;
+  :alt "C" ;
+  :pos 144873962 ;
+  :dp 4 .
+:chr1_151733335_G
+  :query_id "chr1_151733335_G";
+  :chr "1" ;
+  :alt "G" ;
+  :pos 151733335 ;
+  :dp 4 .
+:chr1_157516779_T
+  :query_id "chr1_157516779_T";
+  :chr "1" ;
+  :alt "T" ;
+  :pos 157516779 ;
+  :dp 4 .
+:chr1_197479688_A
+  :query_id "chr1_197479688_A";
+  :chr "1" ;
+  :alt "A" ;
+  :pos 197479688 ;
+  :dp 4 .
+:chr1_228005073_T
+  :query_id "chr1_228005073_T";
+  :chr "1" ;
+  :alt "T" ;
+  :pos 228005073 ;
+  :dp 4 .
+:chr1_228465370_G
+  :query_id "chr1_228465370_G";
+  :chr "1" ;
+  :alt "G" ;
+  :pos 228465370 ;
+  :dp 4 .
+:chr1_231488524_T
+  :query_id "chr1_231488524_T";
+  :chr "1" ;
+  :alt "T" ;
+  :pos 231488524 ;
+  :dp 4 .
+:chr1_235505313_AT
+  :query_id "chr1_235505313_AT";
+  :chr "1" ;
+  :alt "AT" ;
+  :pos 235505313 ;
+  :dp 4 .
+:chr1_237951451_G
+  :query_id "chr1_237951451_G";
+  :chr "1" ;
+  :alt "G" ;
+  :pos 237951451 ;
+  :dp 4 .
+:chr2_27682309_T
+  :query_id "chr2_27682309_T";
+  :chr "2" ;
+  :alt "T" ;
+  :pos 27682309 ;
+  :dp 4 .
+:chr2_32667182_C
+  :query_id "chr2_32667182_C";
+  :chr "2" ;
+  :alt "C" ;
+  :pos 32667182 ;
+  :dp 4 .
+:chr2_37406680_G
+  :query_id "chr2_37406680_G";
+  :chr "2" ;
+  :alt "G" ;
+  :pos 37406680 ;
+  :dp 4 .
+:chr2_112705157_C
+  :query_id "chr2_112705157_C";
+  :chr "2" ;
+  :alt "C" ;
+  :pos 112705157 ;
+  :dp 4 .
+:chr2_113513825_C
+  :query_id "chr2_113513825_C";
+  :chr "2" ;
+  :alt "C" ;
+  :pos 113513825 ;
+  :dp 4 .
+:chr2_152403960_A
+  :query_id "chr2_152403960_A";
+  :chr "2" ;
+  :alt "A" ;
+  :pos 152403960 ;
+  :dp 4 .
+:chr2_207998800_T
+  :query_id "chr2_207998800_T";
+  :chr "2" ;
+  :alt "T" ;
+  :pos 207998800 ;
+  :dp 4 .
+:chr3_8667896_C
+  :query_id "chr3_8667896_C";
+  :chr "3" ;
+  :alt "C" ;
+  :pos 8667896 ;
+  :dp 4 .
+:chr3_57368861_C
+  :query_id "chr3_57368861_C";
+  :chr "3" ;
+  :alt "C" ;
+  :pos 57368861 ;
+  :dp 4 .
+:chr3_62478014_A
+  :query_id "chr3_62478014_A";
+  :chr "3" ;
+  :alt "A" ;
+  :pos 62478014 ;
+  :dp 4 .
+:chr3_75787726_A
+  :query_id "chr3_75787726_A";
+  :chr "3" ;
+  :alt "A" ;
+  :pos 75787726 ;
+  :dp 2 .
+:chr3_75787739_T
+  :query_id "chr3_75787739_T";
+  :chr "3" ;
+  :alt "T" ;
+  :pos 75787739 ;
+  :dp 2 .
+:chr3_101484335_A
+  :query_id "chr3_101484335_A";
+  :chr "3" ;
+  :alt "A" ;
+  :pos 101484335 ;
+  :dp 4 .
+:chr3_119434527_C
+  :query_id "chr3_119434527_C";
+  :chr "3" ;
+  :alt "C" ;
+  :pos 119434527 ;
+  :dp 2 .
+:chr3_119434528_A
+  :query_id "chr3_119434528_A";
+  :chr "3" ;
+  :alt "A" ;
+  :pos 119434528 ;
+  :dp 4 .
+:chr3_121168152_T
+  :query_id "chr3_121168152_T";
+  :chr "3" ;
+  :alt "T" ;
+  :pos 121168152 ;
+  :dp 4 .
+:chr3_121822564_T
+  :query_id "chr3_121822564_T";
+  :chr "3" ;
+  :alt "T" ;
+  :pos 121822564 ;
+  :dp 4 .
+:chr3_122437321_C
+  :query_id "chr3_122437321_C";
+  :chr "3" ;
+  :alt "C" ;
+  :pos 122437321 ;
+  :dp 6 .
+:chr3_134225969_C
+  :query_id "chr3_134225969_C";
+  :chr "3" ;
+  :alt "C" ;
+  :pos 134225969 ;
+  :dp 4 .
+:chr3_139244744_C
+  :query_id "chr3_139244744_C";
+  :chr "3" ;
+  :alt "C" ;
+  :pos 139244744 ;
+  :dp 4 .
+:chr4_48037926_G
+  :query_id "chr4_48037926_G";
+  :chr "4" ;
+  :alt "G" ;
+  :pos 48037926 ;
+  :dp 4 .
+:chr4_100572396_C
+  :query_id "chr4_100572396_C";
+  :chr "4" ;
+  :alt "C" ;
+  :pos 100572396 ;
+  :dp 4 .
+:chr5_32400266_G
+  :query_id "chr5_32400266_G";
+  :chr "5" ;
+  :alt "G" ;
+  :pos 32400266 ;
+  :dp 4 .
+:chr5_64070617_AAATTATGAC
+  :query_id "chr5_64070617_AAATTATGAC";
+  :chr "5" ;
+  :alt "AAATTATGAC" ;
+  :pos 64070617 ;
+  :dp 4 .
+:chr5_74442920_G
+  :query_id "chr5_74442920_G";
+  :chr "5" ;
+  :alt "G" ;
+  :pos 74442920 ;
+  :dp 4 .
+:chr5_89990324_G
+  :query_id "chr5_89990324_G";
+  :chr "5" ;
+  :alt "G" ;
+  :pos 89990324 ;
+  :dp 6 .
+:chr5_102894673_C
+  :query_id "chr5_102894673_C";
+  :chr "5" ;
+  :alt "C" ;
+  :pos 102894673 ;
+  :dp 6 .
+:chr5_145519821_A
+  :query_id "chr5_145519821_A";
+  :chr "5" ;
+  :alt "A" ;
+  :pos 145519821 ;
+  :dp 4 .
+:chr5_178139442_G
+  :query_id "chr5_178139442_G";
+  :chr "5" ;
+  :alt "G" ;
+  :pos 178139442 ;
+  :dp 4 .
+:chr5_178996435_G
+  :query_id "chr5_178996435_G";
+  :chr "5" ;
+  :alt "G" ;
+  :pos 178996435 ;
+  :dp 4 .
+:chr6_335175_T
+  :query_id "chr6_335175_T";
+  :chr "6" ;
+  :alt "T" ;
+  :pos 335175 ;
+  :dp 4 .
+:chr6_12122645_G
+  :query_id "chr6_12122645_G";
+  :chr "6" ;
+  :alt "G" ;
+  :pos 12122645 ;
+  :dp 4 .
+:chr6_29407970_C
+  :query_id "chr6_29407970_C";
+  :chr "6" ;
+  :alt "C" ;
+  :pos 29407970 ;
+  :dp 4 .
+:chr6_29523676_G
+  :query_id "chr6_29523676_G";
+  :chr "6" ;
+  :alt "G" ;
+  :pos 29523676 ;
+  :dp 4 .
+:chr6_47649222_G
+  :query_id "chr6_47649222_G";
+  :chr "6" ;
+  :alt "G" ;
+  :pos 47649222 ;
+  :dp 4 .
+:chr6_56417282_T
+  :query_id "chr6_56417282_T";
+  :chr "6" ;
+  :alt "T" ;
+  :pos 56417282 ;
+  :dp 4 .
+:chr6_90448092_T
+  :query_id "chr6_90448092_T";
+  :chr "6" ;
+  :alt "T" ;
+  :pos 90448092 ;
+  :dp 4 .
+:chr6_106992464_G
+  :query_id "chr6_106992464_G";
+  :chr "6" ;
+  :alt "G" ;
+  :pos 106992464 ;
+  :dp 4 .
+:chr6_121632008_A
+  :query_id "chr6_121632008_A";
+  :chr "6" ;
+  :alt "A" ;
+  :pos 121632008 ;
+  :dp 4 .
+:chr6_138754323_G
+  :query_id "chr6_138754323_G";
+  :chr "6" ;
+  :alt "G" ;
+  :pos 138754323 ;
+  :dp 6 .
+:chr6_159188128_G
+  :query_id "chr6_159188128_G";
+  :chr "6" ;
+  :alt "G" ;
+  :pos 159188128 ;
+  :dp 6 .
+:chr6_160962177_T
+  :query_id "chr6_160962177_T";
+  :chr "6" ;
+  :alt "T" ;
+  :pos 160962177 ;
+  :dp 4 .
+:chr7_6370144_A
+  :query_id "chr7_6370144_A";
+  :chr "7" ;
+  :alt "A" ;
+  :pos 6370144 ;
+  :dp 6 .
+:chr7_12376811_C
+  :query_id "chr7_12376811_C";
+  :chr "7" ;
+  :alt "C" ;
+  :pos 12376811 ;
+  :dp 4 .
+:chr7_15584409_T
+  :query_id "chr7_15584409_T";
+  :chr "7" ;
+  :alt "T" ;
+  :pos 15584409 ;
+  :dp 4 .
+:chr7_22202052_A
+  :query_id "chr7_22202052_A";
+  :chr "7" ;
+  :alt "A" ;
+  :pos 22202052 ;
+  :dp 4 .
+:chr7_25266626_A
+  :query_id "chr7_25266626_A";
+  :chr "7" ;
+  :alt "A" ;
+  :pos 25266626 ;
+  :dp 4 .
+:chr7_31617733_C
+  :query_id "chr7_31617733_C";
+  :chr "7" ;
+  :alt "C" ;
+  :pos 31617733 ;
+  :dp 8 .
+:chr7_42976789_G
+  :query_id "chr7_42976789_G";
+  :chr "7" ;
+  :alt "G" ;
+  :pos 42976789 ;
+  :dp 6 .
+:chr7_92762681_G
+  :query_id "chr7_92762681_G";
+  :chr "7" ;
+  :alt "G" ;
+  :pos 92762681 ;
+  :dp 4 .
+:chr7_100551840_A
+  :query_id "chr7_100551840_A";
+  :chr "7" ;
+  :alt "A" ;
+  :pos 100551840 ;
+  :dp 4 .
+:chr7_100551842_T
+  :query_id "chr7_100551842_T";
+  :chr "7" ;
+  :alt "T" ;
+  :pos 100551842 ;
+  :dp 4 .
+:chr7_100551843_C
+  :query_id "chr7_100551843_C";
+  :chr "7" ;
+  :alt "C" ;
+  :pos 100551843 ;
+  :dp 4 .
+:chr7_100551849_T
+  :query_id "chr7_100551849_T";
+  :chr "7" ;
+  :alt "T" ;
+  :pos 100551849 ;
+  :dp 6 .
+:chr7_100552644_A
+  :query_id "chr7_100552644_A";
+  :chr "7" ;
+  :alt "A" ;
+  :pos 100552644 ;
+  :dp 6 .
+:chr7_100552788_T
+  :query_id "chr7_100552788_T";
+  :chr "7" ;
+  :alt "T" ;
+  :pos 100552788 ;
+  :dp 4 .
+:chr7_100552867_C
+  :query_id "chr7_100552867_C";
+  :chr "7" ;
+  :alt "C" ;
+  :pos 100552867 ;
+  :dp 4 .
+:chr7_142460335_G
+  :query_id "chr7_142460335_G";
+  :chr "7" ;
+  :alt "G" ;
+  :pos 142460335 ;
+  :dp 2 .
+:chr7_142460339_A
+  :query_id "chr7_142460339_A";
+  :chr "7" ;
+  :alt "A" ;
+  :pos 142460339 ;
+  :dp 2 .
+:chr7_151970856_A
+  :query_id "chr7_151970856_A";
+  :chr "7" ;
+  :alt "A" ;
+  :pos 151970856 ;
+  :dp 4 .
+:chr7_151970931_A
+  :query_id "chr7_151970931_A";
+  :chr "7" ;
+  :alt "A" ;
+  :pos 151970931 ;
+  :dp 4 .
+:chr7_154862621_A
+  :query_id "chr7_154862621_A";
+  :chr "7" ;
+  :alt "A" ;
+  :pos 154862621 ;
+  :dp 4 .
+:chr8_29023297_A
+  :query_id "chr8_29023297_A";
+  :chr "8" ;
+  :alt "A" ;
+  :pos 29023297 ;
+  :dp 4 .
+:chr9_390512_T
+  :query_id "chr9_390512_T";
+  :chr "9" ;
+  :alt "T" ;
+  :pos 390512 ;
+  :dp 4 .
+:chr9_21334694_C
+  :query_id "chr9_21334694_C";
+  :chr "9" ;
+  :alt "C" ;
+  :pos 21334694 ;
+  :dp 4 .
+:chr9_79117556_A
+  :query_id "chr9_79117556_A";
+  :chr "9" ;
+  :alt "A" ;
+  :pos 79117556 ;
+  :dp 4 .
+:chr9_86465131_C
+  :query_id "chr9_86465131_C";
+  :chr "9" ;
+  :alt "C" ;
+  :pos 86465131 ;
+  :dp 4 .
+:chr9_109687403_G
+  :query_id "chr9_109687403_G";
+  :chr "9" ;
+  :alt "G" ;
+  :pos 109687403 ;
+  :dp 4 .
+:chr9_129595895_C
+  :query_id "chr9_129595895_C";
+  :chr "9" ;
+  :alt "C" ;
+  :pos 129595895 ;
+  :dp 4 .
+:chr10_30728101_C
+  :query_id "chr10_30728101_C";
+  :chr "10" ;
+  :alt "C" ;
+  :pos 30728101 ;
+  :dp 6 .
+:chr10_45958881_G
+  :query_id "chr10_45958881_G";
+  :chr "10" ;
+  :alt "G" ;
+  :pos 45958881 ;
+  :dp 4 .
+:chr10_70405855_G
+  :query_id "chr10_70405855_G";
+  :chr "10" ;
+  :alt "G" ;
+  :pos 70405855 ;
+  :dp 6 .
+:chr10_95381773_A
+  :query_id "chr10_95381773_A";
+  :chr "10" ;
+  :alt "A" ;
+  :pos 95381773 ;
+  :dp 4 .
+:chr10_105762591_A
+  :query_id "chr10_105762591_A";
+  :chr "10" ;
+  :alt "A" ;
+  :pos 105762591 ;
+  :dp 4 .
+:chr10_116013432_T
+  :query_id "chr10_116013432_T";
+  :chr "10" ;
+  :alt "T" ;
+  :pos 116013432 ;
+  :dp 4 .
+:chr10_126691605_A
+  :query_id "chr10_126691605_A";
+  :chr "10" ;
+  :alt "A" ;
+  :pos 126691605 ;
+  :dp 2 .
+:chr10_126691608_T
+  :query_id "chr10_126691608_T";
+  :chr "10" ;
+  :alt "T" ;
+  :pos 126691608 ;
+  :dp 2 .
+:chr10_126691631_A
+  :query_id "chr10_126691631_A";
+  :chr "10" ;
+  :alt "A" ;
+  :pos 126691631 ;
+  :dp 2 .
+:chr10_126691634_A
+  :query_id "chr10_126691634_A";
+  :chr "10" ;
+  :alt "A" ;
+  :pos 126691634 ;
+  :dp 2 .
+:chr11_2929552_G
+  :query_id "chr11_2929552_G";
+  :chr "11" ;
+  :alt "G" ;
+  :pos 2929552 ;
+  :dp 4 .
+:chr11_11373635_T
+  :query_id "chr11_11373635_T";
+  :chr "11" ;
+  :alt "T" ;
+  :pos 11373635 ;
+  :dp 4 .
+:chr11_55872657_C
+  :query_id "chr11_55872657_C";
+  :chr "11" ;
+  :alt "C" ;
+  :pos 55872657 ;
+  :dp 4 .
+:chr11_63883985_C
+  :query_id "chr11_63883985_C";
+  :chr "11" ;
+  :alt "C" ;
+  :pos 63883985 ;
+  :dp 4 .
+:chr11_63885632_G
+  :query_id "chr11_63885632_G";
+  :chr "11" ;
+  :alt "G" ;
+  :pos 63885632 ;
+  :dp 6 .
+:chr11_74676794_C
+  :query_id "chr11_74676794_C";
+  :chr "11" ;
+  :alt "C" ;
+  :pos 74676794 ;
+  :dp 6 .
+:chr11_112041128_T
+  :query_id "chr11_112041128_T";
+  :chr "11" ;
+  :alt "T" ;
+  :pos 112041128 ;
+  :dp 4 .
+:chr11_124266912_G
+  :query_id "chr11_124266912_G";
+  :chr "11" ;
+  :alt "G" ;
+  :pos 124266912 ;
+  :dp 4 .
+:chr11_130064131_A
+  :query_id "chr11_130064131_A";
+  :chr "11" ;
+  :alt "A" ;
+  :pos 130064131 ;
+  :dp 4 .
+:chr12_2788879_A
+  :query_id "chr12_2788879_A";
+  :chr "12" ;
+  :alt "A" ;
+  :pos 2788879 ;
+  :dp 4 .
+:chr12_10588581_C
+  :query_id "chr12_10588581_C";
+  :chr "12" ;
+  :alt "C" ;
+  :pos 10588581 ;
+  :dp 4 .
+:chr12_11214360_T
+  :query_id "chr12_11214360_T";
+  :chr "12" ;
+  :alt "T" ;
+  :pos 11214360 ;
+  :dp 4 .
+:chr12_22646247_A
+  :query_id "chr12_22646247_A";
+  :chr "12" ;
+  :alt "A" ;
+  :pos 22646247 ;
+  :dp 4 .
+:chr12_30823971_G
+  :query_id "chr12_30823971_G";
+  :chr "12" ;
+  :alt "G" ;
+  :pos 30823971 ;
+  :dp 6 .
+:chr12_53722128_A
+  :query_id "chr12_53722128_A";
+  :chr "12" ;
+  :alt "A" ;
+  :pos 53722128 ;
+  :dp 4 .
+:chr12_55820121_T
+  :query_id "chr12_55820121_T";
+  :chr "12" ;
+  :alt "T" ;
+  :pos 55820121 ;
+  :dp 4 .
+:chr12_80889165_TTTG
+  :query_id "chr12_80889165_TTTG";
+  :chr "12" ;
+  :alt "TTTG" ;
+  :pos 80889165 ;
+  :dp 4 .
+:chr12_82792942_G
+  :query_id "chr12_82792942_G";
+  :chr "12" ;
+  :alt "G" ;
+  :pos 82792942 ;
+  :dp 4 .
+:chr12_96653501_T
+  :query_id "chr12_96653501_T";
+  :chr "12" ;
+  :alt "T" ;
+  :pos 96653501 ;
+  :dp 6 .
+:chr12_123067501_T
+  :query_id "chr12_123067501_T";
+  :chr "12" ;
+  :alt "T" ;
+  :pos 123067501 ;
+  :dp 4 .
+:chr13_32913055_G
+  :query_id "chr13_32913055_G";
+  :chr "13" ;
+  :alt "G" ;
+  :pos 32913055 ;
+  :dp 4 .
+:chr13_46170719_C
+  :query_id "chr13_46170719_C";
+  :chr "13" ;
+  :alt "C" ;
+  :pos 46170719 ;
+  :dp 4 .
+:chr13_103514737_A
+  :query_id "chr13_103514737_A";
+  :chr "13" ;
+  :alt "A" ;
+  :pos 103514737 ;
+  :dp 4 .
+:chr13_107145463_C
+  :query_id "chr13_107145463_C";
+  :chr "13" ;
+  :alt "C" ;
+  :pos 107145463 ;
+  :dp 4 .
+:chr14_21469151_C
+  :query_id "chr14_21469151_C";
+  :chr "14" ;
+  :alt "C" ;
+  :pos 21469151 ;
+  :dp 4 .
+:chr14_21831112_A
+  :query_id "chr14_21831112_A";
+  :chr "14" ;
+  :alt "A" ;
+  :pos 21831112 ;
+  :dp 4 .
+:chr14_45623122_T
+  :query_id "chr14_45623122_T";
+  :chr "14" ;
+  :alt "T" ;
+  :pos 45623122 ;
+  :dp 4 .
+:chr14_57101682_G
+  :query_id "chr14_57101682_G";
+  :chr "14" ;
+  :alt "G" ;
+  :pos 57101682 ;
+  :dp 4 .
+:chr14_70515779_A
+  :query_id "chr14_70515779_A";
+  :chr "14" ;
+  :alt "A" ;
+  :pos 70515779 ;
+  :dp 6 .
+:chr14_81610583_C
+  :query_id "chr14_81610583_C";
+  :chr "14" ;
+  :alt "C" ;
+  :pos 81610583 ;
+  :dp 6 .
+:chr14_88651962_T
+  :query_id "chr14_88651962_T";
+  :chr "14" ;
+  :alt "T" ;
+  :pos 88651962 ;
+  :dp 4 .
+:chr14_105407798_C
+  :query_id "chr14_105407798_C";
+  :chr "14" ;
+  :alt "C" ;
+  :pos 105407798 ;
+  :dp 4 .
+:chr15_22368862_A
+  :query_id "chr15_22368862_A";
+  :chr "15" ;
+  :alt "A" ;
+  :pos 22368862 ;
+  :dp 4 .
+:chr15_44184197_T
+  :query_id "chr15_44184197_T";
+  :chr "15" ;
+  :alt "T" ;
+  :pos 44184197 ;
+  :dp 4 .
+:chr15_65903398_A
+  :query_id "chr15_65903398_A";
+  :chr "15" ;
+  :alt "A" ;
+  :pos 65903398 ;
+  :dp 4 .
+:chr15_69728949_G
+  :query_id "chr15_69728949_G";
+  :chr "15" ;
+  :alt "G" ;
+  :pos 69728949 ;
+  :dp 4 .
+:chr16_3646215_A
+  :query_id "chr16_3646215_A";
+  :chr "16" ;
+  :alt "A" ;
+  :pos 3646215 ;
+  :dp 4 .
+:chr16_11001770_T
+  :query_id "chr16_11001770_T";
+  :chr "16" ;
+  :alt "T" ;
+  :pos 11001770 ;
+  :dp 6 .
+:chr16_14340388_A
+  :query_id "chr16_14340388_A";
+  :chr "16" ;
+  :alt "A" ;
+  :pos 14340388 ;
+  :dp 6 .
+:chr16_56436917_A
+  :query_id "chr16_56436917_A";
+  :chr "16" ;
+  :alt "A" ;
+  :pos 56436917 ;
+  :dp 4 .
+:chr16_82033612_C
+  :query_id "chr16_82033612_C";
+  :chr "16" ;
+  :alt "C" ;
+  :pos 82033612 ;
+  :dp 4 .
+:chr16_88712511_T
+  :query_id "chr16_88712511_T";
+  :chr "16" ;
+  :alt "T" ;
+  :pos 88712511 ;
+  :dp 4 .
+:chr17_3632836_A
+  :query_id "chr17_3632836_A";
+  :chr "17" ;
+  :alt "A" ;
+  :pos 3632836 ;
+  :dp 4 .
+:chr17_8363486_A
+  :query_id "chr17_8363486_A";
+  :chr "17" ;
+  :alt "A" ;
+  :pos 8363486 ;
+  :dp 4 .
+:chr17_9515777_A
+  :query_id "chr17_9515777_A";
+  :chr "17" ;
+  :alt "A" ;
+  :pos 9515777 ;
+  :dp 4 .
+:chr18_31324934_G
+  :query_id "chr18_31324934_G";
+  :chr "18" ;
+  :alt "G" ;
+  :pos 31324934 ;
+  :dp 4 .
+:chr18_56203447_G
+  :query_id "chr18_56203447_G";
+  :chr "18" ;
+  :alt "G" ;
+  :pos 56203447 ;
+  :dp 6 .
+:chr19_3434413_G
+  :query_id "chr19_3434413_G";
+  :chr "19" ;
+  :alt "G" ;
+  :pos 3434413 ;
+  :dp 4 .
+:chr19_6413578_T
+  :query_id "chr19_6413578_T";
+  :chr "19" ;
+  :alt "T" ;
+  :pos 6413578 ;
+  :dp 4 .
+:chr19_11221454_C
+  :query_id "chr19_11221454_C";
+  :chr "19" ;
+  :alt "C" ;
+  :pos 11221454 ;
+  :dp 4 .
+:chr19_21492062_A
+  :query_id "chr19_21492062_A";
+  :chr "19" ;
+  :alt "A" ;
+  :pos 21492062 ;
+  :dp 4 .
+:chr19_22952111_G
+  :query_id "chr19_22952111_G";
+  :chr "19" ;
+  :alt "G" ;
+  :pos 22952111 ;
+  :dp 4 .
+:chr19_33444511_C
+  :query_id "chr19_33444511_C";
+  :chr "19" ;
+  :alt "C" ;
+  :pos 33444511 ;
+  :dp 4 .
+:chr19_38378539_C
+  :query_id "chr19_38378539_C";
+  :chr "19" ;
+  :alt "C" ;
+  :pos 38378539 ;
+  :dp 4 .
+:chr19_39915637_A
+  :query_id "chr19_39915637_A";
+  :chr "19" ;
+  :alt "A" ;
+  :pos 39915637 ;
+  :dp 4 .
+:chr19_48389425_G
+  :query_id "chr19_48389425_G";
+  :chr "19" ;
+  :alt "G" ;
+  :pos 48389425 ;
+  :dp 4 .
+:chr19_53085659_T
+  :query_id "chr19_53085659_T";
+  :chr "19" ;
+  :alt "T" ;
+  :pos 53085659 ;
+  :dp 4 .
+:chr19_53344051_C
+  :query_id "chr19_53344051_C";
+  :chr "19" ;
+  :alt "C" ;
+  :pos 53344051 ;
+  :dp 4 .
+:chr19_53912242_A
+  :query_id "chr19_53912242_A";
+  :chr "19" ;
+  :alt "A" ;
+  :pos 53912242 ;
+  :dp 6 .
+:chr19_55597421_G
+  :query_id "chr19_55597421_G";
+  :chr "19" ;
+  :alt "G" ;
+  :pos 55597421 ;
+  :dp 4 .
+:chr19_57931553_T
+  :query_id "chr19_57931553_T";
+  :chr "19" ;
+  :alt "T" ;
+  :pos 57931553 ;
+  :dp 6 .
+:chr20_1356261_C
+  :query_id "chr20_1356261_C";
+  :chr "20" ;
+  :alt "C" ;
+  :pos 1356261 ;
+  :dp 4 .
+:chr20_29625877_A
+  :query_id "chr20_29625877_A";
+  :chr "20" ;
+  :alt "A" ;
+  :pos 29625877 ;
+  :dp 6 .
+:chr20_29628431_T
+  :query_id "chr20_29628431_T";
+  :chr "20" ;
+  :alt "T" ;
+  :pos 29628431 ;
+  :dp 4 .
+:chr20_44839078_T
+  :query_id "chr20_44839078_T";
+  :chr "20" ;
+  :alt "T" ;
+  :pos 44839078 ;
+  :dp 4 .
+:chr21_46957794_C
+  :query_id "chr21_46957794_C";
+  :chr "21" ;
+  :alt "C" ;
+  :pos 46957794 ;
+  :dp 4 .
+:chr21_47786817_G
+  :query_id "chr21_47786817_G";
+  :chr "21" ;
+  :alt "G" ;
+  :pos 47786817 ;
+  :dp 4 .
+:chr22_22550510_G
+  :query_id "chr22_22550510_G";
+  :chr "22" ;
+  :alt "G" ;
+  :pos 22550510 ;
+  :dp 4 .
+:chr22_22569448_A
+  :query_id "chr22_22569448_A";
+  :chr "22" ;
+  :alt "A" ;
+  :pos 22569448 ;
+  :dp 4 .
+:chr22_30771554_G
+  :query_id "chr22_30771554_G";
+  :chr "22" ;
+  :alt "G" ;
+  :pos 30771554 ;
+  :dp 4 .
+:chr22_36587845_ACT
+  :query_id "chr22_36587845_ACT";
+  :chr "22" ;
+  :alt "ACT" ;
+  :pos 36587845 ;
+  :dp 4 .
+:chr22_40800544_T
+  :query_id "chr22_40800544_T";
+  :chr "22" ;
+  :alt "T" ;
+  :pos 40800544 ;
+  :dp 4 .
+:chr22_41075543_G
+  :query_id "chr22_41075543_G";
+  :chr "22" ;
+  :alt "G" ;
+  :pos 41075543 ;
+  :dp 4 .
+:chr22_43936213_A
+  :query_id "chr22_43936213_A";
+  :chr "22" ;
+  :alt "A" ;
+  :pos 43936213 ;
+  :dp 4 .
+:chr22_43936228_T
+  :query_id "chr22_43936228_T";
+  :chr "22" ;
+  :alt "T" ;
+  :pos 43936228 ;
+  :dp 4 .
+:chrX_55172537_A
+  :query_id "chrX_55172537_A";
+  :chr "X" ;
+  :alt "A" ;
+  :pos 55172537 ;
+  :dp 4 .
+:chrX_107911706_C
+  :query_id "chrX_107911706_C";
+  :chr "X" ;
+  :alt "C" ;
+  :pos 107911706 ;
+  :dp 4 .
+:chrX_134713855_A
+  :query_id "chrX_134713855_A";
+  :chr "X" ;
+  :alt "A" ;
+  :pos 134713855 ;
+  :dp 4 .

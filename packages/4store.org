@@ -1,0 +1,64 @@
+* 4store on GNU Guix
+
+Install 4store
+
+: guix package -i 4store
+
+and (optionally) some tools
+
+: guix package -i raptor2 sparql-query curl
+
+Make a dir for the database and run the server with a test database on
+port 8000
+
+: mkdir -p /var/lib/4store
+: dbname=test
+: 4s-backend-setup $dbname
+: 4s-backend $dbname
+: 4s-httpd -p 8000 $dbname
+
+Now you should be able to surf to http://localhost:8000/status/ and get
+the status.
+
+(obviously you can run 4store as a different user, but this is just a
+short howto).
+
+Let's load some data, e.g. [[./data/my.rdf]]. First we check the validity
+with rapper
+
+: rapper -i turtle my.rdf
+:   rapper: Parsing returned 875 triples
+
+next upload
+
+: rdf=my.rdf
+: uri=http://localhost:8000/data/http://biobeat.org/data/$rdf
+: curl -X DELETE $uri
+: curl -T $rdf -H 'Content-Type: application/x-turtle' $uri
+:   201 imported successfully
+:   This is a 4store SPARQL server
+
+All went well. Check the localhost:8000 again. There should be 875 triples.
+
+Next a SPARQL query. Create a file named [[./data/sparql1.rq][sparql1.rq]] with
+
+#+begin_src sh   :lang spaql
+SELECT ?id
+WHERE
+{
+  ?id   <http://biobeat.org/rdf/ns#chr>    "X".
+}
+#+end_src
+
+and run the query
+
+#+begin_src sh   :lang sh
+cat sparql1.rq |sparql-query "http://localhost:8000/sparql/" -p
+.----------------------------------------------.
+| ?id                                          |
+|----------------------------------------------|
+| <http://biobeat.org/rdf/ns#chrX_107911706_C> |
+| <http://biobeat.org/rdf/ns#chrX_55172537_A>  |
+| <http://biobeat.org/rdf/ns#chrX_134713855_A> |
+'----------------------------------------------'
+#+end_src
