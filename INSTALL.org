@@ -34,6 +34,7 @@
  - [[#install-gnu-guix-systemsoftware-distribution-sd][Install GNU Guix system/software distribution (SD)]]
  - [[#trouble-shooting][Trouble shooting]]
    - [[#failed-to-connect-to-daemon][Failed to connect to daemon]]
+    - [[#x509-certificate-error][X.509 certificate error]]
    - [[#error-build-failed-substituter-substitute-died-unexpectedly][error: build failed: substituter `substitute' died unexpectedly]]
    - [[#packagesscm-error][packages.scm error]]
 
@@ -848,6 +849,20 @@ If you get on a guix command
 : guix package: error: failed to connect to `/var/guix/daemon-socket/socket': Connection refused
 
 it means the daemon is not running.
+
+**  X.509 certificate error
+
+When you get the X.509 certificate error it means that openssl can not find the certificates.
+
+Install the certificates with
+
+: guix package -i nss-certs
+
+and set the environment as suggested by Guix. E.g.,
+
+: export GIT_SSL_CAINFO="/home/wrk/.guix-profile/etc/ssl/certs/ca-certificates.crt${GIT_SSL_CAINFO:+:}$GIT_SSL_CAINFO"
+: export SSL_CERT_DIR="/home/wrk/.guix-profile/etc/ssl/certs${SSL_CERT_DIR:+:}$SSL_CERT_DIR"
+
 
 ** error: build failed: substituter `substitute' died unexpectedly
 
