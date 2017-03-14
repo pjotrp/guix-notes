@@ -863,7 +863,6 @@ and set the environment as suggested by Guix. E.g.,
 : export GIT_SSL_CAINFO="/home/wrk/.guix-profile/etc/ssl/certs/ca-certificates.crt${GIT_SSL_CAINFO:+:}$GIT_SSL_CAINFO"
 : export SSL_CERT_DIR="/home/wrk/.guix-profile/etc/ssl/certs${SSL_CERT_DIR:+:}$SSL_CERT_DIR"
 
-
 ** error: build failed: substituter `substitute' died unexpectedly
 
 Make sure the keys are working. The real error appears to be related

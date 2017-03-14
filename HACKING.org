@@ -1192,6 +1192,18 @@ submit a patch.
 Guile has a 'write' function which writes to stdout by default. This
 can be very useful to generate output on package install.
 
+To inspect variables I may inject something like
+
+#+begin_src scheme
+(write "****************")
+(write out)
+(write debug)
+(newline)
+(#f)
+#+end_src
+
+The last command will compile and break at runtime.
+
 * Hints
 
 Read the HACKING documentation in the Guix source tree.
