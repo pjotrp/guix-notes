@@ -1,0 +1,57 @@
+
+\input{bio}
+\input{invoice}
+
+\newcommand{\makeln}[1]{ \NOK & \moneyfont{#1} & \EUR & \convertit{#1}}
+
+\begin{document}
+
+
+\section*{Reproducible bioinformatics software
+with GNU Guix}
+
+Anyone who has been bitten by dependencies and would like a fully
+reproducible software stack should take note. Through GNU Guix we lost
+the fear of combining computer languages and binary deployment because
+all dependencies, including command line invocations of tools, are
+guaranteed to work.
+
+In this talk I will share the great experience we have of packaging,
+deploying, publishing and distributing software via GNU Guix of a
+complex web service with hundreds of dependencies that has multiple
+servers under \hbox{\url{http://genenetwork.org/}}. With GeneNetwork
+we are creating an environment that people can do genetics on their
+laptop through a front-end API, e.g., for R and Python, or the
+browser, using content addressable storage, such as Arvados Keep, and
+reproducible software deployment with GNU Guix, for analysis through
+reproducible pipelines, such as PBS and CWL. We are even using GNU
+Guix to deploy pipelines on the ORNL Beacon supercomputer.
+
+HPC computing environment and especially super computing has its bag
+of challenges when it comes to software deployment. As scientists we
+often do not get root access which means that we either depend on what
+software is available or we build software in a dedicated directory
+using tools such as Brew, Conda or even from source. Unfortunately
+these solutions depend on already installed tools from an underlying
+distribution, often proprietary or dated compilers, and, for example,
+modules. Any binary that gets produced, therefore, tends to be totally
+unique, both in the generated binary and its set of dependencies. This
+is bad. Bad for trouble shooting and bad for pursuing reproducible
+science.
+
+With GNU Guix we have packaged more than 300 R packages, 400 Python
+packages, 500 Perl packages and 150 Ruby packages, including some 200
+specific bioinformatics packages with some rather difficult to package
+tools, such as Sambamba. Thanks to the GNU Guix community it is the
+largest ongoing bioinformatics packaging attempt next to Debian BioMed
+and Bioconda.
+
+I will discuss the work on GNU Guix 'channels', reproducible
+build-systems and non-root installations and moving forward on putting
+Guix in containers, using work flow engines, so that jobs can run on
+distributed systems, such as Arvados. In this talk I will explain how
+GNU Guix differs from distributions, such as Debian BioMed, how it can
+happily be deployed on any existing distribution, why it does not
+actually need containers, and how it can be part of Bioconda.
+
+\end{document}
