@@ -1,14 +1,43 @@
+\documentclass[10pt,oneside]{article}
 
-\input{bio}
-\input{invoice}
+% \input{bio}
 
-\newcommand{\makeln}[1]{ \NOK & \moneyfont{#1} & \EUR & \convertit{#1}}
+\usepackage[english]{babel}
+
+%%%%%%%%%%%%%
+\setlength{\textheight}{8.75in} %Letter is 11in, less 2 for margins, less 0.25 for footer
+\setlength{\oddsidemargin}{0.0in} %gets +1inc
+\setlength{\evensidemargin}{0.0in} %gets +1inch
+\setlength{\textwidth}{6.50in} %Letter is 8.5, less 2 inches for margins
+\setlength{\topmargin}{0.5in}
+\setlength{\headheight}{0in}
+\setlength{\headsep}{0in}
+\setlength{\parindent}{0.25in}
+%%%%%%%%%%%%
+
+% \usepackage[numbers]{natbib}
+% \usepackage{graphicx}
+\usepackage[colorlinks=true,citecolor=black,urlcolor=blue]{hyperref}
+
+\title{Reproducible bioinformatics software with GNU Guix}
+\author{
+    \underline{Pjotr Prins}\footnote{University Medical Center Utrecht, The Netherlands, Email: pjotr.public34@thebird.nl},
+    Ben Woodcroft\footnote{University of Queensland, Australia},
+    Ricardo Wurmus\footnote{Max-Delbr\"{u}ck-Centrum f\"{u}r Molekulare Medizin (MDC), Germany }
+}
 
 \begin{document}
+%\pagestyle{empty}
+%\thispagestyle{empty}
+\maketitle
+%\pagestyle{empty}
+\thispagestyle{empty}
 
-
-\section*{Reproducible bioinformatics software
-with GNU Guix}
+\vspace{-0.2in}
+\noindent
+Website: \url{https://www.gnu.org/software/guix/packages/} \\
+Repository: \url{https://git.savannah.gnu.org/cgit/guix.git/} \\
+License: GPL3 \\
 
 Anyone who has been bitten by dependencies and would like a fully
 reproducible software stack should take note. Through GNU Guix we lost
