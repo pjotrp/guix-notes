@@ -761,16 +761,34 @@ or, at least, that it comes first.
 
 ** Run the latest guix server from the git repo
 
+After building I run the latest version of the daemon (as root) with
+something similar to
+
+#+begin_src sh   :lang bash
+env TMPDIR=/gnu/tmp ./pre-inst-env ./guix-daemon --build-users-group=guixbuild -c 6 -M 4
+#+end_src sh   :lang bash
+
+Note that this will not honour binary downloads because it won't see
+the key - so for building only.
+
+Without the pre-inst-env script the daemon won't be able to find the
+substitute checker:
+
+: substitute: error: executing `/usr/local/libexec/guix/substitute': No such file or directory
+: guix package: error: build failed: substituter `substitute' died unexpectedly
+
 If you get something like "error while loading shared libraries:
 libsqlite3.so.0: cannot open shared object file: No such file or
 directory" you may want to add the LD_LIBRARY_PATH to run the server
 after setting up the paths suggested by 'guix package --search-paths'.
 
 #+begin_src sh   :lang bash
-env LD_LIBRARY_PATH=$LIBRARY_PATH ./guix-daemon --build-users-group=guixbuild
+env LD_LIBRARY_PATH=$LIBRARY_PATH ./pre-inst-env ./guix-daemon --build-users-group=guixbuild
 #+end_src sh   :lang bash
 
 ** Building GNU Guix from source (Debian native)
+
+Note: I have used this option in a while.
 
 Before autumn 2014, I was not successful in installing GNU Guix from
 source, in fact, to get GNU Guix running on Debian proved surprisingly
