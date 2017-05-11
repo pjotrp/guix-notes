@@ -82,7 +82,7 @@ Wine can also be run in a container:
 #+end_src
 
 which is great. I used to have to use VirtualBox and such to run the
-occassoinal Windows tool. Now it runs in a container with access to
+occasional Windows tool. Now it runs in a container with access to
 the local file system.
 
 To run the tool in one go and set the HOME dir:

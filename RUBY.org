@@ -94,7 +94,7 @@ for the [[https://travis-ci.org/pjotrp/bioruby-alignment][tests]]).
 
 * GNU Guix installation
 
-The achilles heel of introducing GNU Guix at this point is that it is
+The Achilles heel of introducing GNU Guix at this point is that it is
 not standard in Linux distributions. That support will come because
 GNU Guix is the official packaging system of the GNU project and is
 orthogonal to existing software packaging systems (everything is
@@ -239,7 +239,7 @@ dependencies will also get installed.
 
 Note that guix installs in ~/.guix-profile/lib/ruby/gems/2.2.0/gems/
 (well, actually symlinks). The version numbering 2.2.0 follows the gem
-convention to share gems on major numbers. Updading a minor version
+convention to share gems on major numbers. Updating a minor version
 number will keep the gems. If this is not what you want (i.e. true
 version isolation) make sure to use guix profiles for individual
 Rubies and use only that GEM_PATH.
@@ -472,7 +472,7 @@ Install the package with
 Oops, it gave an error. That is because there is a bundler dependency
 for some reason. We can add the dependency or update the gem to remove
 it. The great thing is that guix builds packages in isolation -
-missing build or runtime depencies are *always* caught. So we add
+missing build or runtime dependencies are *always* caught. So we add
 
 #+begin_src scheme
     (native-inputs
