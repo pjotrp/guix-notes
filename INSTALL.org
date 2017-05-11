@@ -83,7 +83,7 @@ are independent from the underlying distribution - a package can be
 created which contains a software with all its dependencies. The only
 real dependency is the (Linux) kernel. The fundamental Linux API does
 not change that often so a binary distribution can be copied from
-machine to machine. Of course, also the build target archicture has to
+machine to machine. Of course, also the build target architecture has to
 match.  With a binary distribution it is possible to simply unpack the
 package, create the build group and permissions.
 
@@ -323,7 +323,7 @@ To get the other one
 #+end_src sh   :lang bash
 
 And you can tell that the dependencies are not the same. It gets better. You can list the
-build depencies too
+build dependencies too
 
 #+begin_src sh   :lang bash
   guix gc --requisites /gnu/store/77dzhv9yx5x2rq370swp8scsps961pj6-hello-2.9
@@ -397,7 +397,7 @@ distribution - incompatibilities may exist.
 
 When installing fonts they end up in ~/.guix-profile/share/fonts.
 
-The fontconfig package contains utitilies that help sort font
+The fontconfig package contains utilities that help sort font
 issues. E.g.
 
 : fc-list
@@ -420,7 +420,7 @@ another option I use is
 : xterm -fa Fixed-20
 
 The majority of graphical applications uses Fontconfig to locate and
-load font and perform X11-client-side rendering.  Guix's ddress@hidden
+load font and perform X11-client-side rendering.  Guix's address@hidden
 package looks for fonts in the user's profile by default, so you have
 to install them there.
 
@@ -598,7 +598,7 @@ full thing becomes (with some additional tools I use)
       automake bzip2 gcc-toolchain gettext guile libgcrypt \
       pkg-config sqlite m4 make grep sed texinfo graphviz bash \
       help2man binutils coreutils xz tar findutils gawk git less \
-      time which diffutils vim help2man
+      time which diffutils vim
    export PATH=$HOME/opt/guix-build-system/bin:$PATH
    guix package -p ~/opt/guix-build-system --search-paths
 #+end_src sh   :lang bash
@@ -615,7 +615,7 @@ your own caching server as described in [[REPRODUCIBLE.org]], so it becomes
       automake bzip2 gcc-toolchain gettext guile libgcrypt \
       pkg-config sqlite m4 make grep sed texinfo graphviz bash \
       help2man binutils coreutils xz tar findutils gawk git less \
-      time which diffutils vim help2man
+      time which diffutils vim
    export PATH=$HOME/opt/guix-build-system/bin:$PATH
    guix package -p ~/opt/guix-build-system --search-paths
 #+end_src sh   :lang bash
