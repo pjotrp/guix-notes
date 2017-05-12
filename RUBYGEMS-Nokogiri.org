@@ -502,7 +502,7 @@ and you are at the state of the error (with environment). Running
 it complains Gem::LoadError: Could not find 'hoe' (>= 0) among 9 total
 gem(s). It is interesting to note that the build is completely
 isolated from the rest of the system, so any dependencies not
-explicitely added will *fail*. To check run
+explicitly added will *fail*. To check run
 
 : set
 
@@ -937,7 +937,7 @@ robust as Guix can do - still, and a surprising amount of tooling
 depends on bundler. Checking an average bundler managed Gemfile of one
 of my projects it lists over 70 lines of dependencies. Seriously, that
 is the full gem dependency graph (but not the actual graph because it
-does not list lower depencies, such as the Ruby interpreter itself and
+does not list lower dependencies, such as the Ruby interpreter itself and
 glibc, which are indeed part of the more robust Guix graph).
 
 The whole Ruby developer community uses bundler. With Guix, however,
@@ -984,7 +984,7 @@ shorter.
 ** Travis CI without Guix
 
 To test Rubygems in Travis with bundler, simply provide the Gemfile. Alternatively
-pull in dependending gems separately with gem in the .travis.yml file:
+pull in depending gems separately with gem in the .travis.yml file:
 
 : install:
 :   - gem install cucumber rspec regressiontest
