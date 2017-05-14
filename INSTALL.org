@@ -696,13 +696,7 @@ If that did not work try recreating configure with bootstrap
 Run `make' (and optionally `make check') every time you change something in the
 repository. Make can do parallel builds so for 4 cores
 
-: make clean ; time make -j 4
-
-which builds on my machine in
-
-: real    1m23.808s
-: user    3m35.616s
-: sys     0m1.624s
+: make clean ; time make
 
 Those cores get used well! When you got to this point you can always
 rebuild the Guix tools from the git checkout of the master branch. All
