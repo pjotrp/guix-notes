@@ -188,7 +188,7 @@ In GNU Guix the record data is available as build-system-name,
 build-system-description etc. Same for the package record which
 delivers package-name, package-version, etc.
 
-Also literal keywoard syntax is used, e.g.,
+Also literal keyword syntax is used, e.g.,
 
 #+begin_src scheme
   (build-expression->derivation store name builder
@@ -1078,7 +1078,7 @@ Create the patch
 Before sending the patch(es) out, make sure tabs are turned into
 spaces. The emacs commands are [[http://www.emacswiki.org/emacs/NoTabs][here]]. Lines should be broken (use M-q
 in emacs). And use the Emacs TAB in guix-prettify-mode to find the
-right LISP indendation.
+right LISP indentation.
 
 Which creates a file 0001-gnu-patchname.patch and mail it with something like
 

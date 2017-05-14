@@ -28,7 +28,7 @@
 
 This section deals with running GNU Guix as a package manager inside
 an existing distribution - which can be any distro. Before I make the
-full jump to runnning GuixSD I decided to run a bare bones Debian with
+full jump to running GuixSD I decided to run a bare bones Debian with
 SysV on my laptop (apparently I am one of the few people who does not
 like systemd) so I still get apt and Debian firmware support when I
 need it. And then one day, when I know I no longer need apt, I may
