@@ -576,7 +576,8 @@ environment', but here we opt for the lazy version. E.g.
 
 #+begin_src sh   :lang bash
    guix package --install autoconf automake bzip2 gcc-toolchain gettext \
-                          guile libgcrypt pkg-config sqlite m4 make
+                          guile libgcrypt pkg-config sqlite m4 make \
+                          gnutls guile-json
 #+end_src sh   :lang bash
 
 I also run
@@ -598,7 +599,7 @@ full thing becomes (with some additional tools I use)
       automake bzip2 gcc-toolchain gettext guile libgcrypt \
       pkg-config sqlite m4 make grep sed texinfo graphviz bash \
       help2man binutils coreutils xz tar findutils gawk git less \
-      time which diffutils vim help2man
+      time which diffutils vim help2man gnutls guile-json
    export PATH=$HOME/opt/guix-build-system/bin:$PATH
    guix package -p ~/opt/guix-build-system --search-paths
 #+end_src sh   :lang bash
@@ -615,7 +616,7 @@ your own caching server as described in [[REPRODUCIBLE.org]], so it becomes
       automake bzip2 gcc-toolchain gettext guile libgcrypt \
       pkg-config sqlite m4 make grep sed texinfo graphviz bash \
       help2man binutils coreutils xz tar findutils gawk git less \
-      time which diffutils vim help2man
+      time which diffutils vim help2man gnutls guile-json
    export PATH=$HOME/opt/guix-build-system/bin:$PATH
    guix package -p ~/opt/guix-build-system --search-paths
 #+end_src sh   :lang bash
@@ -645,14 +646,17 @@ export LC_ALL=en_US.utf8
 Mine are for the build system
 
 #+begin_src sh   :lang bash
-export PATH="$HOME/opt/guix-build-system/bin:$HOME/opt/guix-build-system/sbin"
-export INFOPATH="$HOME/opt/guix-build-system/share/info"
-export PKG_CONFIG_PATH="$HOME/opt/guix-build-system/lib/pkgconfig"
-export GUILE_LOAD_COMPILED_PATH="$HOME/opt/guix-build-system/lib/guile/2.0/ccache"
-export C_INCLUDE_PATH="$HOME/opt/guix-build-system/include"
-export CPLUS_INCLUDE_PATH="$HOME/opt/guix-build-system/include"
-export LIBRARY_PATH="$HOME/opt/guix-build-system/lib"
-export ACLOCAL_PATH="$HOME/opt/guix-build-system/share/aclocal"
+export PATH="/home/pjotr/opt/guix-build-system/bin:/home/pjotr/opt/guix-build-system/sbin"
+export ACLOCAL_PATH="/home/pjotr/opt/guix-build-system/share/aclocal"
+export C_INCLUDE_PATH="/home/pjotr/opt/guix-build-system/include"
+export CPLUS_INCLUDE_PATH="/home/pjotr/opt/guix-build-system/include"
+export LIBRARY_PATH="/home/pjotr/opt/guix-build-system/lib"
+export GUILE_LOAD_PATH="/home/pjotr/opt/guix-build-system/share/guile/site/2.0"
+export GUILE_LOAD_COMPILED_PATH="/home/pjotr/opt/guix-build-system/lib/guile/2.0/site-ccache:/home/pjotr/opt/guix-build-system/share/guile/site/2.0"
+export PKG_CONFIG_PATH="/home/pjotr/opt/guix-build-system/lib/pkgconfig"
+export INFOPATH="/home/pjotr/opt/guix-build-system/share/info"
+export BASH_LOADABLES_PATH="/home/pjotr/opt/guix-build-system/lib/bash"
+export GIT_EXEC_PATH="/home/pjotr/opt/guix-build-system/libexec/git-core"
 #+end_src sh   :lang bash
 
 *** Check before build
@@ -672,23 +676,21 @@ should give
 *** And build it
 
 Re-run the 'configure' script passing it the option
-'--with-libgcrypt-prefix=$HOME/.guix-profile/', as well as
+'--with-libgcrypt-prefix=$HOME/.guix-profile/' if needed, as well as
 '--localstatedir=/somewhere', where '/somewhere' is the
 'localstatedir' value of the currently installed Guix (failing to do
 that would lead the new Guix to consider the store to be
-empty!). E.g.,
-
+empty!). E.g., the simple form
 
 #+begin_src sh   :lang bash
-./configure --with-libgcrypt-prefix=$HOME/opt/guix-build-system \
-  --localstatedir=/var
+./configure --localstatedir=/var
 #+end_src sh   :lang bash
 
 If that did not work try recreating configure with bootstrap
 
 #+begin_src sh   :lang bash
 ./bootstrap
-./configure --with-libgcrypt-prefix=$HOME/opt/guix-build-system --localstatedir=/var
+./configure --localstatedir=/var
 #+end_src
 
 Run `make' (and optionally `make check') every time you change something in the

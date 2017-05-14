@@ -1075,7 +1075,6 @@ Create the patch
 
 : git format-patch -1 --to guix-patches@gnu.org
 
-
 Before sending the patch(es) out, make sure tabs are turned into
 spaces. The emacs commands are [[http://www.emacswiki.org/emacs/NoTabs][here]]. Lines should be broken (use M-q
 in emacs). And use the Emacs TAB in guix-prettify-mode to find the
