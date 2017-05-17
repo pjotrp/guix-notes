@@ -563,6 +563,49 @@ described above:
 
 *** Install the dependencies and build tools using Guix:
 
+The safest route is by using guix environment after starting
+a clean shell
+
+#+begin_src sh   :lang bash
+screen -S guix-build # I tend to build in screen
+env -i /bin/bash --login --noprofile --norc
+~/.guix-profile/bin/guix environment guix --ad-hoc help2man git strace \
+  pkg-config less vim binutils coreutils grep --no-grafts
+bash # you may want this shell
+#+end_src sh   :lang bash
+
+In fact pick the most recent guix you have got, see 'ls
+/gnu/store/*guix*/bin/guix' and run that command. Use the --no-grafts
+switch if you have built packages that way before.
+
+Note that you can start guix by installing the binary tar ball, or
+copying it from another machine using the rather useful guix archive
+or [[https://www.gnu.org/software/guix/news/creating-bundles-with-guix-pack.html][guix pack]] commands.
+
+You may want to take a note of these running versions
+
+#+begin_src sh   :lang bash
+gcc --version
+guile --version
+#+end_src sh   :lang bash
+
+Next in the source tree
+
+#+begin_src sh   :lang bash
+rm -rf autom4te.cache/ # to be sure
+make clean
+./bootstrap
+./configure --localstatedir=/var
+make clean # to be really sure
+time make
+#+end_src sh   :lang bash
+
+*** Alternative build route using a Guix profile
+
+Note: this is a lesser option than using guix environment because
+there may be issues with a 'polluted' environment. Use above if you
+can.
+
 Display the search paths and set them, e.g.
 
 #+begin_src sh   :lang bash
@@ -604,27 +647,13 @@ full thing becomes (with some additional tools I use)
    guix package -p ~/opt/guix-build-system --search-paths
 #+end_src sh   :lang bash
 
-Note: hydra can be slow when many people are using it. The download
-should become faster in the near future (it is designed for
-scalability and GNU Guix is getting new hardware). You can also use
-your own caching server as described in [[REPRODUCIBLE.org]], so it becomes
-
-#+begin_src sh   :lang bash
-   mkdir $HOME/opt
-   guix package -p $HOME/opt/guix-build-system --substitute-urls=http://caching-server \
-      --no-grafts --install autoconf \
-      automake bzip2 gcc-toolchain gettext guile libgcrypt \
-      pkg-config sqlite m4 make grep sed texinfo graphviz bash \
-      help2man binutils coreutils xz tar findutils gawk git less \
-      time which diffutils vim help2man gnutls guile-json
-   export PATH=$HOME/opt/guix-build-system/bin:$PATH
-   guix package -p ~/opt/guix-build-system --search-paths
-#+end_src sh   :lang bash
+Note You can also use your own caching server as described in
+[[REPRODUCIBLE.org]].
 
 Note that the --no-grafts should align with that of your caching
 server.
 
-***  Set the Guix environment variables
+****  Set the Guix environment variables
 
 Guix recommends you to set during the package installation process: ACLOCAL_PATH, CPATH, LIBRARY_PATH, PKG_CONFIG_PATH
 
@@ -659,7 +688,7 @@ export BASH_LOADABLES_PATH="/home/pjotr/opt/guix-build-system/lib/bash"
 export GIT_EXEC_PATH="/home/pjotr/opt/guix-build-system/libexec/git-core"
 #+end_src sh   :lang bash
 
-*** Check before build
+**** Check before build
 
 Make sure the path is pointing to the build path
 
@@ -673,7 +702,7 @@ should give
 /home/wrk/opt/guix-build-system/bin/env
 #+end_src sh   :lang bash
 
-*** And build it
+**** And build it
 
 Re-run the 'configure' script passing it the option
 '--with-libgcrypt-prefix=$HOME/.guix-profile/' if needed, as well as

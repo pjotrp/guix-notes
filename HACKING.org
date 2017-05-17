@@ -991,7 +991,11 @@ And nowadays one can also use --search-paths=suffix or
 * Making a patch and submit to the Guix project
 ** Using the debbugs interface
 
-Patches are now handled through the GNU debbugs server. A current list
+Bugs can be submitted by E-mail to bug-guix@gnu.org after checking
+https://debbugs.gnu.org/cgi/pkgreport.cgi?package=guix. Use the
+parameters as described in [[https://www.debian.org/Bugs/Reporting][bug reporting]].
+
+Patches are handled through the GNU debbugs server. A current list
 can be seen at https://debbugs.gnu.org/cgi/pkgreport.cgi?package=guix-patches or
 https://bugs.gnu.org/guix-patches.  A mailing list is attached
 you can [[https://lists.gnu.org/mailman/listinfo/guix-patches][subscribe]] to.
