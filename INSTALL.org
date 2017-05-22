@@ -596,7 +596,8 @@ rm -rf autom4te.cache/ # to be sure
 make clean
 ./bootstrap
 ./configure --localstatedir=/var
-make clean # to be really sure
+make clean    # to be really sure
+make clean-go
 time make
 #+end_src sh   :lang bash
 

@@ -1086,7 +1086,7 @@ right LISP indentation.
 
 Which creates a file 0001-gnu-patchname.patch and mail it with something like
 
-: git send-email --from "Pjotr Prins <pjotr.guix@mymail.nl>" --to guix-patches@gnu.org 0001-gnu-patchname.patch
+: git send-email --from "Pjotr Prins <pjotr.guix@mymail>" --to guix-patches@gnu.org 0001-gnu-patchname.patch
 
 You may also need to install 'guix package -i git:send-email' to get
 E-mail support.
@@ -1094,19 +1094,24 @@ E-mail support.
 Multiple patches can be passed in with something like
 
 : git format-patch -10  # create patches for the past 10 commits
-: git send-email --to=26524@debbugs.gnu.org *.patch
+: git send-email --to=number@debbugs.gnu.org *.patch
 
 Probably a good idea to try and send the mail to yourself first.
 Don't send the same E-mail twice ;).
 
-To change credentials for the patch use [[https://help.github.com/articles/setting-your-email-in-git/][git config]].
+To change credentials for the patch use [[https://help.github.com/articles/setting-your-email-in-git/][git config]]. Note that the
+maintainers will run something like
+
+: git am *.patch
+
+to apply the patches.
 
 *** Once a debbugs entry exists
 
 You can simply reply to the patch with the bug number in the header. So,
 to resubmit a revised patch with bug number 25704
 
-: git send-email --from "Pjotr Prins <pjotr.guix@mymail.nl>" --to 25704@debbugs.gnu.org 0001-gnu-patchname.patch
+: git send-email --from "Pjotr Prins <pjotr.guix@mymail>" --to 25704@debbugs.gnu.org 0001-gnu-patchname.patch
 
 *** Environment
 
