@@ -1,0 +1,101 @@
+#+TITLE: GNU Guix for developers
+
+* Table of Contents                                                     :TOC:
+ - [[#introduction][Introduction]]
+ - [[#installing-gnu-guix][Installing GNU Guix]]
+ - [[#a-clean-slate][A clean slate]]
+   - [[#troubleshooting][Troubleshooting]]
+ - [[#ctr1o-problem][ctr1.o problem]]
+
+* Introduction
+
+This document discusses GNU Guix as a developers environment. That is,
+if you want to use the latest version of your developers tools in your
+home directory and target solutions for other users. I use GNU Guix for
+writing software every day - and it is great.
+
+GNU Guix has a number of things going for it:
+
+1. GNU Guix contains the *latest versions* of tools. Because it is a rolling
+   distribution
+2. GNU Guix is *predictable*. It gives full control over the dependency graph.
+3. GNU Guix is *reproducible*. If a user also deploys your software with
+   GNU Guix you get the same environment, all the way down to glibc.
+4. GNU Guix comes with great *tooling*. Because we are all developers!
+
+* Installing GNU Guix
+
+See the online documentation and [[INSTALL.org]].
+
+* A clean slate
+
+An environment may contain 'impurities'. PATH and LD_LIBRARY_PATH are
+notorious examples. Let's make sure we have a sane environment
+
+Search paths will suggest a Guix enviroment, e.g.
+
+#+begin_src sh   :lang bash
+guix package --search-paths
+#+end_src sh   :lang bash
+
+renders
+
+#+begin_src sh   :lang bash
+export PATH="/home/pjotr/.guix-profile/bin:/home/pjotr/.guix-profile/sbin"
+export GUIX_LOCPATH="/home/pjotr/.guix-profile/lib/locale"
+export C_INCLUDE_PATH="/home/pjotr/.guix-profile/include"
+export CPLUS_INCLUDE_PATH="/home/pjotr/.guix-profile/include"
+export LIBRARY_PATH="/home/pjotr/.guix-profile/lib"
+export GUILE_LOAD_PATH="/home/pjotr/.guix-profile/share/guile/site/2.0"
+export GUILE_LOAD_COMPILED_PATH="/home/pjotr/.guix-profile/share/guile/site/2.0"
+export PYTHONPATH="/home/pjotr/.guix-profile/lib/python2.7/site-packages"
+export R_LIBS_SITE="/home/pjotr/.guix-profile/site-library/"
+export GUIX_GTK3_PATH="/home/pjotr/.guix-profile/lib/gtk-3.0"
+export GI_TYPELIB_PATH="/home/pjotr/.guix-profile/lib/girepository-1.0"
+export XDG_DATA_DIRS="/home/pjotr/.guix-profile/share"
+export GIO_EXTRA_MODULES="/home/pjotr/.guix-profile/lib/gio/modules"
+export PERL5LIB="/home/pjotr/.guix-profile/lib/perl5/site_perl"
+export GEM_PATH="/home/pjotr/.guix-profile/lib/ruby/gems/2.3.0"
+#+end_src sh   :lang bash
+
+First we empty all setings
+
+#+begin_src sh   :lang bash
+env -i /bin/bash --login --noprofile --norc
+#+end_src sh   :lang bash
+
+and now we pick and choose what we need. It may be just enough to set
+the path and a HOME directory
+
+: export HOME=/home/pjotr
+: export PATH="$HOME/.guix-profile/bin:$HOME/.guix-profile/sbin":$PATH
+
+the library path needs to be set toward your build target.
+In the case of Guix
+
+: export LIBRARY_PATH=$HOME/.guix-profile/lib
+
+In the case of your native distribution:
+
+: export LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
+
+and optionally set the TERM to something useful
+
+: export TERM=screen
+
+** Troubleshooting
+
+* ctr1.o problem
+
+When you hit an error like
+
+: /home/pjotr/.guix-profile/bin/ld: cannot find crt1.o: No such file or directory
+
+it means the Guix installed linker can not find its files. If are
+creating Guix linked binaries you should set LIBRARY_PATH to the Guix
+profile/lib. If are creating locally linked binaries, use the local
+linker!
+
+ld is part of the Guix binutils package.
+
+: apt-get install gcc-multilib libc-dev
