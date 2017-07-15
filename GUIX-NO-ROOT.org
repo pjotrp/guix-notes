@@ -1,0 +1,177 @@
+#+TITLE: GNU Guix without root access
+
+* Table of Contents                                                     :TOC:
+ - [[#introduction][Introduction]]
+ - [[#install-proot][Install proot]]
+ - [[#install-the-guix-binary-installation][Install the Guix binary installation]]
+ - [[#run-proot][Run proot]]
+ - [[#run-guix-daemon-in-proot][Run guix daemon in proot]]
+ - [[#install-and-run-the-hello-package][Install and run the hello package]]
+ - [[#compile-guix-from-source][Compile Guix from source]]
+
+* Introduction
+
+GNU Guix is designed to be installed in /gnu/store/ + hash. The
+'hard-coded' path has a reason - it means we can store paths inside
+binaries and create reproducible build. If apache depends on an ssl
+library, the link is fully referenced in the apache binary. There is
+no way to circumvent the pointer to the library. Also the hard paths
+mean they can be shared between systems, which makes trusted binary
+deployment possible.
+
+For those on systems that have no root access, i.e., who can not
+create /gnu/store this is a real bummer. If your administrators are
+enlightened they may create /gnu/store for you and allow you to copy
+files across built on a system where you have root access. This is a
+solution on several HPC systems out there already and does not require
+a running Guix daemon.
+
+But still, there are those who won't even allow you to do that. For
+those environments the only solution is to build Guix on a relative
+path. It can be done, but it has downsides: these binary deployments
+are not the same as the main distribution and may behave
+differently. The Guix community will find it hard to help you with
+your specific setup.
+
+One intermediate solution is to rewrite binary paths, as I (pjotr) did
+successfully with [[https://github.com/pjotrp/guix-relocatable-binary-packages/tree/master/packages][ldc]]. It has the advantage of using actual Guix built
+binaries but requires some hacking. Maybe I'll get around to writing
+something generic one day.
+
+This document aims to find a reproducible way to bootstrap Guix in
+proot and get a Guix daemon running.
+
+* Install proot
+
+Proot can rewrite paths transparently so your home directory looks
+like a root directory (where we create /gnu/store).  The first thing
+to do is install proot on your build system. This can be done with
+compilation from [[https://proot-me.github.io/][source]].
+
+Create a directory to install Guix, e.g.
+
+: mkdir ~/guix-no-root
+
+* Install the Guix binary installation
+
+Fetch the [[https://www.gnu.org/software/guix/download/][binary tarball]] and install in your directory, e.g.,
+
+: cd ~/guix-no-root
+: wget https://alpha.gnu.org/gnu/guix/guix-binary-0.13.0.x86_64-linux.tar.xz
+: tar --warning=no-timestamp -xf  guix-binary-0.13.0.x86_64-linux.tar.xz
+
+now you can remove the tar ball
+
+: rm guix-binary-0.13.0.x86_64-linux.tar.xz
+
+* Run proot
+
+At this point you should be able to locate bash in the store and, for example,
+do
+
+: proot -r . gnu/store/02426nwiy32cscm4h83729vn5ws1gs2i-bash-static-4.4.12/bin/bash
+
+the '-r .' fakes the new root '/' directory.  type 'exit' to leave
+again.
+
+* Run guix daemon in proot
+
+Open a new terminal window and start the guix daemon
+
+: proot -r '.' -b /proc -b /dev -b /etc gnu/store/vir3lrwqy50pr8fkaf3m091dgbrja2n6-guix-0.13.0/bin/guix-daemon
+
+and run guix in the another terminal
+
+: proot -r '.' -b /proc/ gnu/store/vir3lrwqy50pr8fkaf3m091dgbrja2n6-guix-0.13.0/bin/guix package -A hello
+
+should list packages and an install command
+
+: proot -r '.' -b /proc/ gnu/store/vir3lrwqy50pr8fkaf3m091dgbrja2n6-guix-0.13.0/bin/guix package -i hello
+
+should show something like this in the daemon terminal:
+
+: accepted connection from pid 25742, user 502
+
+So, far so good, but the build fails with
+
+: guix package: error: symlink: No such file or directory: "/home/user/.guix-profile"
+
+this is because in the new proot there is no such directory. So, create it.
+The build system also need /tmp
+
+: mkdir -p /home/user /tmp
+
+The build daemon will still complain:
+
+:  ERROR: In procedure open-file: Permission denied: "/etc/guix/acl"
+
+but that does not prevent guix from downloading source packages. We would like
+binary downloads, to import an existing acl file with something like
+
+: mkdir etc_guix
+: cp gnu/store/vir3lrwqy50pr8fkaf3m091dgbrja2n6-guix-0.13.0/share/guix/hydra.gnu.org.pub etc_guix/acl
+
+and modify it to look like:
+
+: (acl
+:  (entry
+:   (public-key
+:    (rsa
+:     (n #00DB1634E3D9DFAC97AE4734DAE968CCB15EE4815C82BDC254883DBB49FE1EF32268E82D4BBE0E35298C481C9DA1551642FAFF05AEC1A60712F1BB4BE7D25D7EFF7A4F89704A5A9AC232870CB9F2476C3B538A0E990A8825DEB73081D317001FB8A188600F2FEF5F5F570E857F3EE4355077A3C3918ED72723A56BA55C466D400658974D7DAD1F6B7B63C192B9C2704D98BBFF1C3BD5B8EF11A8ADC83ACB8FD8E9F1E792FDAD262415D13F2DEE55F330908CFDA9C3C8C32B64F7DD088457D34F445E2E2C83C6D680549DC9B6E6573B89496567204ED285E67A279F2F667080BA941D80D015CE87B0FB6A91A99CECC7D91D2D210B00E4B6E611DA51DB008F1DFE3FCAC6B27393FA781D45F9A15FC7B8785A3E86BA6592B2916CA22CF1E40FC85F85CACA590461154F58F3580B16398908EF32076F411299C28727C94D88B6A618F84DD73AEBED8270BCB6690928CB1BF250C35E1F6BF3B1B30D05BA246ECE8F69D9065DE26F4B3E0D814D70A9C27CB5B7B050C9090590D3A9EF83374F2643E5446FBD39DDB124DBF6DFDAA6D18E2560AD0CBFA11C959C9B7316BF19963A191967054E9FD97DC14D71082B30B1C90A46E8996682474C3BCB51BA0882958897B6DD35E41B5174D0A6BCDE97B89043E95BD1B70DE61DA666893B417196A180005466BC3A742FDF04E89B04460E3E6BC72E7F1B5FEA5B3092FEE551A3C447C12E104E65#)
+:     (e #010001#)
+:     )
+:   )
+:  (tag
+:   (guix import)
+:   )
+:  )
+
+restart the daemon with
+
+: proot -0 -r '.' -b /proc -b /dev -b /etc  -b etc_guix/acl:/etc/guix/acl gnu/store/vir3lrwqy50prkaf3m091dgbrja2n6-guix-0.13.0/bin/guix-daemon --disable-chroot
+
+(note the extra -0 and chroot switches) and you should see on a guix
+package install
+
+: substitute: updating list of substitutes from 'https://mirror.hydra.gnu.org'... 100.0%
+
+which makes for faster installs!
+
+Now we have the guix-daemon running we can install a package
+
+* Install and run the hello package
+
+: proot -r '.' -b /proc/ gnu/store/vir3lrwqy50pr8fkaf3m091dgbrja2n6-guix-0.13.0/bin/guix package -i hello
+
+After installing the hello package we can run it with proot. First
+locate the file:
+
+: find gnu/store/ -name hello
+: gnu/store/prvjrj6i8cz7rvkgm643h952bv2daj1h-hello-2.10/bin/hello
+
+and run it
+
+: proot -r '.' gnu/store/prvjrj6i8cz7rvkgm643h952bv2daj1h-hello-2.10/bin/hello
+: Hello, world!
+
+this has also been added to our profile in home/user/.guix-profile,
+so we can run it as
+
+: proot -r '.' home/user/.guix-profile/bin/hello
+
+isn't that the coolest thing!
+
+* Compile Guix from source
+
+So far, we bootstrapped Guix from its binary installation
+without root privileges. Next step is to create a reproducible build
+system using proot which will allow us to build packages that can be
+run *without* proot. That is necessary because proot introduces system
+overheads - especially when reading files. We care about that when we
+want to run software in HPC environments.
+
+The following is pretty similar to what is desribed in [[INSTALL.org]] in
+'Building GNU Guix from source (using Guix)'. With proot we install
+all build tools in our working directory:
+
+: proot -r '.' -b /proc/ gnu/store/vir3lrwqy50pr8fkaf3m091dgbrja2n6-guix-0.13.0/bin/guix package -i guix help2man git strace pkg-config less vim binutils coreutils grep --no-grafts
