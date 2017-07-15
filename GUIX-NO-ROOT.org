@@ -253,7 +253,7 @@ the latest and greatest
 
 and run the proot bash again, setting the profile and
 
-: proot -b /proc -b /dev -b /bin -b /lib -b /lib64 -r . gnu/store/vir3lrwqy50pr8fkaf3m091dgbrja2n6-guix-0.13.0/bin/guix environment guix --ad-hoc help2man git strace pkg-config less vim binutils coreutils grep --no-grafts -- bash
+: proot -b /proc -b /dev -b /etc -b /bin -b /lib -b /lib64 -r . gnu/store/vir3lrwqy50pr8fkaf3m091dgbrja2n6-guix-0.13.0/bin/guix environment guix --ad-hoc help2man git strace pkg-config less vim binutils coreutils grep --no-grafts -- bash
 : export PATH=/home/wrk/.guix-profile/bin
 : cd guix
 : ./bootstrap
@@ -301,6 +301,17 @@ do
 
 Note that there exist limitations on the size of the store path for
 shell scripts - so, don't go very deep.
+
+We also need to build the daemon and install guix in
+
+: make guix-daemon
+: make install
+
+Note that guix has been installed in /usr/local/bin this time (inside
+proot). Now we need to run the new guix and daemon.
+
+Restart the new daemon and install at leisure.
+
 
 With those packages build in $HOME/opt/store we no longer require
 proot to run them.
