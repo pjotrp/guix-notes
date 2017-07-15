@@ -318,4 +318,5 @@ Guix versions won't run if they are old.
 ** refusing to run with elevated privileges (UID 0)
 ** guix-daemon crashes X
 
-When using the
+When setting the build-group of the guix-daemon in proot it would
+crash. You can avoid the switch, as mentioned above.
