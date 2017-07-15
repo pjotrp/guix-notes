@@ -8,6 +8,12 @@
  - [[#run-guix-daemon-in-proot][Run guix daemon in proot]]
  - [[#install-and-run-the-hello-package][Install and run the hello package]]
  - [[#compile-guix-from-source][Compile Guix from source]]
+ - [[#building-packages-to-run-without-proot][Building packages to run without proot]]
+ - [[#trouble-shooting][Trouble shooting]]
+   - [[#error-cannot-bind-to-socket][error: cannot bind to socket]]
+   - [[#warn-about-old-distro][warn-about-old-distro]]
+   - [[#refusing-to-run-with-elevated-privileges-uid-0][refusing to run with elevated privileges (UID 0)]]
+   - [[#guix-daemon-crashes-x][guix-daemon crashes X]]
 
 * Introduction
 
@@ -35,18 +41,36 @@ your specific setup.
 
 One intermediate solution is to rewrite binary paths, as I (pjotr) did
 successfully with [[https://github.com/pjotrp/guix-relocatable-binary-packages/tree/master/packages][ldc]]. It has the advantage of using actual Guix built
-binaries but requires some hacking. Maybe I'll get around to writing
-something generic one day.
+(reproducible) binaries but requires some hacking. Maybe I'll get
+around to writing something generic one day.
 
 This document aims to find a reproducible way to bootstrap Guix in
-proot and get a Guix daemon running.
+proot and get a recent Guix daemon running. The main tricks are:
+
+1. Install proot (there are many ways and it should not be hard)
+2. Download and run the Guix binary tarball inside proot
+3. Run the guix-daemon in proot without root privileges
+4. Set the ACL to be able to download pre-built binaries
+5. Install the hello package (test)
+6. Install the build packages required for building guix
+7. Build the source tree inside proot
+8. Start the updated guix-daemon and tell it to use a different store relative to $HOME
+9. Start building packages relative to $HOME
+10. Run packages without proot(!)
+
+All without root access to your HPC.
 
 * Install proot
 
 Proot can rewrite paths transparently so your home directory looks
 like a root directory (where we create /gnu/store).  The first thing
 to do is install proot on your build system. This can be done with
-compilation from [[https://proot-me.github.io/][source]].
+compilation from [[https://proot-me.github.io/][source]]. If you happen to have Guix running somewhere
+you can move proot across:
+
+: scp $(guix build proot-static)/bin/proot remote:
+
+where remote is the non-root machine name.
 
 Create a directory to install Guix, e.g.
 
@@ -128,20 +152,21 @@ and modify it to look like:
 
 restart the daemon with
 
-: proot -0 -r '.' -b /proc -b /dev -b /etc  -b etc_guix/acl:/etc/guix/acl gnu/store/vir3lrwqy50prkaf3m091dgbrja2n6-guix-0.13.0/bin/guix-daemon --disable-chroot
+: proot -0 -b /proc -b /dev -b /etc -r . -b etc_guix/acl:/etc/guix/acl gnu/store/vir3lrwqy50pr8fkaf3m091dgbrja2n6-guix-0.13.0/bin/guix-daemon --disable-chroot
 
 (note the extra -0 and chroot switches) and you should see on a guix
 package install
 
 : substitute: updating list of substitutes from 'https://mirror.hydra.gnu.org'... 100.0%
 
-which makes for faster installs!
+which makes for faster installs! Btw ignore the --build-users-group
+warning switch here it has no real use in proot.
 
 Now we have the guix-daemon running we can install a package
 
 * Install and run the hello package
 
-: proot -r '.' -b /proc/ gnu/store/vir3lrwqy50pr8fkaf3m091dgbrja2n6-guix-0.13.0/bin/guix package -i hello
+: proot -b /proc/ -r . gnu/store/vir3lrwqy50pr8fkaf3m091dgbrja2n6-guix-0.13.0/bin/guix package -i hello
 
 After installing the hello package we can run it with proot. First
 locate the file:
@@ -151,13 +176,13 @@ locate the file:
 
 and run it
 
-: proot -r '.' gnu/store/prvjrj6i8cz7rvkgm643h952bv2daj1h-hello-2.10/bin/hello
+: proot gnu/store/prvjrj6i8cz7rvkgm643h952bv2daj1h-hello-2.10/bin/hello
 : Hello, world!
 
 this has also been added to our profile in home/user/.guix-profile,
 so we can run it as
 
-: proot -r '.' home/user/.guix-profile/bin/hello
+: proot home/user/.guix-profile/bin/hello
 
 isn't that the coolest thing!
 
@@ -175,3 +200,122 @@ The following is pretty similar to what is desribed in [[INSTALL.org]] in
 all build tools in our working directory:
 
 : proot -r '.' -b /proc/ gnu/store/vir3lrwqy50pr8fkaf3m091dgbrja2n6-guix-0.13.0/bin/guix package -i guix help2man git strace pkg-config less vim binutils coreutils grep --no-grafts
+
+make a note of the provided shell paths. In my case
+
+:   export GIT_EXEC_PATH="/home/user/.guix-profile/libexec/git-core"
+:   export GUILE_LOAD_PATH="/home/user/.guix-profile/share/guile/site/2.2${GUILE_LOAD_PATH:+:}$GUILE_LOAD_PATH"
+:   export GUILE_LOAD_COMPILED_PATH="/home/user/.guix-profile/lib/guile/2.2/site-ccache:/home/wrk/.guix-profile/share/guile/site/2.2${GUILE_LOAD_COMPILED_PATH:+:}$GUILE_LOAD_COMPILED_PATH"
+
+we create a full blown guix environment for building with
+
+: proot -b /proc/ -r . gnu/store/vir3lrwqy50pr8fkaf3m091dgbrja2n6-guix-0.13.0/bin/guix environment guix --ad-hoc help2man git strace pkg-config less vim binutils coreutils grep --no-grafts --bash
+
+it will end with a
+
+: guix environment: error: execlp: No such file or directory
+
+(it would be nice we got a shell, but no matter) after installing all
+packages we take a clean bash
+
+: env -i proot -b /proc -b /dev -r '.' gnu/store/k7029k5va68lkapbzcycdzj7m5bjb4b8-bash-4.4.12/bin/bash --login --noprofile --norc
+: bash-4.4$
+
+paste above shell paths or pick up the profile environment
+
+: . home/user/.guix-profile/etc/profile
+
+if needed, set the path to the profile
+
+: export PATH=/home/wrk/.guix-profile/bin
+
+and you should be able to do
+
+: git --version
+: guile --version
+: guix --version
+: gcc --version
+
+if files are missing, simply install them with guix (we no longer
+depend on the underlying Linux distribution). For some reason running
+guix inside proot got me warn-about-old-distro, so I had to do that
+outside the proot shell. The full thing is
+
+: proot -r '.' -b /proc/ gnu/store/vir3lrwqy50pr8fkaf3m091dgbrja2n6-guix-0.13.0/bin/guix package -i \
+:   autoconf automake bzip2 gcc-toolchain gettext \
+:   guile libgcrypt pkg-config sqlite m4 make \
+:   gnutls guile-json
+
+when that works we clone the guix source tree (outside proot) to get
+the latest and greatest
+
+: git clone http://git.sv.gnu.org/r/guix.git
+
+and run the proot bash again, setting the profile and
+
+: proot -b /proc -b /dev -b /bin -b /lib -b /lib64 -r . gnu/store/vir3lrwqy50pr8fkaf3m091dgbrja2n6-guix-0.13.0/bin/guix environment guix --ad-hoc help2man git strace pkg-config less vim binutils coreutils grep --no-grafts -- bash
+: export PATH=/home/wrk/.guix-profile/bin
+: cd guix
+: ./bootstrap
+: ./configure --localstatedir=/var
+: time make -j 8 # for 8 cores thouge guile manages itself
+:   real    11m26.352s
+:   user    37m52.192s
+:   sys     0m50.012s
+
+and you should have a fresh Guix (the build is slow though, much
+slower than without proot).
+
+Now you should be able to run a very recent guix
+
+: ./pre-inst-env guix --version
+
+to update
+
+: ./pre-inst-env guix package -i guix
+
+got a conflict, so I create a new profile
+
+: mkdir ~/opt
+: ./pre-inst-env guix package -p ~/opt/guix-latest -i guix --no-grafts
+
+Now we should have the latest guix-daemon set up! In the second
+terminal again rerun it with
+
+: proot -b /proc -b /dev -b /etc -r . -b etc_guix/acl:/etc/guix/acl home/wrk/opt/guix-latest//bin/guix-daemon --disable-chroot
+
+(the newer version does not need -0 anymore).
+
+* Building packages to run without proot
+
+But wait! Now we can start building new stuff ready for non-root! All
+we need to do is tell the daemon what store to target. To do that
+rebuild GNU Guix from source, but this time tell configure
+--with-store-dir=PATH and --localstatedir=DIR. The first defaults to
+/gnu/store and the second to /var/guix. So, if we target $HOME/local we can
+do
+
+: make clean
+: ./configure --localstatedir=$HOME/opt/var --with-store-dir=$HOME/opt/store
+: time make -j 8 # for 8 cores thouge guile manages itself
+
+Note that there exist limitations on the size of the store path for
+shell scripts - so, don't go very deep.
+
+With those packages build in $HOME/opt/store we no longer require
+proot to run them.
+
+* Trouble shooting
+
+** error: cannot bind to socket
+
+turned out to be a proot switch -r
+
+** warn-about-old-distro
+
+Guix versions won't run if they are old.
+
+** refusing to run with elevated privileges (UID 0)
+** guix-daemon crashes X
+
+When using the
