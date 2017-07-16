@@ -9,6 +9,7 @@
  - [[#install-and-run-the-hello-package][Install and run the hello package]]
  - [[#compile-guix-from-source][Compile Guix from source]]
  - [[#building-packages-to-run-without-proot][Building packages to run without proot]]
+ - [[#warning][Warning]]
  - [[#trouble-shooting][Trouble shooting]]
    - [[#error-cannot-bind-to-socket][error: cannot bind to socket]]
    - [[#warn-about-old-distro][warn-about-old-distro]]
@@ -244,7 +245,7 @@ paste above shell paths or pick up the profile environment
 
 if needed, set the path to the profile
 
-: export PATH=/home/user/.guix-profile/bin:
+: export PATH=/home/user/.guix-profile/bin
 
 and you should be able to do
 
@@ -280,7 +281,7 @@ once bootstrapped it actually may be enough to run
 
 : . /home/user/.guix-profile/etc/profile
 
-: export PATH=/home/user/.guix-profile/bin:/usr/bin:/bin
+: export PATH=$PATH:/usr/bin:/bin
 : cd guix
 : ./bootstrap
 : ./configure --localstatedir=/var
@@ -345,14 +346,29 @@ In both terminals running Guix daemon and client you need to set both
 : NIX_STORE_DIR=$HOME/opt/store
 : NIX_STATE_DIR=$HOME/opt/var
 
-as Roel [[https://github.com/UMCUGenetics/guix-additions/blob/master/doc/Deployment.md][documented]].  Restart the new daemon without proot (!)
+as Roel [[https://github.com/UMCUGenetics/guix-additions/blob/master/doc/Deployment.md][documented]].  Restart the new daemon with settings:
 
+: env NIX_STORE_DIR=$HOME/opt/store NIX_STATE_DIR=$HOME/opt/var proot  -b /proc -b /dev -b /et-b /lib -r . -b etc_guix/acl:/etc/guix/acl guix/guix-daemon --disable-chroot
 
-and
+and inside the proot shell you can do
+
+: env NIX_STORE_DIR=/home/wrk/opt/store NIX_STATE_DIR=/home/wrk/opt/var  ./pre-inst-env guix package -i hello
+
+or run it directly with proot:
+
+: env NIX_STORE_DIR=$HOME/opt/store NIX_STATE_DIR=$HOME/opt/var proot -r '.' -b /proc opt/local/bin/guix package -i hello --no-grafts --no-substitutes
+
 install at leisure:
 
 With those packages build in $HOME/opt/store we no longer require
 proot to run them.
+
+* Warning
+
+WARNING: it is really easy to mix up running daemons on one
+machine. Always make sure the right daemon is running before you
+want to install software and use the matching guix client with or without
+NIX_STORE_DIR and NIX_STATE_DIR! A warning from experience.
 
 * Trouble shooting
 
