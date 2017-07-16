@@ -37,6 +37,7 @@
     - [[#x509-certificate-error][X.509 certificate error]]
    - [[#error-build-failed-substituter-substitute-died-unexpectedly][error: build failed: substituter `substitute' died unexpectedly]]
    - [[#packagesscm-error][packages.scm error]]
+   - [[#error-while-loading-shared-libraries-libgslso23-cannot-open-shared-object-file-no-such-file-or-directory][error while loading shared libraries: libgsl.so.23: cannot open shared object file: No such file or directory]]
 
 * Introduction
 
@@ -935,3 +936,6 @@ pull.
 
 When you run into unexplainable errors upgrading the guix daemon is a
 good thing to try anyway.
+** error while loading shared libraries: libgsl.so.23: cannot open shared object file: No such file or directory
+
+You are probably not linking with ld-wrapper but are using a native /bin/ld
