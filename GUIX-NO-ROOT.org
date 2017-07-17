@@ -9,6 +9,7 @@
  - [[#install-and-run-the-hello-package][Install and run the hello package]]
  - [[#compile-guix-from-source][Compile Guix from source]]
  - [[#building-packages-to-run-without-proot][Building packages to run without proot]]
+ - [[#disabling-tests][Disabling tests]]
  - [[#warning][Warning]]
  - [[#trouble-shooting][Trouble shooting]]
    - [[#error-cannot-bind-to-socket][error: cannot bind to socket]]
@@ -370,13 +371,80 @@ proot to run them. For example I built gcc
 :         libc.so.6 => /home/wrk/opt/store/k3q0r9lp2gfbkw04iy4n25vxsrfchz1f-glibc-2.25/lib/libc.so.6 (0x00007fe097a95000)
 :         /home/wrk/opt/store/k3q0r9lp2gfbkw04iy4n25vxsrfchz1f-glibc-2.25/lib/ld-linux-x86-64.so.2 (0x00007fe098146000)
 
-and it runs without proot inside my $HOME:
+and it runs without proot inside my $HOME (you need to symlink the
+store to a working path)
+
+: ln -s ~/guix-no-root/gnu/store ~/opt/store
 
 : ./store/75d52cyi8qd3cphz5am1hwp5anjihmpp-gcc-5.4.0/bin/gcc --version
 : gcc (GCC) 5.4.0
 : Copyright (C) 2015 Free Software Foundation, Inc.
 
 I'll show a more recent version when I get there.
+
+* Disabling tests
+
+GNU Guix builds with tests switched on by default. When building a
+system from source this can be very annoying - some packages have
+extremely long runnnnnnnning tests. You can patch Guix to skip testing
+(note this is heresy and you'll never find it endorsed or an option
+added, but if someone has to come clean it might as well be me!). The
+following disables testing in a number of build systems, you'll get
+the idea.
+
+#+begin_src sh
+diff --git a/guix/build/gnu-build-system.scm b/guix/build/gnu-build-system.scm
+index 1786e2e3c..2aff344df 100644
+--- a/guix/build/gnu-build-system.scm
++++ b/guix/build/gnu-build-system.scm
+@@ -286,7 +286,7 @@ makefiles."
+ (define* (check #:key target (make-flags '()) (tests? (not target))
+                 (test-target "check") (parallel-tests? #t)
+                 #:allow-other-keys)
+-  (if tests?
++  (if #f
+       (zero? (apply system* "make" test-target
+                     `(,@(if parallel-tests?
+                             `("-j" ,(number->string (parallel-job-count)))
+diff --git a/guix/build/perl-build-system.scm b/guix/build/perl-build-system.scm
+index b2024e440..8008a7173 100644
+--- a/guix/build/perl-build-system.scm
++++ b/guix/build/perl-build-system.scm
+@@ -63,7 +63,7 @@
+ (define-w/gnu-fallback* (check #:key target
+                                (tests? (not target)) (test-flags '())
+                                #:allow-other-keys)
+-  (if tests?
++  (if #f
+       (zero? (apply system* "./Build" "test" test-flags))
+       (begin
+         (format #t "test suite not run~%")
+diff --git a/guix/build/python-build-system.scm b/guix/build/python-build-system.scm
+index dd07986b9..dacf58110 100644
+--- a/guix/build/python-build-system.scm
++++ b/guix/build/python-build-system.scm
+@@ -131,7 +131,7 @@
+
+ (define* (check #:key tests? test-target use-setuptools? #:allow-other-keys)
+   "Run the test suite of a given Python package."
+-  (if tests?
++  (if #f
+       ;; Running `setup.py test` creates an additional .egg-info directory in
+       ;; build/lib in some cases, e.g. if the source is in a sub-directory
+       ;; (given with `package_dir`). This will by copied to the output, too,
+diff --git a/guix/build/ruby-build-system.scm b/guix/build/ruby-build-system.scm
+index c2d276627..2f12a4362 100644
+--- a/guix/build/ruby-build-system.scm
++++ b/guix/build/ruby-build-system.scm
+@@ -116,7 +116,7 @@ generate the files list."
+ (define* (check #:key tests? test-target #:allow-other-keys)
+   "Run the gem's test suite rake task TEST-TARGET.  Skip the tests if TESTS?
+ is #f."
+-  (if tests?
++  (if #f
+       (zero? (system* "rake" test-target))
+       #t))
+#+end_src
 
 * Warning
 
@@ -402,8 +470,8 @@ Use proot -0 switch on the daemon.
 
 ** guix-daemon crashes X
 
-When setting the build-group of the guix-daemon in proot it would
-crash. You can avoid the switch, as mentioned above.
+When setting the --build-group of the guix-daemon in proot X would crash
+on my machine. You can avoid the switch, as mentioned above.
 
 ** guix package: error: unsupported manifest format
 
