@@ -116,6 +116,15 @@ do
 the '-r .' fakes the new root '/' directory.  type 'exit' to leave
 again.
 
+Note the 02426nwiy32cscm4h83729vn5ws1gs2i hash path for bin/bash may
+differ on your system - this will happen over time with Guix
+distributions getting updated. Same for all hashes listed below. Just look
+inside your store with a command like
+
+: ls gnu/store/*/bin/bash
+
+to fish out the paths.
+
 * Run guix daemon in proot
 
 Open a new terminal window and start the guix daemon
@@ -360,7 +369,12 @@ or run it directly with proot:
 
 and install at leisure. Note that, at this point, the download script
 needs a fix. The first hash bang needs to point to a bash in the
-store.
+store (see below).
+
+Note also you can build in parallel and continue with
+guix package switches -c 8 -M 8 -k. Use them and use your cores!
+
+: env NIX_STORE_DIR=$HOME/opt/store NIX_STATE_DIR=$HOME/opt/var proot -r '.' -b /proc opt/local/bin/guix package -i hello --no-grafts --no-substitutes -c 8 -M 8 -k
 
 With those packages build in $HOME/opt/store we no longer require
 proot to run them. For example I built gcc
