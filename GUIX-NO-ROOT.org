@@ -16,6 +16,7 @@
    - [[#refusing-to-run-with-elevated-privileges-uid-0][refusing to run with elevated privileges (UID 0)]]
    - [[#guix-daemon-crashes-x][guix-daemon crashes X]]
    - [[#guix-package-error-unsupported-manifest-format][guix package: error: unsupported manifest format]]
+   - [[#error-failed-to-run-download-program-homeuseroptlocallibexecguixdownload-no-such-file-or-directory][error: failed to run download program '/home/user/opt/local/libexec/guix/download': No such file or directory]]
 
 * Introduction
 
@@ -339,8 +340,6 @@ We also need to build the daemon and install guix in
 Note that guix has been installed in $PREFIX/bin this time (also
 inside proot). Now we need to run the new guix and daemon.
 
-NOTE: I am here!
-
 In both terminals running Guix daemon and client you need to set both
 
 : NIX_STORE_DIR=$HOME/opt/store
@@ -358,10 +357,26 @@ or run it directly with proot:
 
 : env NIX_STORE_DIR=$HOME/opt/store NIX_STATE_DIR=$HOME/opt/var proot -r '.' -b /proc opt/local/bin/guix package -i hello --no-grafts --no-substitutes
 
-install at leisure:
+and install at leisure. Note that, at this point, the download script
+needs a fix. The first hash bang needs to point to a bash in the
+store.
 
 With those packages build in $HOME/opt/store we no longer require
-proot to run them.
+proot to run them. For example I built gcc
+
+: ldd store/75d52cyi8qd3cphz5am1hwp5anjihmpp-gcc-5.4.0/bin/gcc
+:         linux-vdso.so.1 (0x00007ffce6b1c000)
+:         libm.so.6 => /home/wrk/opt/store/k3q0r9lp2gfbkw04iy4n25vxsrfchz1f-glibc-2.25/lib/libm.so.6 (0x00007fe097e34000)
+:         libc.so.6 => /home/wrk/opt/store/k3q0r9lp2gfbkw04iy4n25vxsrfchz1f-glibc-2.25/lib/libc.so.6 (0x00007fe097a95000)
+:         /home/wrk/opt/store/k3q0r9lp2gfbkw04iy4n25vxsrfchz1f-glibc-2.25/lib/ld-linux-x86-64.so.2 (0x00007fe098146000)
+
+and it runs without proot inside my $HOME:
+
+: ./store/75d52cyi8qd3cphz5am1hwp5anjihmpp-gcc-5.4.0/bin/gcc --version
+: gcc (GCC) 5.4.0
+: Copyright (C) 2015 Free Software Foundation, Inc.
+
+I'll show a more recent version when I get there.
 
 * Warning
 
@@ -382,6 +397,9 @@ Guix versions won't run if they are old. Use a more recent version
 of the daemon.
 
 ** refusing to run with elevated privileges (UID 0)
+
+Use proot -0 switch on the daemon.
+
 ** guix-daemon crashes X
 
 When setting the build-group of the guix-daemon in proot it would
@@ -395,3 +413,11 @@ once because it built a new daemon after
 
 : guix pull
 : guix package -i guix -p ~/opt/guix
+
+** error: failed to run download program '/home/user/opt/local/libexec/guix/download': No such file or directory
+
+This is caused by the hash bang #!/bin/bash not being picked up in the
+script. Modify it to point to a bash in a visible store (no bash
+without hash), e.g. replace it with
+
+#!/store/gnsc9ssv2zbmlw6l51fvgjy8s9lzha64-bash-4.4.12/bin/bash
