@@ -1,4 +1,4 @@
-#+TITLE: GNU Guix without root access
+#+TITLE: GNU Guix without root access on HPC
 
 * Table of Contents                                                     :TOC:
  - [[#introduction][Introduction]]
@@ -9,6 +9,7 @@
  - [[#install-and-run-the-hello-package][Install and run the hello package]]
  - [[#compile-guix-from-source][Compile Guix from source]]
  - [[#building-packages-to-run-without-proot][Building packages to run without proot]]
+ - [[#final-commands][Final commands]]
  - [[#disabling-tests][Disabling tests]]
  - [[#warning][Warning]]
  - [[#trouble-shooting][Trouble shooting]]
@@ -361,7 +362,7 @@ as Roel [[https://github.com/UMCUGenetics/guix-additions/blob/master/doc/Deploym
 
 and inside the proot shell you can do
 
-: env NIX_STORE_DIR=/home/wrk/opt/store NIX_STATE_DIR=/home/wrk/opt/var  ./pre-inst-env guix package -i hello
+: env NIX_STORE_DIR=/home/user/opt/store NIX_STATE_DIR=/home/user/opt/var  ./pre-inst-env guix package -i hello
 
 or run it directly with proot:
 
@@ -374,16 +375,16 @@ store (see below).
 Note also you can build in parallel and continue with
 guix package switches -c 8 -M 8 -k. Use them and use your cores!
 
-: env NIX_STORE_DIR=$HOME/opt/store NIX_STATE_DIR=$HOME/opt/var proot -r '.' -b /proc opt/local/bin/guix package -i hello --no-grafts --no-substitutes -c 8 -M 8 -k
+: env NIX_STORE_DIR=/home/user/opt/store NIX_STATE_DIR=/home/user/opt/var  proot -r '.' -b /proc opt/local/bin/guix package -i hello -c 8 -M 8 -k --no-grafts --no-substitutes
 
 With those packages build in $HOME/opt/store we no longer require
 proot to run them. For example I built gcc
 
 : ldd store/75d52cyi8qd3cphz5am1hwp5anjihmpp-gcc-5.4.0/bin/gcc
 :         linux-vdso.so.1 (0x00007ffce6b1c000)
-:         libm.so.6 => /home/wrk/opt/store/k3q0r9lp2gfbkw04iy4n25vxsrfchz1f-glibc-2.25/lib/libm.so.6 (0x00007fe097e34000)
-:         libc.so.6 => /home/wrk/opt/store/k3q0r9lp2gfbkw04iy4n25vxsrfchz1f-glibc-2.25/lib/libc.so.6 (0x00007fe097a95000)
-:         /home/wrk/opt/store/k3q0r9lp2gfbkw04iy4n25vxsrfchz1f-glibc-2.25/lib/ld-linux-x86-64.so.2 (0x00007fe098146000)
+:         libm.so.6 => /home/user/opt/store/k3q0r9lp2gfbkw04iy4n25vxsrfchz1f-glibc-2.25/lib/libm.so.6 (0x00007fe097e34000)
+:         libc.so.6 => /home/user/opt/store/k3q0r9lp2gfbkw04iy4n25vxsrfchz1f-glibc-2.25/lib/libc.so.6 (0x00007fe097a95000)
+:         /home/user/opt/store/k3q0r9lp2gfbkw04iy4n25vxsrfchz1f-glibc-2.25/lib/ld-linux-x86-64.so.2 (0x00007fe098146000)
 
 and it runs without proot inside my $HOME (you need to symlink the
 store to a working path)
@@ -395,6 +396,26 @@ store to a working path)
 : Copyright (C) 2015 Free Software Foundation, Inc.
 
 I'll show a more recent version when I get there.
+
+* Final commands
+
+For completeness. In the final setup, after compiling and installing
+guix, I run the guix daemon and guix as a normal user with proot:
+
+: env NIX_STORE_DIR=$HOME/opt/store NIX_STATE_DIR=$HOME/opt/var \
+:   proot  -b /proc -b /dev -b /etc -b /lib -r . \
+:   -b etc_guix/acl:/etc/guix/acl opt/local/bin/guix-daemon --disable-chroot
+
+: env NIX_STORE_DIR=$HOME/opt/store NIX_STATE_DIR=$HOME/opt/var \
+:    proot -r '.' -b /proc opt/local/bin/guix package -i hello \
+:    -c 8 -M 8 --no-grafts --no-substitutes
+
+the software that gets compiled runs without proot. In this case, for
+example
+
+:  ~/opt/store/vl87lyk8vpk7h1ifawfa39g0kzwcmb69-gzip-1.8/bin/gzip --version
+: gzip 1.8
+: Copyright (C) 2016 Free Software Foundation, Inc.
 
 * Disabling tests
 
@@ -463,9 +484,10 @@ index c2d276627..2f12a4362 100644
 * Warning
 
 WARNING: it is really easy to mix up running daemons on one
-machine. Always make sure the right daemon is running before you
-want to install software and use the matching guix client with or without
-NIX_STORE_DIR and NIX_STATE_DIR! A warning from experience.
+machine. Always make sure the right daemon is running before you want
+to install software and use the matching guix client with or without
+NIX_STORE_DIR and NIX_STATE_DIR! A warning from experience. Testing in
+a VM may be an idea.
 
 * Trouble shooting
 
@@ -477,6 +499,9 @@ turned out to be a proot switch -r
 
 Guix versions won't run if they are old. Use a more recent version
 of the daemon.
+
+Also see this inside proot - probably because $HOME/.config is not
+mounted.  Happens when the client is run inside proot bash.
 
 ** refusing to run with elevated privileges (UID 0)
 
