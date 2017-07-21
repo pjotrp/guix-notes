@@ -90,3 +90,10 @@ To run the tool in one go and set the HOME dir:
 #+begin_src sh
 guix environment --network --expose=/mnt/cdrom --share=/tmp/.X11-unix --container --ad-hoc wine vim bash coreutils -- env HOME=`pwd` DISPLAY=":0.0" wine explorer
 #+end_src sh
+
+* Docker
+
+Guix has its own containers using native Linux support, but you can
+also run Guix in Docker and distribute software that way. One
+interesting thing you can do is run guix 'pack' which creates a docker
+image of a package with all its dependencies, see this [[https://www.gnu.org/software/guix/news/creating-bundles-with-guix-pack.html][description]].
