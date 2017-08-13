@@ -497,8 +497,8 @@ turned out to be a proot switch -r
 
 ** warn-about-old-distro
 
-Guix versions won't run if they are old. Use a more recent version
-of the daemon.
+Guix versions won't run if they are old. Use a more recent version of
+the daemon. It may also help to remove ~/.config/guix if it exists.
 
 Also see this inside proot - probably because $HOME/.config is not
 mounted.  Happens when the client is run inside proot bash.

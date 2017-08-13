@@ -23,6 +23,12 @@ GNU Guix has a number of things going for it:
    GNU Guix you get the same environment, all the way down to glibc.
 4. GNU Guix comes with great *tooling*. Because we are all developers!
 
+Most importantly Guix provides *isolation*. That means that if you use
+different combinations of dependencies you can rely on the system to
+provide them. Examples are using different versions of
+interpreters/compilers and different versions of libraries. Simply
+create a profile for each combination.
+
 * Installing GNU Guix
 
 See the online documentation and [[INSTALL.org]].
@@ -94,7 +100,7 @@ When you hit an error like
 it means the Guix installed linker can not find its files. If are
 creating Guix linked binaries you should set LIBRARY_PATH to the Guix
 profile/lib. If are creating locally linked binaries, use the local
-linker!
+linker! Don't use the Guix ld.
 
 ld is part of the Guix binutils package.
 

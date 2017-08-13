@@ -34,10 +34,11 @@
  - [[#install-gnu-guix-systemsoftware-distribution-sd][Install GNU Guix system/software distribution (SD)]]
  - [[#trouble-shooting][Trouble shooting]]
    - [[#failed-to-connect-to-daemon][Failed to connect to daemon]]
-    - [[#x509-certificate-error][X.509 certificate error]]
+   - [[#x509-certificate-error][X.509 certificate error]]
    - [[#error-build-failed-substituter-substitute-died-unexpectedly][error: build failed: substituter `substitute' died unexpectedly]]
    - [[#packagesscm-error][packages.scm error]]
    - [[#error-while-loading-shared-libraries-libgslso23-cannot-open-shared-object-file-no-such-file-or-directory][error while loading shared libraries: libgsl.so.23: cannot open shared object file: No such file or directory]]
+   - [[#updating-guix-hell][updating Guix hell]]
 
 * Introduction
 
@@ -392,7 +393,7 @@ that ends up in $GUIX_LOCPATH/2.23/
 and all should be well - at least for tools installed with Guix.
 
 Not recommended: set the LOCPATH to that of your underlying
-distribution - incompatibilities may exist.
+distribution - incompatibilities may exist. See also the [[https://www.gnu.org/software/guix/manual/html_node/Application-Setup.html][Guix docs]].
 
 * Fonts
 
@@ -571,7 +572,7 @@ a clean shell
 screen -S guix-build # I tend to build in screen
 env -i /bin/bash --login --noprofile --norc
 ~/.guix-profile/bin/guix environment guix --ad-hoc help2man git strace \
-  pkg-config less vim binutils coreutils grep --no-grafts
+  pkg-config less vim binutils coreutils grep guile-git --no-grafts
 bash # you may want this shell
 #+end_src sh   :lang bash
 
@@ -895,7 +896,7 @@ If you get on a guix command
 
 it means the daemon is not running.
 
-**  X.509 certificate error
+** X.509 certificate error
 
 When you get the X.509 certificate error it means that openssl can not find the certificates.
 
@@ -939,3 +940,10 @@ good thing to try anyway.
 ** error while loading shared libraries: libgsl.so.23: cannot open shared object file: No such file or directory
 
 You are probably not linking with ld-wrapper but are using a native /bin/ld
+** updating Guix hell
+
+When you get stuck with Guix it is possible to unpack the binary installation
+tarball and copy the files in gnu/store into your own store. Now you can
+run that guix from there
+
+: /gnu/store/hash-guix-version/bin/guix package -i guix
