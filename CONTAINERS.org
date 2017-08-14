@@ -105,7 +105,7 @@ image of a package with all its dependencies, see this [[https://www.gnu.org/sof
 To build the pack from guix, the following command was run:
 
 #+begin_src sh
-./pre-inst-env guix pack --format=docker -S /bin=/bin conda bash
+./pre-inst-env guix pack --format=docker -S /bin=/bin conda bash coreutils
 #+end_src sh
 
 This builds an archive with both `conda` and `bash`. The package will be named
@@ -128,6 +128,8 @@ error like the following:
 #+begin_src sh
 '/bin/bash' No such file or directory
 #+end_src sh
+
+coreutils has been added to provide the basic core commands
 
 *** Load the Archive to Docker
 
