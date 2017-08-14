@@ -160,6 +160,9 @@ From this step, there was need to bootstrap new images, based on the base image
 created in the section above. The steps that follow will be somewhat similar,
 with each image building upon the one before it.
 
+The files created here can be found 
+[[https://github.com/fredmanglis/guix-conda-docker/][in this repository]].
+
 The first image to be built only contains conda, and it was initialised with a
 new environment called `default-env`. This was done by writing a Dockerfile with
 the following content:
@@ -255,3 +258,35 @@ example, to get the image with bioconda already set up, do:
 #+begin_src sh
 docker pull fredmanglis/guix-bioconda:latest
 #+end_src sh
+
+*** Run Installed Applications
+
+To run the applications installed, we need to set up the path correctly. To do
+this, we make use of docker's --env-file option, in something similar to the
+following:
+
+#+begin_src bash
+docker run --env-file=<file-with-env-vars> img-to-run:img-tag <command-to-run>
+#+end_src bash
+
+The <file-with-env-vars> can be found [[https://github.com/fredmanglis/guix-conda-docker/][here]].
+
+Now you can proceed to run a command, for example:
+
+#+begin_src sh
+docker run --env-file=environment_variables --volume /tmp/sample:/data \
+fredmanglis/guix-sambamba bash -c "sambamba view /data/test.bam"
+#+end_src sh
+
+:NOTE: The above example isn't working at this time. It fails with:
+
+#+begin_src sh
+bash: /.conda/envs/default-env/bin/sambamba: No such file or directory
+#+end_src sh
+
+despite the fact that the file actually exists and is executable.
+
+The `--volume sample:/data` portion of the command mount a directory named
+`sample` on to the path `/data` in the container created by docker to run the
+given command. This is to make sure the data you're working on is available to
+the commands you run.
