@@ -109,7 +109,7 @@ To build the pack from guix, the following command was run:
 #+end_src sh
 
 This builds an archive with both `conda` and `bash`. The package will be named
-something like /gnu/store/xzn6bkp1xnjnn02dj54f9kgw7arpcrpp-docker-pack.tar.gz
+something like `/gnu/store/h7cm5p5m1jalirqwp5h5mb4cqxi7la4n-docker-pack.tar.gz`
 
 The `./pre-inst-env` portion can be dropped if you have a newer version of guix
 that comes with conda in its list of packages. You can find out by running the
@@ -137,21 +137,21 @@ The next step is to load the archive into Docker. This was done by running the
 following command:
 
 #+begin_src sh
-cat /gnu/store/xzn6bkp1xnjnn02dj54f9kgw7arpcrpp-docker-pack.tar.gz | docker load
+cat /gnu/store/h7cm5p5m1jalirqwp5h5mb4cqxi7la4n-docker-pack.tar.gz | docker load
 #+end_src sh
 
 It is important that you use the actual name of the tar file that was generated
 by guix, and not simply copy and paste the command above.
 
 This creates a new docker image with a name like
-profile:mhnyzl7g90f4mnvyrwswabn4vhribbm8. This is the base image that will be
+`profile:8klc3fipj4shwl1gdnc2w2makpkkp7kz`. This is the base image that will be
 used to bootstrap all the other images.
 
 The next step, was optional. It was renaming the image to something more
 descriptive. This was done using docker's tag command, as follows:
 
 #+begin_src sh
-docker image tag profile:mhnyzl7g90f4mnvyrwswabn4vhribbm8 fredmanglis/guix-conda-base-img:latest
+docker image tag profile:8klc3fipj4shwl1gdnc2w2makpkkp7kz fredmanglis/guix-conda-base-img:latest
 #+end_src sh
 
 *** Bootstraping the Images
