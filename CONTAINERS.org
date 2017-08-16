@@ -105,11 +105,11 @@ image of a package with all its dependencies, see this [[https://www.gnu.org/sof
 To build the pack from guix, the following command was run:
 
 #+begin_src sh
-./pre-inst-env guix pack --format=docker -S /bin=/bin conda bash coreutils
+./pre-inst-env guix pack -S /opt/gnu/bin=/bin conda
 #+end_src sh
 
-This builds an archive with both `conda` and `bash`. The package will be named
-something like `/gnu/store/h7cm5p5m1jalirqwp5h5mb4cqxi7la4n-docker-pack.tar.gz`
+This builds an archive with `conda`. The package will be named something like
+`/gnu/store/y2gylr1nz7qrj0p1xwfcg4n8pm0p4wgl-tarball-pack.tar.gz`
 
 The `./pre-inst-env` portion can be dropped if you have a newer version of guix
 that comes with conda in its list of packages. You can find out by running the
@@ -121,44 +121,17 @@ guix package --search=conda
 
 and looking through the list to see if there is a package named conda.
 
-bash is required to run the initialisation steps of the images going forward. If
-bash is not installed, then the image initialisation steps will fail with an
-error like the following:
-
-#+begin_src sh
-'/bin/bash' No such file or directory
-#+end_src sh
-
-coreutils has been added to provide the basic core commands
-
-*** Load the Archive to Docker
-
-The next step is to load the archive into Docker. This was done by running the
-following command:
-
-#+begin_src sh
-cat /gnu/store/h7cm5p5m1jalirqwp5h5mb4cqxi7la4n-docker-pack.tar.gz | docker load
-#+end_src sh
-
-It is important that you use the actual name of the tar file that was generated
-by guix, and not simply copy and paste the command above.
-
-This creates a new docker image with a name like
-`profile:8klc3fipj4shwl1gdnc2w2makpkkp7kz`. This is the base image that will be
-used to bootstrap all the other images.
-
-The next step, was optional. It was renaming the image to something more
-descriptive. This was done using docker's tag command, as follows:
-
-#+begin_src sh
-docker image tag profile:8klc3fipj4shwl1gdnc2w2makpkkp7kz fredmanglis/guix-conda-base-img:latest
-#+end_src sh
-
 *** Bootstraping the Images
 
-From this step, there was need to bootstrap new images, based on the base image
-created in the section above. The steps that follow will be somewhat similar,
-with each image building upon the one before it.
+From this step, there was need to bootstrap new images, based on a base image.
+The base image chosen was the ubuntu image. You can get it with:
+
+#+begin_src sh
+docker pull ubuntu
+#+end_src sh
+
+The steps that follow will be somewhat similar, with each image building upon
+the image before it.
 
 The files created here can be found 
 [[https://github.com/fredmanglis/guix-conda-docker/][in this repository]].
@@ -168,8 +141,10 @@ new environment called `default-env`. This was done by writing a Dockerfile with
 the following content:
 
 #+begin_src dockerfile
-FROM fredmanglis/guix-conda-base-img:latest
-RUN conda create --name default-env
+FROM ubuntu:latest
+COPY /gnu/store/y2gylr1nz7qrj0p1xwfcg4n8pm0p4wgl-tarball-pack.tar.gz /tmp/conda-pack.tar.gz
+RUN tar -xzf /tmp/conda-pack.tar.gz && rm -f /tmp/conda-pack.tar.gz
+RUN /opt/gnu/bin/conda create --name default-env
 #+end_src dockerfile
 
 This file was saved as `Dockerfile.conda` and then the image was built by
@@ -212,7 +187,7 @@ We start by defining the image in a file, `Dockerfile.sambamba` which contains:
 
 #+begin_src dockerfile
 FROM fredmanglis/guix-bioconda:latest
-RUN conda install --yes --name default-env sambamba
+RUN /opt/gnu/bin/conda install --yes --name default-env sambamba
 #+end_src dockerfile
 
 As can be seen, the package is installed in the environment `default-env`
@@ -233,13 +208,12 @@ https://hub.docker.com/r/fredmanglis/
 To publish them, docker's push command was used, as follows:
 
 #+begin_src sh
-docker push fredmanglis/guix-conda-base-img:latest && \
 docker push fredmanglis/guix-conda-plain:latest && \
 docker push fredmanglis/guix-bioconda:latest  && \
 docker push fredmanglis/guix-sambamba:latest
 #+end_src sh
 
-These are really, four separate commands, in a sequence that only runs the later
+These are really, three separate commands, in a sequence that only runs the later
 commands if the ones before them ran successfully. This ensures that the derived
 images are only uploaded after the images they are based on have been
 successfully uploaded.
@@ -278,15 +252,6 @@ docker run --env-file=environment_variables --volume /tmp/sample:/data \
 fredmanglis/guix-sambamba bash -c "sambamba view /data/test.bam"
 #+end_src sh
 
-:NOTE: The above example isn't working at this time. It fails with:
-
-#+begin_src sh
-bash: /.conda/envs/default-env/bin/sambamba: No such file or directory
-#+end_src sh
-
-despite the fact that the file actually exists and is executable.
-
-The `--volume sample:/data` portion of the command mount a directory named
-`sample` on to the path `/data` in the container created by docker to run the
-given command. This is to make sure the data you're working on is available to
-the commands you run.
+the `--volume` option enables one to mount a specific directory to the docker
+container that is created, so that the data is available to the running
+commands.
