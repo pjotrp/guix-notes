@@ -183,8 +183,13 @@ And you might also want to look into the --cache-failures option for
 the guix-daemon. And instead of just using a for-loop you might
 want to use gnu parallel or something.
 
+First generate the key in /etc/guix/signing-key.pub
+
+: guix archive --generate-key
+
 To publish the server is a trivial
 
+: useradd guixpublisher
 : guix publish -p 8080 -u guixpublisher
 
 Note that it is also possible to use the GUIX_PACKAGE_PATH to
@@ -195,7 +200,7 @@ special packages]].
 
 Example for Guix published on http://penguin.org:8080
 
-The public key on the publishing server is defined in /etc/guix
+The public key on the publishing server is defined in /etc/guix/acl
 
 #+begin_src scheme
 (public-key
@@ -204,12 +209,13 @@ The public key on the publishing server is defined in /etc/guix
       (q #AFF68C4E099401E85BE2D7375C1DB5E8A29F1DB83299038122AF5C0984099CF8#)))
 #+end_src scheme
 
-Run
+On the receiving machine run
 
 : sudo guix archive --authorize
 
-Paste in the scheme expression for the key above and finish with
-ctrl-D. After that you can use e.g.
+so as to authorize the distributing (publishing) server.  Paste in the
+scheme expression for the key above and finish with ctrl-D. After that
+you can use something like
 
 : guix package -i boost --substitute-urls="http://penguin.org:8080"
 
