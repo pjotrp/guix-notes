@@ -87,6 +87,7 @@ grow the Guile community.
   - GNU Guile: https://www.gnu.org/software/guile/
   - GNU Guile libs: https://www.gnu.org/software/guile/libraries/
   - GNU Guix: http://www.gnu.org/software/guix
+  - MES and bootstrappable: https://gitlab.com/janneke/mes and http://bootstrappable.org
 
 * Why should FOSDEM accept this proposal?
 
