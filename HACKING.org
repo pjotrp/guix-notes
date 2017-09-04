@@ -1216,7 +1216,8 @@ To inspect variables I may inject something like
 (#f)
 #+end_src
 
-The last command will compile and break at runtime.
+The last command will compile and break at runtime. Together with the -K option it helps
+trouble shooting.
 
 * Hints
 

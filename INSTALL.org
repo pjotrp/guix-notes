@@ -565,13 +565,20 @@ described above:
 
 *** Install the dependencies and build tools using Guix:
 
+Install packages
+
+#+begin_src sh   :lang bash
+guix package -i guix help2man git strace \
+  pkg-config less vim binutils coreutils grep guile guile-git gcc --no-grafts
+#+end_src sh   :lang bash
+
 The safest route is by using guix environment after starting
 a clean shell (note environment does not clutter up your profile!):
 
 #+begin_src sh   :lang bash
 screen -S guix-build # I tend to build in screen
 env -i /bin/bash --login --noprofile --norc
-~/.guix-profile/bin/guix environment guix --ad-hoc help2man git strace \
+guix environment guix --ad-hoc help2man git strace \
   pkg-config less vim binutils coreutils grep guile guile-git gcc --no-grafts
 bash # you may want this shell
 #+end_src sh   :lang bash
