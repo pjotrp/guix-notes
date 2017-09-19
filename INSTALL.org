@@ -19,15 +19,22 @@
  - [[#sysv-startup-of-guix-daemon][SysV startup of Guix daemon]]
  - [[#building-guix-from-source][Building Guix from source]]
    - [[#before-you-try-read-this][Before you try, read this]]
- - [[#sharing-profiles][Sharing profiles]]
- - [[#other-installation-routes][Other installation routes]]
-   - [[#install-repository-from-git][Install repository from git]]
-   - [[#bootstrap-from-source][Bootstrap from source]]
-   - [[#building-gnu-guix-from-source-using-guix][Building GNU Guix from source (using Guix)]]
+ - [[#fetch-repository-with-git][Fetch repository with git]]
+ - [[#a-note-on-bootstrap-from-source][A note on bootstrap from source]]
+ - [[#building-gnu-guix-from-source-using-guix---the-bullet-proof-way][Building GNU Guix from source (using Guix) - the bullet proof way]]
+   - [[#install-the-dependencies-and-build-tools-using-guix][Install the dependencies and build tools using Guix:]]
+   - [[#alternative-build-route-using-a-guix-profile][Alternative build route using a Guix profile]]
+    - [[#set-the-guix-environment-variables][Set the Guix environment variables]]
+   - [[#check-before-build][Check before build]]
+   - [[#and-build-it][And build it]]
+   - [[#troubleshooting][Troubleshooting]]
+   - [[#and-run-it][And run it]]
    - [[#run-the-latest-guix-server-from-the-git-repo][Run the latest guix server from the git repo]]
+ - [[#alterneative-build-routes][Alterneative build routes]]
    - [[#building-gnu-guix-from-source-debian-native][Building GNU Guix from source (Debian native)]]
    - [[#bootstrap-with-nix][Bootstrap with Nix]]
    - [[#bootstrap-with-docker][Bootstrap with Docker]]
+ - [[#sharing-profiles][Sharing profiles]]
  - [[#continue-with-ruby-installation-and-environment][Continue with Ruby installation and environment]]
  - [[#continue-with-python-installation-and-environment][Continue with Python installation and environment]]
  - [[#add-your-own-package][Add your own package]]
@@ -501,38 +508,7 @@ Guix source install. But then, some of us are more adventurous than
 others and you may need the git tree to package new software and work
 on reproducible builds.
 
-* Sharing profiles
-
-Guix has this amazing facility called 'profiles' (originally coming
-from Nix) which does away with hacks like Unix modules and Debian
-[[https://wiki.debian.org/DebianAlternatives][alternatives]]. Any user can create any number of profiles in his/her
-home directory to, for example, address the need of running different
-Python versions. For the use of profiles see the [[https://www.gnu.org/software/guix/manual/html_node/Invoking-guix-package.html][GNU Guix
-documentation]].
-
-One thing we like to do is share profiles. The current situation is to
-have one 'master' user on the system that can install profiles in
-/usr/local/guix-profiles and these can easily be used by others. So
-
-: guix package -p /usr/local/guix-profiles/shared-profile -i vim
-
-and any user can add the profile to the path
-
-: export PATH="/usr/local/guix-profiles/shared-profile/bin:$PATH"
-
-and run vim. On Debian we can use the alternative system to link
-to these again (as root)
-
-: cd /etc/alternatives
-: ln -s /usr/local/guix-profiles/shared-profile/bin/vi
-: ln -s /usr/local/guix-profiles/shared-profile/bin/view
-: ln -s /usr/local/guix-profiles/shared-profile/bin/vim
-
-And now all users are all sharing the Guix installation of vim rather
-than then underlying Debian one.
-
-* Other installation routes
-** Install repository from git
+* Fetch repository with git
 
 Use one of https://savannah.gnu.org/git/?group=guix and clone with
 sub modules:
@@ -543,7 +519,7 @@ when updating
 
 : git pull --recurse-submodules git-URI
 
-** Bootstrap from source
+* A note on bootstrap from source
 
 Bootstrapping from source, after checking out the git Guix source tree
 can be surprisingly tricky because of the build dependencies. Your
@@ -555,15 +531,15 @@ For building from source I found it to be important to make sure not to
 *mix* Guix and native dependencies. Also make sure you are using the
 proper localstatedir.
 
-** Building GNU Guix from source (using Guix)
+* Building GNU Guix from source (using Guix) - the bullet proof way
 
 This is my recommended route for building from source.
 
-You can re-build and re-install Guix using a system that already runs Guix.
-To do so (copied from the Guix README). After the binary tar install
-described above:
+You can re-build and re-install Guix using a system that already runs
+Guix.  To do so (copied from the Guix README). For example, after the
+binary tar install described above:
 
-*** Install the dependencies and build tools using Guix:
+** Install the dependencies and build tools using Guix:
 
 Install packages
 
@@ -587,9 +563,12 @@ In fact pick the most recent guix you have got, see 'ls
 /gnu/store/*guix*/bin/guix' and run that command. Use the --no-grafts
 switch if you have built packages that way before.
 
-Note that you can start guix by installing the binary tar ball, or
-copying it from another machine using the rather useful guix archive
-or [[https://www.gnu.org/software/guix/news/creating-bundles-with-guix-pack.html][guix pack]] commands.
+Tip: once you have built guix successfully you can use the ./pre-inst
+prefix.
+
+Note that you can opt to start guix by installing the binary tar ball,
+or copying it from another machine using the rather useful `guix
+archive' or [[https://www.gnu.org/software/guix/news/creating-bundles-with-guix-pack.html][guix pack]] commands.
 
 You may want to take a note of these running versions
 
@@ -610,7 +589,7 @@ make clean-go # to be even surer
 make -j 8
 #+end_src sh   :lang bash
 
-*** Alternative build route using a Guix profile
+** Alternative build route using a Guix profile
 
 Note: this is a lesser option than using guix environment because
 there may be issues with a 'polluted' environment. Use above if you
@@ -663,7 +642,7 @@ Note You can also use your own caching server as described in
 Note that the --no-grafts should align with that of your caching
 server.
 
-****  Set the Guix environment variables
+**  Set the Guix environment variables
 
 Guix recommends you to set during the package installation process: ACLOCAL_PATH, CPATH, LIBRARY_PATH, PKG_CONFIG_PATH
 
@@ -698,7 +677,7 @@ export BASH_LOADABLES_PATH="/home/pjotr/opt/guix-build-system/lib/bash"
 export GIT_EXEC_PATH="/home/pjotr/opt/guix-build-system/libexec/git-core"
 #+end_src sh   :lang bash
 
-**** Check before build
+** Check before build
 
 Make sure the path is pointing to the build path
 
@@ -712,7 +691,7 @@ should give
 /home/wrk/opt/guix-build-system/bin/env
 #+end_src sh   :lang bash
 
-**** And build it
+** And build it
 
 Re-run the 'configure' script passing it the option
 '--with-libgcrypt-prefix=$HOME/.guix-profile/' if needed, as well as
@@ -741,7 +720,7 @@ Those cores get used well! When you got to this point you can always
 rebuild the Guix tools from the git checkout of the master branch. All
 you need to do is (re)use the tools installed in ~/opt/guix-build-system/.
 
-*** Troubleshooting
+** Troubleshooting
 
 If you encounter problems at this stage, for example a missing
 autoreconf, it is probably because the PATHs have not been set
@@ -756,7 +735,7 @@ suggests! Maybe check
 
 which should show the same environment.
 
-*** And run it
+** And run it
 
 You may want to avoid "make install" since it will probably install
 the guix binaries in /usr and you want to run it in the source dir
@@ -821,6 +800,7 @@ after setting up the paths suggested by 'guix package --search-paths'.
 env LD_LIBRARY_PATH=$LIBRARY_PATH ./pre-inst-env ./guix-daemon --build-users-group=guixbuild
 #+end_src sh   :lang bash
 
+* Alterneative build routes
 ** Building GNU Guix from source (Debian native)
 
 Note: I have used this option in a while.
@@ -878,6 +858,36 @@ perspective of using Docker for bootstrapping Guix.
 
 Note that Guix comes with its own container manager built-in. So you
 may not need Docker after all.
+
+* Sharing profiles
+
+Guix has this amazing facility called 'profiles' (originally coming
+from Nix) which does away with hacks like Unix modules and Debian
+[[https://wiki.debian.org/DebianAlternatives][alternatives]]. Any user can create any number of profiles in his/her
+home directory to, for example, address the need of running different
+Python versions. For the use of profiles see the [[https://www.gnu.org/software/guix/manual/html_node/Invoking-guix-package.html][GNU Guix
+documentation]].
+
+One thing we like to do is share profiles. The current situation is to
+have one 'master' user on the system that can install profiles in
+/usr/local/guix-profiles and these can easily be used by others. So
+
+: guix package -p /usr/local/guix-profiles/shared-profile -i vim
+
+and any user can add the profile to the path
+
+: export PATH="/usr/local/guix-profiles/shared-profile/bin:$PATH"
+
+and run vim. On Debian we can use the alternative system to link
+to these again (as root)
+
+: cd /etc/alternatives
+: ln -s /usr/local/guix-profiles/shared-profile/bin/vi
+: ln -s /usr/local/guix-profiles/shared-profile/bin/view
+: ln -s /usr/local/guix-profiles/shared-profile/bin/vim
+
+And now all users are all sharing the Guix installation of vim rather
+than then underlying Debian one.
 
 * Continue with Ruby installation and environment
 

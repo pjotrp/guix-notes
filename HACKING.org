@@ -1269,7 +1269,9 @@ In ice-9/eval.scm:
 
 When you get the dreaded `server certificate verification
 failed. CAfile: none CRLfile: none' you may want to fix the path to
-[[http://stackoverflow.com/questions/3777075/ssl-certificate-rejected-trying-to-access-github-over-https-behind-firewall][certificates]].
+[[http://stackoverflow.com/questions/3777075/ssl-certificate-rejected-trying-to-access-github-over-https-behind-firewall][certificates]]. Example:
+
+: fatal: unable to access 'https://git.savannah.gnu.org/git/guix.git/': server certificate verification failed. CAfile: none CRLfile: none
 
 If you already have CA certificates, you can point git to them using
 the =GIT_SSL_CAINFO= variable. In =.bashrc=:
