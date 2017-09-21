@@ -33,6 +33,7 @@
    - [[#in-progress-using-guile-in-emacs-geiser][IN PROGRESS Using guile in emacs (geiser)]]
  - [[#fixing-problems][Fixing problems]]
    - [[#using-gdb-the-debugger-to-find-issues][Using gdb (the debugger) to find issues]]
+   - [[#creating-patches-for-gnu-guix][Creating patches for GNU Guix]]
  - [[#installing-the-package][Installing the package]]
  - [[#using-the-search-path][Using the search path]]
  - [[#making-a-patch-and-submit-to-the-guix-project][Making a patch and submit to the Guix project]]
@@ -43,6 +44,7 @@
  - [[#workflow-for-packaging][Workflow for packaging]]
  - [[#hacking-tips][Hacking tips]]
    - [[#the-guile-write-function][The guile write function]]
+   - [[#using--k-keep-build-to-create-a-patch][Using -K (keep build) to create a patch]]
  - [[#hints][Hints]]
    - [[#using-emacs][Using emacs]]
    - [[#filing-a-bug][Filing a bug]]
@@ -947,6 +949,96 @@ Program received signal SIGSEGV, Segmentation fault.
 
 You can spot the problem is at line number 567.
 
+** Creating patches for GNU Guix
+
+Sometimes you need to modify a source package to compile it on
+Guix. Here I show my way of creating a patch. This patch with the
+error log you may want to send upstream to the authors/maintainers,
+otherwise it will need fixing with every update/release.
+
+*** Error log
+
+First step is to build the package as is with Guix and capture the output so
+it can be shared. Building from the source tree
+
+: ./pre-inst-env guix package -i elixir --no-grafts -K &> error.out
+
+You may remove the boiler plate in that file.
+
+*** Start from a pristine source tree
+
+To make sure no patches were applied modify the package so the patch does
+not get applied. In this case comment out
+
+: (patches (search-patches "elixir-disable-failing-tests.patch"))))
+
+And rerun the Error log to get a full list of errors.
+
+You may also want to force the build to stop right after unpacking by
+injecting
+
+#+begin_src scheme
+    (arguments
+     `(
+       #:phases
+        (modify-phases %standard-phases
+         (add-before 'build 'break (lambda () (#f)))
+         ...
+#+end_src
+
+Now the build will fail with
+
+: ERROR: In procedure #f:
+: note: keeping build directory `/tmp/guix-build-elixir-1.5.1.drv-5'
+
+*** Use git to create a patch
+
+Initialize git using a first terminal
+
+: cd /tmp/guix-build-elixir-1.5.1.drv-5
+: cd elixir*
+: git init
+
+Add the files you are modifying
+
+: git add ./lib/elixir/test/elixir/kernel/dialyzer_test.exs
+: git add ./lib/elixir/test/elixir/kernel/cli_test.exs
+: git add ./lib/elixir/test/elixir/system_test.exs
+: git commit -a -m start
+
+Optionally apply the previous patches by hand - we do this now so
+the become visible in the new patch.
+
+: patch -p1 < /tmp/elixir-disable-failing-tests.patch
+
+Hopefully it mostly takes it. Now fix the problems that occur in the
+source tree and create a new patch using git
+
+: git diff > /tmp/elixir-disable-failing-tests-5.patch
+
+Now plug this patch into the source tree again, enable patch
+application, and retry above steps.
+
+Note: patching can be done incrementally and patches can be merged
+into one file (by hand). When you get better at this you can probably
+save on a few build cycles.
+
+Note: *always* send the errors and patch(es) upstream. Even if they do
+nothing about it, at least you have recorded the problems for
+posterity. Ideally, tag the upstream issue to your GNU Guix patch.
+
+*** Errors in GNU Guix alone
+
+Things get a bit complicated when a build passes in the Keep
+directory, but fails in GNU Guix. This usually has to do with files
+being copied into disallowed directories or network access. Just be
+smart about reading the code and patching it. Worst case you'll need
+to build inside a container/VM to find and fix the problems.
+
+: ./pre-inst-env guix environment erlang -C --ad-hoc erlang vim make git glibc-utf8-locales --no-grafts --pure --share=/tmp/guix-build-elixir-1.5.1.drv-12 --network
+: export LC_ALL=en_US.UTF-8
+: cd /tmp/guix-build-elixir-1.5.1.drv-12/elixir-1.5.1/
+
 * Installing the package
 
 Once the build works you can use standard guix to install the package
@@ -1000,8 +1092,8 @@ can be seen at https://debbugs.gnu.org/cgi/pkgreport.cgi?package=guix-patches or
 https://bugs.gnu.org/guix-patches.  A mailing list is attached
 you can [[https://lists.gnu.org/mailman/listinfo/guix-patches][subscribe]] to.
 
-In emacs (guix package -i emacs-debbugs) the same list can be browsed
-with
+In emacs (using guix package -i emacs-debbugs) the same list can be
+browsed with
 
 :   M-x debbugs-gnu-search <RET> guix-patches
 
@@ -1218,6 +1310,14 @@ To inspect variables I may inject something like
 
 The last command will compile and break at runtime. Together with the -K option it helps
 trouble shooting.
+
+** Using -K (keep build) to create a patch
+
+Using -K you can keep the build dir after failure (induced in above
+paragraph).  You may need to patch the source code to make it to
+work. What I do is use git.  Go into the kept directory and run 'git
+init' and add files you change. That way you can generate a patch file
+that can be added to the guix source tree.
 
 * Hints
 
