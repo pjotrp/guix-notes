@@ -23,8 +23,9 @@
  - [[#a-note-on-bootstrap-from-source][A note on bootstrap from source]]
  - [[#building-gnu-guix-from-source-using-guix---the-bullet-proof-way][Building GNU Guix from source (using Guix) - the bullet proof way]]
    - [[#install-the-dependencies-and-build-tools-using-guix][Install the dependencies and build tools using Guix:]]
+   - [[#now-build-it][Now build it]]
    - [[#alternative-build-route-using-a-guix-profile][Alternative build route using a Guix profile]]
-    - [[#set-the-guix-environment-variables][Set the Guix environment variables]]
+   - [[#set-the-guix-environment-variables][Set the Guix environment variables]]
    - [[#check-before-build][Check before build]]
    - [[#and-build-it][And build it]]
    - [[#troubleshooting][Troubleshooting]]
@@ -555,20 +556,41 @@ a clean shell (note environment does not clutter up your profile!):
 screen -S guix-build # I tend to build in screen
 env -i /bin/bash --login --noprofile --norc
 guix environment guix --ad-hoc help2man git strace \
-  pkg-config less vim binutils coreutils grep guile guile-git gcc --no-grafts
+  pkg-config less vim binutils coreutils grep guile guile-git guile-json gcc --no-grafts
 bash # you may want this shell
 #+end_src sh   :lang bash
 
 In fact pick the most recent guix you have got, see 'ls
-/gnu/store/*guix*/bin/guix' and run that command. Use the --no-grafts
-switch if you have built packages that way before.
+/gnu/store/*guix*/bin/guix' and run that command (useful when you are
+in a pickle). For example:
 
-Tip: once you have built guix successfully you can use the ./pre-inst
-prefix.
+#+begin_src sh   :lang bash
+screen -S guix-build # I tend to build in screen
+env -i /bin/bash --login --noprofile --norc
+/gnu/store/h410qzgv3ilk9pivi1a99q0pq0dlzkki-guix-0.13.0-5.228a398/bin/guix environment guix --ad-hoc help2man git strace \
+  pkg-config less vim binutils coreutils grep guile guile-git gcc --no-grafts
+bash # you may want this shell
+#+end_src sh   :lang bash
+
+Tip: once you have built guix successfully you can use the
+./pre-inst-env prefix:
+
+#+begin_src sh   :lang bash
+screen -S guix-build # I tend to build in screen
+env -i /bin/bash --login --noprofile --norc
+./pre-inst-env guix environment guix --ad-hoc help2man git strace \
+  pkg-config less vim binutils coreutils grep guile guile-git guile-json \
+  gcc nss-certs --no-grafts
+bash # you may want this shell
+#+end_src sh   :lang bash
+
+Use the --no-grafts switch if you have built packages that way before.
 
 Note that you can opt to start guix by installing the binary tar ball,
 or copying it from another machine using the rather useful `guix
 archive' or [[https://www.gnu.org/software/guix/news/creating-bundles-with-guix-pack.html][guix pack]] commands.
+
+** Now build it
 
 You may want to take a note of these running versions
 
@@ -642,7 +664,7 @@ Note You can also use your own caching server as described in
 Note that the --no-grafts should align with that of your caching
 server.
 
-**  Set the Guix environment variables
+** Set the Guix environment variables
 
 Guix recommends you to set during the package installation process: ACLOCAL_PATH, CPATH, LIBRARY_PATH, PKG_CONFIG_PATH
 
@@ -923,8 +945,10 @@ Install the certificates with
 
 and set the environment as suggested by Guix. E.g.,
 
-: export GIT_SSL_CAINFO="/home/wrk/.guix-profile/etc/ssl/certs/ca-certificates.crt${GIT_SSL_CAINFO:+:}$GIT_SSL_CAINFO"
-: export SSL_CERT_DIR="/home/wrk/.guix-profile/etc/ssl/certs${SSL_CERT_DIR:+:}$SSL_CERT_DIR"
+#+begin_src sh   :lang bash
+export GIT_SSL_CAINFO="/home/wrk/.guix-profile/etc/ssl/certs/ca-certificates.crt${GIT_SSL_CAINFO:+:}$GIT_SSL_CAINFO"
+export SSL_CERT_DIR="/home/wrk/.guix-profile/etc/ssl/certs${SSL_CERT_DIR:+:}$SSL_CERT_DIR"
+#+end_src
 
 ** error: build failed: substituter `substitute' died unexpectedly
 
