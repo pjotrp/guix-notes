@@ -150,7 +150,9 @@ You can create a Docker image without actually installing Docker(!)
 #+begin_src shell
 env GUIX_PACKAGE_PATH=../guix-bioinformatics/ \
   ./pre-inst-env guix pack -f docker --no-grafts \
-  -S /usr/bin=/bin coreutils book-evolutionary-genomics bash vim screen
+  -S /usr/bin=/bin -S /etc/profile=/etc/profile \
+  -S -S /book-evolutionary-genomics=/share/book-evolutionary-genomics \
+  coreutils book-evolutionary-genomics bash vim screen
 #+end_src
 
 note we now have the -S switch which can make the /usr/bin symlink
@@ -158,25 +160,37 @@ into the profile.
 
 This produced a file which we can load into Docker
 
-: docker load < /gnu/store/zln0bd5xwvp076ri8i42lqs8ynimix7n-docker-pack.tar.gz
+: docker load --input /gnu/store/0p1ianjqqzbk1rr9rycaqcjdr2s13mcj-docker-pack.tar.gz
 : docker images
+:   REPOSITORY          TAG                                IMAGE ID            CREATED             SIZE
+:   profile             425c1ignnjixxzwdwdr5anywnq9mg50m   121f9cca6c55        47 years ago        1.43 GB
+
 
 Now you should see the image id and you can run
 
-: docker run 571260540410 /usr/bin/ruby --version
+: docker run 121f9cca6c55 /usr/bin/ruby --version
 
 Find the profile
 
-: docker run 571260540410 /usr/bin/ls /usr/bin -l
+: docker run 121f9cca6c55 /usr/bin/ls /usr/bin -l
 
 Read the profile settings
 
-: docker run 571260540410 cat /gnu/store/425c1ignnjixxzwdwdr5anywnq9mg50m-profile/etc/profile
+: docker run 121f9cca6c55 cat /gnu/store/425c1ignnjixxzwdwdr5anywnq9mg50m-profile/etc/profile
+
+But there is an easier way because we created the symlink earlier
+
+: docker run 121f9cca6c55 cat /etc/profile
 
 Run bioruby
 
-: docker run 571260540410 bash -c "env GEM_PATH=/gnu/store/425c1ignnjixxzwdwdr5anywnq9mg50m-profile//lib/ruby/gems/2.4.0 /gnu/store/425c1ignnjixxzwdwdr5anywnq9mg50m-profile/share/book-evolutionary-genomics/src/bioruby/DNAtranslate.rb
+: docker run 121f9cca6c55 bash -c "env GEM_PATH=/gnu/store/425c1ignnjixxzwdwdr5anywnq9mg50m-profile//lib/ruby/gems/2.4.0 /gnu/store/425c1ignnjixxzwdwdr5anywnq9mg50m-profile/share/book-evolutionary-genomics/src/bioruby/DNAtranslate.rb
 
 with input file
 
-:  time docker run 571260540410 bash -c "env GEM_PATH=/gnu/store/425c1ignnjixxzwdwdr5anywnq9mg50m-profile//lib/ruby/gems/2.4.0 /gnu/store/425c1ignnjixxzwdwdr5anywnq9mg50m-profile/share/book-evolutionary-genomics/src/bioruby/DNAtranslate.rb /gnu/store/425c1ignnjixxzwdwdr5anywnq9mg50m-profile/share/book-evolutionary-genomics/test/data/test-dna.fa"
+: time docker run 121f9cca6c55 bash -c "env GEM_PATH=/gnu/store/425c1ignnjixxzwdwdr5anywnq9mg50m-profile//lib/ruby/gems/2.4.0 /gnu/store/425c1ignnjixxzwdwdr5anywnq9mg50m-profile/share/book-evolutionary-genomics/src/bioruby/DNAtranslate.rb /gnu/store/425c1ignnjixxzwdwdr5anywnq9mg50m-profile/share/book-evolutionary-genomics/test/data/test-dna.fa"
+
+or the easy way since we created the links
+
+: time docker run 121f9cca6c55 \
+:   bash -c "source /etc/profile ; cd /book-evolutionary-genomics ; src/bioruby/DNAtranslate.rb test/data/test-dna.fa"
