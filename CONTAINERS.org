@@ -249,14 +249,14 @@ descriptive. This was done using docker's tag command, as follows:
 docker image tag profile:mhnyzl7g90f4mnvyrwswabn4vhribbm8 fredmanglis/guix-conda-base-img:latest
 #+end_src sh
 
-*** Bootstraping the Images
+*** Bootstrapping the Images
 
 From this step, there was need to bootstrap new images, based on the base image
 created in the section above. The steps that follow will be somewhat similar,
 with each image building upon the one before it.
 
 The first image to be built only contains conda, and it was initialised with a
-new environment called `default-env`. This was done by writing a Dockerfile with
+new environment called `default-env`. This was done by writing a Docker file with
 the following content:
 
 #+begin_src dockerfile
