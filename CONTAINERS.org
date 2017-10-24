@@ -194,3 +194,159 @@ or the easy way since we created the links
 
 : time docker run 121f9cca6c55 \
 :   bash -c "source /etc/profile ; cd /book-evolutionary-genomics ; src/bioruby/DNAtranslate.rb test/data/test-dna.fa"
+
+** Building Docker Image of Conda with Guix
+
+*** Build the conda Archive
+
+To build the pack from guix, the following command was run:
+
+#+begin_src sh
+./pre-inst-env guix pack --format=docker -S /bin=/bin conda bash
+#+end_src sh
+
+This builds an archive with both `conda` and `bash`. The package will be named
+something like /gnu/store/xzn6bkp1xnjnn02dj54f9kgw7arpcrpp-docker-pack.tar.gz
+
+The `./pre-inst-env` portion can be dropped if you have a newer version of guix
+that comes with conda in its list of packages. You can find out by running the
+following command:
+
+#+begin_src sh
+guix package --search=conda
+#+end_src sh
+
+and looking through the list to see if there is a package named conda.
+
+bash is required to run the initialisation steps of the images going forward. If
+bash is not installed, then the image initialisation steps will fail with an
+error like the following:
+
+#+begin_src sh
+'/bin/bash' No such file or directory
+#+end_src sh
+
+*** Load the Archive to Docker
+
+The next step is to load the archive into Docker. This was done by running the
+following command:
+
+#+begin_src sh
+cat /gnu/store/xzn6bkp1xnjnn02dj54f9kgw7arpcrpp-docker-pack.tar.gz | docker load
+#+end_src sh
+
+It is important that you use the actual name of the tar file that was generated
+by guix, and not simply copy and paste the command above.
+
+This creates a new docker image with a name like
+profile:mhnyzl7g90f4mnvyrwswabn4vhribbm8. This is the base image that will be
+used to bootstrap all the other images.
+
+The next step, was optional. It was renaming the image to something more
+descriptive. This was done using docker's tag command, as follows:
+
+#+begin_src sh
+docker image tag profile:mhnyzl7g90f4mnvyrwswabn4vhribbm8 fredmanglis/guix-conda-base-img:latest
+#+end_src sh
+
+*** Bootstraping the Images
+
+From this step, there was need to bootstrap new images, based on the base image
+created in the section above. The steps that follow will be somewhat similar,
+with each image building upon the one before it.
+
+The first image to be built only contains conda, and it was initialised with a
+new environment called `default-env`. This was done by writing a Dockerfile with
+the following content:
+
+#+begin_src dockerfile
+FROM fredmanglis/guix-conda-base-img:latest
+RUN conda create --name default-env
+#+end_src dockerfile
+
+This file was saved as `Dockerfile.conda` and then the image was built by
+running
+
+#+begin_src sh
+docker build -t fredmanglis/guix-conda-plain:latest -f Dockerfile.conda .
+#+end_src sh
+
+Be careful not to miss the dot at the end of the command. This command creates a
+new image, from the base image fredmanglis/guix-conda-base-img:latest and tags
+the new image with the name fredmanglis/guix-conda-plain:latest
+
+This new image is then used to bootstrap the next, by first creating a file
+`Dockerfile.bioconda` and entering the following content into it:
+
+#+begin_src dockerfile
+FROM fredmanglis/guix-conda-plain:latest
+
+RUN conda config --add channels r
+RUN conda config --add channels defaults
+RUN conda config --add channels conda-forge
+RUN conda config --add channels bioconda
+#+end_src dockerfile
+
+This file instructs docker to bootstrap the new image from the image named
+fredmanglis/guix-conda-plain:latest and then run the commands to add the
+channels required to access the bioconda packages.
+
+The new image, with bioconda initialised, is then created by running
+
+#+begin_src sh
+docker build -t fredmanglis/guix-bioconda:latest -f Dockerfile.bioconda .
+#+end_src sh
+
+Be careful not to miss the dot at the end of the command.
+
+The next image to build contains the sambamba package from the bioconda channel.
+We start by defining the image in a file, `Dockerfile.sambamba` which contains:
+
+#+begin_src dockerfile
+FROM fredmanglis/guix-bioconda:latest
+RUN conda install --yes --name default-env sambamba
+#+end_src dockerfile
+
+As can be seen, the package is installed in the environment `default-env`
+defined while bootstrapping the image with conda only. This new image is
+built with the command:
+
+#+begin_src sh
+docker build -t fredmanglis/guix-sambamba:latest -f Dockerfile.sambamba .
+#+end_src sh
+
+Do not miss the dot at the end of the command.
+
+*** Publishing the Images
+
+The images built in the processes above are all available at
+https://hub.docker.com/r/fredmanglis/
+
+To publish them, docker's push command was used, as follows:
+
+#+begin_src sh
+docker push fredmanglis/guix-conda-base-img:latest && \
+docker push fredmanglis/guix-conda-plain:latest && \
+docker push fredmanglis/guix-bioconda:latest  && \
+docker push fredmanglis/guix-sambamba:latest
+#+end_src sh
+
+These are really, four separate commands, in a sequence that only runs the later
+commands if the ones before them ran successfully. This ensures that the derived
+images are only uploaded after the images they are based on have been
+successfully uploaded.
+
+*** Get the Images
+
+To get any of the images, use a command of the form:
+
+#+begin_src sh
+docker pull fredmanglis/<img-name>:<img-tag>
+#+end_src sh
+
+replacing <img-name> and <img-tag> with the actual image name and tag. For
+example, to get the image with bioconda already set up, do:
+
+#+begin_src sh
+docker pull fredmanglis/guix-bioconda:latest
+#+end_src sh
