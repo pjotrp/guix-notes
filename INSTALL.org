@@ -525,12 +525,12 @@ when updating
 Bootstrapping from source, after checking out the git Guix source tree
 can be surprisingly tricky because of the build dependencies. Your
 mileage may vary, but currently I recommend starting from the tar-ball
-install described above instead and build Guix using Guix tools (in
-the next section).
+install described above instead and build Guix using Guix tools with
+an environment and profile (explained in the next section).
 
-For building from source I found it to be important to make sure not to
-*mix* Guix and native dependencies. Also make sure you are using the
-proper localstatedir.
+For building from source it is particularly important not to *mix*
+Guix and native dependencies. Also make sure you are using the proper
+localstatedir.
 
 * Building GNU Guix from source (using Guix) - the bullet proof way
 
@@ -546,7 +546,7 @@ Install packages
 
 #+begin_src sh   :lang bash
 guix package -i guix help2man git strace \
-  pkg-config less vim binutils coreutils grep guile guile-git gcc --no-grafts
+  pkg-config less vim binutils coreutils grep guile guile-git gcc guile-json --no-grafts
 #+end_src sh   :lang bash
 
 The safest route is by using guix environment after starting
@@ -568,7 +568,7 @@ in a pickle). For example:
 screen -S guix-build # I tend to build in screen
 env -i /bin/bash --login --noprofile --norc
 /gnu/store/h410qzgv3ilk9pivi1a99q0pq0dlzkki-guix-0.13.0-5.228a398/bin/guix environment guix --ad-hoc help2man git strace \
-  pkg-config less vim binutils coreutils grep guile guile-git gcc --no-grafts
+  pkg-config less vim binutils coreutils grep guile guile-git gcc guile-json --no-grafts
 bash # you may want this shell
 #+end_src sh   :lang bash
 
@@ -584,7 +584,8 @@ env -i /bin/bash --login --noprofile --norc
 bash # you may want this shell
 #+end_src sh   :lang bash
 
-Use the --no-grafts switch if you have built packages that way before.
+Use the --no-grafts switch if you have built packages that way before to avoid
+triggering a full rebuild.
 
 Note that you can opt to start guix by installing the binary tar ball,
 or copying it from another machine using the rather useful `guix
