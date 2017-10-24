@@ -151,8 +151,8 @@ You can create a Docker image without actually installing Docker(!)
 env GUIX_PACKAGE_PATH=../guix-bioinformatics/ \
   ./pre-inst-env guix pack -f docker --no-grafts \
   -S /usr/bin=/bin -S /etc/profile=/etc/profile \
-  -S -S /book-evolutionary-genomics=/share/book-evolutionary-genomics \
-  coreutils book-evolutionary-genomics bash vim screen
+  -S /book-evolutionary-genomics=/share/book-evolutionary-genomics \
+  coreutils book-evolutionary-genomics bash vim
 #+end_src
 
 note we now have the -S switch which can make the /usr/bin symlink
