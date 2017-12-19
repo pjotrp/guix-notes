@@ -138,6 +138,14 @@ it with
 
 : guix archive --import < guix_ruby.nar
 
+A more advanced example could look like
+
+: env GUIX_PACKAGE_PATH=../guix-bioinformatics/ ./pre-inst-env guix archive --export --no-grafts -r $(readlink -f /usr/local/guix-profiles/gn2-2.10rc5) |ssh penguin guix archive --import
+
+which includes a package path, a recently built guix, the profile in
+/usr and an install on a remote machine. A very elegant way to
+synchronize binary software on machines.
+
 * Introducing a GNU Guix caching server (guix publish)
 
 But better than the archive option is to set up a Guix publish server.
