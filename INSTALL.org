@@ -609,7 +609,7 @@ make clean
 ./configure --localstatedir=/var
 make clean    # to be really sure
 make clean-go # to be even surer
-make -j 8
+make
 #+end_src sh   :lang bash
 
 ** Alternative build route using a Guix profile
