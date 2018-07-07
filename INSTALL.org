@@ -534,7 +534,9 @@ localstatedir.
 
 * Building GNU Guix from source (using Guix) - the bullet proof way
 
-This is my recommended route for building from source.
+This is my recommended route for building from source. It is a great
+route because it uses Guix packages isolated from the rest of the
+system.
 
 You can re-build and re-install Guix using a system that already runs
 Guix.  To do so (copied from the Guix README). For example, after the
@@ -542,25 +544,31 @@ binary tar install described above:
 
 ** Install the dependencies and build tools using Guix:
 
-Install packages
+Install packages after setting the path/environment with
+
+: . ~/.guix-profile/etc/profile
+: guix --version
+
+Make sure you have a recent version.
 
 #+begin_src sh   :lang bash
 guix package -i guix help2man git strace \
-  pkg-config less vim binutils coreutils grep guile guile-git gcc guile-json --no-grafts
+  pkg-config less vim binutils coreutils grep guile guile-git gcc guile-json po4a --no-grafts
 #+end_src sh   :lang bash
 
-The safest route is by using guix environment after starting
-a clean shell (note environment does not clutter up your profile!):
+The safest route is by using guix environment after starting a clean
+shell (note environment does not clutter up your main profile because
+you get a temporary one!):
 
 #+begin_src sh   :lang bash
 screen -S guix-build # I tend to build in screen
 env -i /bin/bash --login --noprofile --norc
 guix environment guix --ad-hoc help2man git strace \
-  pkg-config less vim binutils coreutils grep guile guile-git guile-json gcc --no-grafts
+  pkg-config less vim binutils coreutils grep guile guile-git guile-json gcc po4a --no-grafts
 bash # you may want this shell
 #+end_src sh   :lang bash
 
-In fact pick the most recent guix you have got, see 'ls
+In fact you can pick the most recent guix you have got, see 'ls
 /gnu/store/*guix*/bin/guix' and run that command (useful when you are
 in a pickle). For example:
 
@@ -568,7 +576,7 @@ in a pickle). For example:
 screen -S guix-build # I tend to build in screen
 env -i /bin/bash --login --noprofile --norc
 /gnu/store/h410qzgv3ilk9pivi1a99q0pq0dlzkki-guix-0.13.0-5.228a398/bin/guix environment guix --ad-hoc help2man git strace \
-  pkg-config less vim binutils coreutils grep guile guile-git gcc guile-json --no-grafts
+  pkg-config less vim binutils coreutils grep guile guile-git gcc guile-json po4a --no-grafts
 bash # you may want this shell
 #+end_src sh   :lang bash
 
@@ -579,7 +587,7 @@ Tip: once you have built guix successfully you can use the
 screen -S guix-build # I tend to build in screen
 env -i /bin/bash --login --noprofile --norc
 ./pre-inst-env guix environment guix --ad-hoc help2man git strace \
-  pkg-config less vim binutils coreutils grep guile guile-git guile-json \
+  pkg-config less vim binutils coreutils grep guile guile-git guile-json po4a \
   gcc nss-certs --no-grafts
 bash # you may want this shell
 #+end_src sh   :lang bash
@@ -598,19 +606,18 @@ You may want to take a note of these running versions
 #+begin_src sh   :lang bash
 gcc --version
 guile --version
-#+end_src sh   :lang bash
-
-Next in the source tree
-
-#+begin_src sh   :lang bash
 rm -rf autom4te.cache/ # to be sure
 make clean
 ./bootstrap
 ./configure --localstatedir=/var
 make clean    # to be really sure
 make clean-go # to be even surer
-make
+time make
 #+end_src sh   :lang bash
+
+Once you have done it you should be able to run
+
+: ./pre-inst-env guix --version
 
 ** Alternative build route using a Guix profile
 
@@ -937,6 +944,13 @@ If you get on a guix command
 it means the daemon is not running.
 
 ** X.509 certificate error
+
+E.g.
+
+: guix/build/download.scm:424:6: X.509 certificate of 'rubygems.org' could not be verified:
+:   insecure-algorithm
+:   signer-not-found
+:   invalid
 
 When you get the X.509 certificate error it means that openssl can not find the certificates.
 

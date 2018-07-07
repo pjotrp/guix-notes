@@ -1097,7 +1097,8 @@ browsed with
 
 :   M-x debbugs-gnu-search <RET> guix-patches
 
- or
+or
+
 :   C-u M-x debbugs-gnu <RET> <RET> guix-patches <RET> n y
 
 Possibly you need to add this to your .emacs configuration
@@ -1310,6 +1311,13 @@ To inspect variables I may inject something like
 
 The last command will compile and break at runtime. Together with the -K option it helps
 trouble shooting.
+
+If that does not work you can also run a command that fails, such as
+
+#+begin_src scheme
+(write "HELLO WORLD")
+(chdir "END HERE")
+#+end_src
 
 ** Using -K (keep build) to create a patch
 
