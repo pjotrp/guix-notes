@@ -1,0 +1,158 @@
+#+TITLE: Developing and deploying GEMMA
+
+* Table of Contents                                                     :TOC:
+ - [[#developing-and-deploying-gemma][Developing and deploying GEMMA]]
+ - [[#why-gnu-guix][Why GNU Guix?]]
+ - [[#build-host][Build host]]
+   - [[#install-gnu-guix][Install GNU Guix]]
+   - [[#build-gnu-guix-from-source][Build GNU Guix from source]]
+ - [[#conclusion][Conclusion]]
+
+* Developing and deploying GEMMA
+
+In this article we describe how we develop and deploy GEMMA in a
+controlled fashion. There is nothing particularly special about
+GEMMA. Originally it is a C++ tool that compiles with a make file. It
+has a few math dependencies, such as BLAS, LAPACK, GSL and Eigenlib
+which pull in some other dependencies. GEMMA targets Linux, MacOS and
+Windows. For Linux there is a shared lib binary and a statically
+compiled edition.
+
+Nothing special, right? Right.
+
+Even this limited dependency graph is something of a nightmare. When
+people report bugs we need to be able to reproduce them. If the
+reporter is running on a different system, we may not be able to
+support them.
+
+We also need more outputs. We would particularly like to support
+Debian and Bioconda packaging efforts so users can easily install
+GEMMA on Linux.
+
+Last year I introduced GNU Guix to solve the dependency problem and we
+have some success in controlling the development and deployment graph
+(at least on Linux) as I will attempt to explain here. We will need
+this control even more in the near future. Already we added a Ruby
+wrapper. Python and R are coming in the mix. We also need the D
+compiler and CUDA support to be able to run faster-lmm-d as part of GEMMA.
+
+Doesn't it all sound like fun?
+
+Truth is that deployment, in general, is not getting easier. And if we
+want to make use of other tools and build on the shoulders of giants,
+we *need* to control the dependency graph.
+
+(note that I will also adapt this page for Sambamba which has similar
+deployment challenges).
+
+* TODO Why GNU Guix?
+
+* Build host
+
+We need a build host to create the development and deployment
+environments.  GNU Guix has the nice feature of being easily
+replicated across hosts and compiles using all cores. I choose the
+most beefy server I have access to as a build host (28 cores, 256GB
+RAM - but you can go much smaller). From that build server we can
+deploy binary packages to other machines so these are shared between
+developers and users alike.
+
+** Install GNU Guix
+
+Usually, to kick off building I simply download and install the Guix
+[[https://www.gnu.org/software/guix/download/][tar ball]]. Just takes a few minutes when following the
+[[https://www.gnu.org/software/guix/manual/en/html_node/Binary-Installation.html][instructions]]. Don't forget to [[https://www.gnu.org/software/guix/manual/en/html_node/Build-Environment-Setup.html#Build-Environment-Setup][add]] the build users.
+
+** Build GNU Guix from source
+
+Now comes the hardest part. Having GNU Guix may also be enough to create a development
+environment. Simply install the tools, such as gcc latest
+
+: guix package -i gcc
+
+It will work, but this probably is no great improvement over using
+Debian (for example) even though Guix will give more recent versions
+of tools and the underlying dependencies are tractable, e.g. if you installed vim with Guix
+
+#+begin_src sh   :lang bash
+ldd `which vim`
+  linux-vdso.so.1 (0x00007fffed9a8000)
+  libm.so.6 => /gnu/store/rmjlycdgiq8pfy5hfi42qhw3k7p6kdav-glibc-2.25/lib/libm.so.6 (0x00007f024cc62000)
+  libncursesw.so.6 => /gnu/store/h7mx27bl0wynlz8vjszzykqqldccfwm5-ncurses-6.0/lib/libncursesw.so.6 (0x00007f024c9f7000)
+  libdl.so.2 => /gnu/store/rmjlycdgiq8pfy5hfi42qhw3k7p6kdav-glibc-2.25/lib/libdl.so.2 (0x00007f024c7f3000)
+  libgcc_s.so.1 => /gnu/store/dhc2iy059hi91fk55dcv79z09kp6500y-gcc-5.4.0-lib/lib/libgcc_s.so.1 (0x00007f024c5dc000)
+  libc.so.6 => /gnu/store/rmjlycdgiq8pfy5hfi42qhw3k7p6kdav-glibc-2.25/lib/libc.so.6 (0x00007f024c23d000)
+  /gnu/store/rmjlycdgiq8pfy5hfi42qhw3k7p6kdav-glibc-2.25/lib/ld-linux-x86-64.so.2 (0x00007f024cf74000)
+#+end_src
+
+you can see it was linked against a specific version of ncurses 6.0
+and glibc 2.25. That is pretty great already!
+
+But we want more because we want to be able to *recreate* the exact
+*same* dependency graph *every* time we develop/deploy a version of
+GEMMA. Where most software distributions force you to work in
+lock-step with releases, GNU Guix is a rolling distribution. That
+means you can install what gets updated - including security
+updates. This is a more modern approach, but for development we want
+to be able to cherry-pick updates (if you will) and not depend on the
+shifting sands of updating underlying dependencies.
+
+When GNU Guix starts supporting channels we may be work it in a
+different way, but for now the only way is to *fixate* the dependency
+graph using git versions of the package repository. For this we need
+to build Guix from source. The most predictable way to do this is to
+build `Guix from source using Guix' as described in [[./INSTALL.org]]. In
+a nutshell:
+
+1. install the GNU Guix daemon (as we did earlier)
+2. check out the Guix repo using git
+3. start a GNU Guix environment containing all build tools
+4. build GNU Guix from source
+
+Unfortunately this is somewhat involved by most developers should be
+able to do it. See the relevant section in [[./INSTALL.org]]. E.g.
+
+#+begin_src sh   :lang bash
+screen -S guix-gemma-dev # I tend to build in screen
+env -i /bin/bash --login --noprofile --norc
+./pre-inst-env guix environment guix --ad-hoc help2man git strace \
+  pkg-config less vim binutils coreutils grep guile guile-git guile-json po4a \
+  gcc nss-certs --no-grafts
+bash # you may want this shell
+#+end_src sh   :lang bash
+
+Above will deliver a clean shell with the build system ready to rock and roll:
+
+#+begin_src sh   :lang bash
+gcc --version
+guile --version
+rm -rf autom4te.cache/ # to be sure
+make clean
+./bootstrap
+./configure --localstatedir=/var
+make clean    # to be really sure
+make clean-go # to be even surer
+time make
+#+end_src sh   :lang bash
+
+Once you have done it you should be able to run
+
+: ./pre-inst-env guix --version
+
+If there is any trouble building, please check the other
+docs. Typically you should build Guix using a fairly recent Guix. Recent editions of Guix also
+have a much improved
+
+: guix pull
+
+Which may sort the build system.
+
+The good news is that you do not have to do this often. Only when you
+want to update the graph. Typically I maintain a number of branches in
+different directories so as not having to build GNU Guix at every
+turn.
+
+
+
+
+* TODO Conclusion
