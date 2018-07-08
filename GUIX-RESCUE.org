@@ -1,8 +1,22 @@
+#+TITLE: Rescuing GNU Guix pull using an archive
+
+* Table of Contents                                                     :TOC:
+ - [[#rescuing-gnu-guix-build][Rescuing GNU Guix build]]
+ - [[#create-an-archive-in-the-vm][Create an archive in the VM]]
+   - [[#create-a-vm][Create a VM]]
+   - [[#download-the-binary-tar-ball-in-the-vm][Download the binary tar ball in the VM]]
+   - [[#install-gnu-guix][Install GNU Guix]]
+   - [[#create-an-archive][Create an archive]]
+ - [[#install-archvive][Install archvive]]
+ - [[#restart-daemon][Restart daemon]]
+ - [[#install-guix][Install guix]]
+
 * Rescuing GNU Guix build
 
 Sometimes, especially when you run GNU Guix on a system for a longer
-time, the installed tools can not be updated easily. That is
-where GUIX-RESCUE kicks in!
+time, the installed tools can not be updated easily with guix pull. It
+happens (rarely) when GNU Guix makes a not so incremental
+improvement. That is where GUIX-RESCUE kicks in!
 
 You can always rescue Guix by installing a recent Guix binary
 tar-ball(!). This is possible because all guix software is isolated in
@@ -12,16 +26,16 @@ the /gnu/store under HASH values such as:
 
 It is important *not* to follow the standard instructions on your
 running system because you do not want to overwrite the existing Guix
-database. So...
+database in /var/guix. So...
 
-What I do is keep a VM image ready to install the Guix binary
+What I do is keep a VM image to install the ready-made Guix binary
 tarball. In this VM it does not matter that the database gets
 overwritten (it should be possible to do the same using a container,
 chroot and even proot). Next I use Guix pack to create an archive
 which can be imported into the running Guix system. Voila - updated
 Guix itself!
 
-We use the Guix pack command to create new version of Guix that can be
+We use the Guix archive command to create new version of Guix that can be
 merged into an existing system. For this we use the binary installer
 in a VM (hopefully this can be made easier in the future). I use
 Debian as the base install, but arguably this can be achieved by
@@ -69,7 +83,8 @@ minutes.
 
 ** Create an archive
 
-After setting the keys
+After setting the keys in /etc/guix/acl. For reasons of convenience I
+use the same keys on multiple hosts. Then
 
 : /gnu/store/lqkyzawj6z3fswbj87nzyg97xkhpiwys-guix-0.15.0/bin/guix archive --export -r guix > guix.nar
 
@@ -78,6 +93,28 @@ After setting the keys
 This is the archive. Copy it from the VM to the host you need to rescue and run
 
 : guix archive --import < guix.nar
+
+If you get
+
+: guix archive: error: build failed: program `guix-authenticate' failed with exit code 1
+
+make sure the key is in /etc/guix/acl on the host. It looks like:
+
+#+BEGIN_SRC scheme
+(acl
+ (entry
+  (public-key
+   (ecc
+    (curve Ed25519)
+    (q #8D156F295D24B0D9A86FA5741A840FF2D24F60F7B6C4134814AD55625971B394#)
+    )
+   )
+  (tag
+   (guix import)
+   )
+  )
+ ...
+#+END_SRC
 
 * Restart daemon
 
@@ -95,6 +132,4 @@ and we should be able to run guix pull.
 :   guix (GNU Guix) 0.14.0-13.7af5c2a
 : guix pull
 
-I got the following error
-
-: guix pull: error: build failed: opening file `/gnu/store/cm5gjbfkps9g18z6a49shk55ai9101nk-le-certs-0.drv': No such file or directory
+and we are up-to-date again.
