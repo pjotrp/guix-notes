@@ -553,7 +553,7 @@ Make sure you have a recent version.
 
 #+begin_src sh   :lang bash
 guix package -i guix help2man git strace \
-  pkg-config less vim binutils coreutils grep guile guile-git gcc guile-json po4a --no-grafts
+  pkg-config less vim binutils coreutils grep guile guile-git gcc guile-json po4a guile-sqlite3 --no-grafts
 #+end_src sh   :lang bash
 
 The safest route is by using guix environment after starting a clean
@@ -564,7 +564,7 @@ you get a temporary one!):
 screen -S guix-build # I tend to build in screen
 env -i /bin/bash --login --noprofile --norc
 guix environment guix --ad-hoc help2man git strace \
-  pkg-config less vim binutils coreutils grep guile guile-git guile-json gcc po4a --no-grafts
+  pkg-config less vim binutils coreutils grep guile guile-git guile-json gcc po4a guile-sqlite3 --no-grafts
 bash # you may want this shell
 #+end_src sh   :lang bash
 
@@ -576,7 +576,7 @@ in a pickle). For example:
 screen -S guix-build # I tend to build in screen
 env -i /bin/bash --login --noprofile --norc
 /gnu/store/h410qzgv3ilk9pivi1a99q0pq0dlzkki-guix-0.13.0-5.228a398/bin/guix environment guix --ad-hoc help2man git strace \
-  pkg-config less vim binutils coreutils grep guile guile-git gcc guile-json po4a --no-grafts
+  pkg-config less vim binutils coreutils grep guile guile-git gcc guile-json po4a guile-sqlite3 --no-grafts
 bash # you may want this shell
 #+end_src sh   :lang bash
 
@@ -587,7 +587,7 @@ Tip: once you have built guix successfully you can use the
 screen -S guix-build # I tend to build in screen
 env -i /bin/bash --login --noprofile --norc
 ./pre-inst-env guix environment guix --ad-hoc help2man git strace \
-  pkg-config less vim binutils coreutils grep guile guile-git guile-json po4a \
+  pkg-config less vim binutils coreutils grep guile guile-git guile-json po4a guile-sqlite3 \
   gcc nss-certs --no-grafts
 bash # you may want this shell
 #+end_src sh   :lang bash
