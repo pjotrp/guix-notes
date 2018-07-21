@@ -551,11 +551,6 @@ Install packages after setting the path/environment with
 
 Make sure you have a recent version.
 
-#+begin_src sh   :lang bash
-guix package -i guix help2man git strace \
-  pkg-config less vim binutils coreutils grep guile guile-git gcc guile-json po4a guile-sqlite3 --no-grafts
-#+end_src sh   :lang bash
-
 The safest route is by using guix environment after starting a clean
 shell (note environment does not clutter up your main profile because
 you get a temporary one!):
@@ -563,32 +558,34 @@ you get a temporary one!):
 #+begin_src sh   :lang bash
 screen -S guix-build # I tend to build in screen
 env -i /bin/bash --login --noprofile --norc
-guix environment guix --ad-hoc help2man git strace \
-  pkg-config less vim binutils coreutils grep guile guile-git guile-json gcc po4a guile-sqlite3 --no-grafts
-bash # you may want this shell
+#+end_src
+
+And create the build environment with
+
+#+begin_src sh   :lang bash
+guix environment guix
+#+end_src
+
+if you have run a guix pull
+
+#+begin_src sh   :lang bash
+~/.config/guix/current/bin/guix environment guix
+#+end_src
+
+Tip: once you have built guix successfully you can use the
+./pre-inst-env prefix:
+
+#+begin_src sh   :lang bash
+./pre-inst-env guix environment guix
 #+end_src sh   :lang bash
 
-In fact you can pick the most recent guix you have got, see 'ls
-/gnu/store/*guix*/bin/guix' and run that command (useful when you are
-in a pickle). For example:
+i.e., you can use any guix on your system and even create the environment by hand
 
 #+begin_src sh   :lang bash
 screen -S guix-build # I tend to build in screen
 env -i /bin/bash --login --noprofile --norc
 /gnu/store/h410qzgv3ilk9pivi1a99q0pq0dlzkki-guix-0.13.0-5.228a398/bin/guix environment guix --ad-hoc help2man git strace \
   pkg-config less vim binutils coreutils grep guile guile-git gcc guile-json po4a guile-sqlite3 --no-grafts
-bash # you may want this shell
-#+end_src sh   :lang bash
-
-Tip: once you have built guix successfully you can use the
-./pre-inst-env prefix:
-
-#+begin_src sh   :lang bash
-screen -S guix-build # I tend to build in screen
-env -i /bin/bash --login --noprofile --norc
-./pre-inst-env guix environment guix --ad-hoc help2man git strace \
-  pkg-config less vim binutils coreutils grep guile guile-git guile-json po4a guile-sqlite3 \
-  gcc nss-certs --no-grafts
 bash # you may want this shell
 #+end_src sh   :lang bash
 
@@ -618,6 +615,22 @@ time make
 Once you have done it you should be able to run
 
 : ./pre-inst-env guix --version
+
+In case of problems, on the mailing list it was suggested to actually
+clean everything, git clone a new repository as a test.  Or, try this
+(warning: this will remove ALL untracked files and undo ALL changes):
+
+#+begin_src sh   :lang bash
+    make distclean
+    git clean -dfx
+    git reset --hard
+#+end_src
+
+the only other thing I can think to clean is your Guile ccache
+(although I don't think it's likely the cause of the problem), which I
+believe you can safely do with the following command:
+
+:  rm -rf ~/.cache/guile/ccache
 
 ** Alternative build route using a Guix profile
 
