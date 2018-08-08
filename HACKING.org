@@ -1083,6 +1083,8 @@ And nowadays one can also use --search-paths=suffix or
 * Making a patch and submit to the Guix project
 ** Using the debbugs interface
 
+debbugs help can be found [[https://www.debian.org/Bugs/Developer][here]].
+
 Bugs can be submitted by E-mail to bug-guix@gnu.org after checking
 https://debbugs.gnu.org/cgi/pkgreport.cgi?package=guix. Use the
 parameters as described in [[https://www.debian.org/Bugs/Reporting][bug reporting]].

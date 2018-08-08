@@ -551,19 +551,10 @@ Install packages after setting the path/environment with
 
 Make sure you have a recent version.
 
-The safest route is by using guix environment after starting a clean
-shell (note environment does not clutter up your main profile because
-you get a temporary one!):
+And create the build environment using a recent guix with
 
 #+begin_src sh   :lang bash
-screen -S guix-build # I tend to build in screen
-env -i /bin/bash --login --noprofile --norc
-#+end_src
-
-And create the build environment with
-
-#+begin_src sh   :lang bash
-guix environment guix
+guix environment -C guix --ad-hoc bash vim
 #+end_src
 
 if you have run a guix pull
@@ -579,7 +570,7 @@ Tip: once you have built guix successfully you can use the
 ./pre-inst-env guix environment guix
 #+end_src sh   :lang bash
 
-i.e., you can use any guix on your system and even create the environment by hand
+i.e., alternatively you can use any guix on your system and even create the environment by hand
 
 #+begin_src sh   :lang bash
 screen -S guix-build # I tend to build in screen
@@ -631,6 +622,17 @@ the only other thing I can think to clean is your Guile ccache
 believe you can safely do with the following command:
 
 :  rm -rf ~/.cache/guile/ccache
+
+Finally, especially if you do not use containers (-C switch) the
+safest route is by using guix environment after starting a clean shell
+(note environment does not clutter up your main profile because you
+get a temporary one!):
+
+#+begin_src sh   :lang bash
+screen -S guix-build # I tend to build in screen
+env -i /bin/bash --login --noprofile --norc
+#+end_src
+
 
 ** Alternative build route using a Guix profile
 
