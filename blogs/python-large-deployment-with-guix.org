@@ -1,0 +1,9 @@
+
+** A complex deployment
+
+In the context of a web service we deploy a large stack of tools that
+invoke other tools. The web servers require multiple versions of
+Python (2.4, 2.7 and 3.x series) mostly because of incompatibilities
+between Python modules and their bindings. We also have tools in there
+that are written in R (some with Python RPy2 bridges), C, C++, D,
+Elixir, Fortran - you name it.
