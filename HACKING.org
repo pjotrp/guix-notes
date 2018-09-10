@@ -1112,6 +1112,9 @@ Possibly you need to add this to your .emacs configuration
 In debbugs mode hit '?' for key-bindings.  Use the 'C' key from the
 emacs interface to tag bugs.
 
+To close a bug mail reply and modify the destination address to
+issuenumber-done@debbugs.
+
 ** The patch system
 
 A first time patch is submitted by E-mail to guix-patches@gnu.org. Use
@@ -1192,7 +1195,9 @@ Multiple patches can be passed in with something like
 : git send-email --to=number@debbugs.gnu.org *.patch
 
 Probably a good idea to try and send the mail to yourself first.
-Don't send the same E-mail twice ;).
+Don't send the same E-mail twice ;). One example I used
+
+: git send-email --from "Pjotr Prins <pjotr.guix@thebird.nl>" --to 322??@debbugs.gnu.org ~/tmp/0001-gnu-ldc-Update-to-1.10.0.patch --suppress-cc=all --subject="[PATCH] Updating ldc to 1.10.0"
 
 To change credentials for the patch use [[https://help.github.com/articles/setting-your-email-in-git/][git config]]. Note that the
 maintainers will run something like

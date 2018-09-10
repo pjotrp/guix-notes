@@ -44,6 +44,7 @@
    - [[#failed-to-connect-to-daemon][Failed to connect to daemon]]
    - [[#x509-certificate-error][X.509 certificate error]]
    - [[#error-build-failed-substituter-substitute-died-unexpectedly][error: build failed: substituter `substitute' died unexpectedly]]
+   - [[#error-in-procedure-scm-error-no-code-for-module-gcrypt-hash][ERROR: In procedure scm-error: no code for module (gcrypt hash)]]
    - [[#packagesscm-error][packages.scm error]]
    - [[#error-while-loading-shared-libraries-libgslso23-cannot-open-shared-object-file-no-such-file-or-directory][error while loading shared libraries: libgsl.so.23: cannot open shared object file: No such file or directory]]
    - [[#updating-guix-hell][updating Guix hell]]
@@ -536,7 +537,7 @@ localstatedir.
 
 This is my recommended route for building from source. It is a great
 route because it uses Guix packages isolated from the rest of the
-system.
+system using a Guix container (environment).
 
 You can re-build and re-install Guix using a system that already runs
 Guix.  To do so (copied from the Guix README). For example, after the
@@ -557,25 +558,27 @@ And create the build environment using a recent guix with
 guix environment -C guix --ad-hoc bash vim
 #+end_src
 
-if you have run a guix pull
+The -C makes it a container. If you have run a guix pull you can do
 
 #+begin_src sh   :lang bash
-~/.config/guix/current/bin/guix environment guix
+~/.config/guix/current/bin/guix environment -C guix --ad-hoc bash vim
 #+end_src
 
-Tip: once you have built guix successfully you can use the
+Tip: once you have built guix successfully you can also use the
 ./pre-inst-env prefix:
 
 #+begin_src sh   :lang bash
-./pre-inst-env guix environment guix
+./pre-inst-env guix environment -C guix --ad-hoc bash vim
 #+end_src sh   :lang bash
 
-i.e., alternatively you can use any guix on your system and even create the environment by hand
+i.e., alternatively you can use any guix on your system and even
+create the environment by hand (this may be useful to get out of a
+pickle)
 
 #+begin_src sh   :lang bash
 screen -S guix-build # I tend to build in screen
 env -i /bin/bash --login --noprofile --norc
-/gnu/store/h410qzgv3ilk9pivi1a99q0pq0dlzkki-guix-0.13.0-5.228a398/bin/guix environment guix --ad-hoc help2man git strace \
+/gnu/store/h410qzgv3ilk9pivi1a99q0pq0dlzkki-guix-0.ver.0-5.228a398/bin/guix environment guix --ad-hoc help2man git strace \
   pkg-config less vim binutils coreutils grep guile guile-git gcc guile-json po4a guile-sqlite3 --no-grafts
 bash # you may want this shell
 #+end_src sh   :lang bash
@@ -618,8 +621,8 @@ clean everything, git clone a new repository as a test.  Or, try this
 #+end_src
 
 the only other thing I can think to clean is your Guile ccache
-(although I don't think it's likely the cause of the problem), which I
-believe you can safely do with the following command:
+(although I don't think it's likely the cause), which I believe you
+can safely do with the following command:
 
 :  rm -rf ~/.cache/guile/ccache
 
@@ -733,7 +736,7 @@ which env
 should give
 
 #+begin_src sh   :lang bash
-/home/wrk/opt/guix-build-system/bin/env
+$HOME/opt/guix-build-system/bin/env
 #+end_src sh   :lang bash
 
 ** And build it
@@ -976,8 +979,8 @@ Install the certificates with
 and set the environment as suggested by Guix. E.g.,
 
 #+begin_src sh   :lang bash
-export GIT_SSL_CAINFO="/home/wrk/.guix-profile/etc/ssl/certs/ca-certificates.crt${GIT_SSL_CAINFO:+:}$GIT_SSL_CAINFO"
-export SSL_CERT_DIR="/home/wrk/.guix-profile/etc/ssl/certs${SSL_CERT_DIR:+:}$SSL_CERT_DIR"
+export GIT_SSL_CAINFO="$HOME/.guix-profile/etc/ssl/certs/ca-certificates.crt${GIT_SSL_CAINFO:+:}$GIT_SSL_CAINFO"
+export SSL_CERT_DIR="$HOME/.guix-profile/etc/ssl/certs${SSL_CERT_DIR:+:}$SSL_CERT_DIR"
 #+end_src
 
 ** error: build failed: substituter `substitute' died unexpectedly
@@ -994,6 +997,16 @@ to install a latest guix
 : ./pre-inst-env guix package -i guix
 
 so you can recover from that later.
+
+** ERROR: In procedure scm-error: no code for module (gcrypt hash)
+
+Guix is built with Guile and Guile has trouble finding the gcrypt package. Fix it by
+installing guix in a profile and setting the LOAD PATHS, e.g.:
+
+: guix package -i guix -p ~/opt/guix
+
+: GUILE_LOAD_PATH=~/opt/guix/share/guile/site/2.2/
+: GUILE_LOAD_COMPILED_PATH=~/opt/guix/share/guile/site/2.2/
 
 ** packages.scm error
 
