@@ -1005,8 +1005,10 @@ installing guix in a profile and setting the LOAD PATHS, e.g.:
 
 : guix package -i guix -p ~/opt/guix
 
-: GUILE_LOAD_PATH=~/opt/guix/share/guile/site/2.2/
-: GUILE_LOAD_COMPILED_PATH=~/opt/guix/share/guile/site/2.2/
+#+BEGIN_SRC
+export GUILE_LOAD_PATH=~/opt/guix/share/guile/site/2.2/
+export GUILE_LOAD_COMPILED_PATH=~/opt/guix/share/guile/site/2.2/
+#+END_SRC
 
 ** packages.scm error
 
