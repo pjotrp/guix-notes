@@ -9,47 +9,95 @@ takes a long time to build and test! Trick is to do something else at
 the same time ;). The actual steps are not that lengthy once you have
 the build under control.
 
+The main trick is to have a fast turn around time when debugging
+failing tests.
+
 *** Building ldc compiler and phobos
 
 Build the package with -K option.
 
 #+BEGIN_SRC sh
-./pre-inst-env guix build --no-grafts --no-substitutes ldc -K
+  ./pre-inst-env guix build --no-grafts --no-substitutes ldc -K
 #+END_SRC sh
 
 Note you can see the output of the build with
 
-: cd /tmp/guix-build-ldc-1.7.0.drv-2
+: cd /tmp/guix-build-ldc-$ver.drv-2
 : cat build/Testing/Temporary/LastTest.log
+
+To have a quick scan
+
+: egrep -i fail\|error Testing/Temporary/LastTest.log
+
+which for example rendered
+
+: FAIL release64 std.datetime.timezone
+: core.exception.AssertError@std/datetime/timezone.d(566):
+: assertNotThrown failed: TimeException was thrown: File /Africa/Abidjan does not exist.
+: Test Failed.
+
 
 After a build fail, change into the created dir and git init, e.g.
 
 #+BEGIN_SRC sh
-cd /tmp/guix-build-ldc-1.7.0.drv-2/ldc-1.7.0
+cd /tmp/guix-build-ldc-$ver.drv-2/ldc-$ver
 git init
 git add .
 git commit -a -m init
 #END_SRC
 
+So when you fix some code you can generate a patch/diff with git.
+
+: git diff
+
 set the environment in a pure fashion
 
 #+BEGIN_SRC sh
 env -i /bin/bash --login --noprofile --norc
-cd /tmp/guix-build-ldc-1.7.0.drv-2/
+cd /tmp/guix-build-ldc-$ver.drv-2/
 . environment-variables
-cd ldc-1.7.0
+cd ldc-$ver
 cmake .
 make -j 24
 make test -j 24
 #+END_SRC sh
 
-to make one test set
+alternatively you may want to use a build container (no network by default)
+
+#+BEGIN_SRC sh
+~/.config/guix/current/bin/guix environment -C guix ldc clang llvm unzip gdb ncurses vim git cmake which less
+cd ldc-$ver
+rm -rf CMakeFiles CMakeCache.txt
+cmake .
+make -j 24
+#+END_SRC
+
+to make one test set (note this is not in the build directory, but in the ldc source)
 
 : make -j 24 phobos2-test-runner-debug
 
-and run the tests
+To run one test
 
-: /tmp/guix-build-ldc-1.7.0.drv-2/ldc-1.7.0# /usr/bin/unshare -n runtime/phobos2-test-runner-debug
+: ./runtime/phobos2-test-runner-debug std.datetime.timezone
+
+To run it in gdb
+
+: gdb --args ./runtime/phobos2-test-runner-debug std.datetime.timezone
+
+once in there you can set a bp with, for example
+
+: (gdb) l /tmp/guix-build-ldc-1.11.0.drv-0/ldc-1.11.0/runtime/phobos/std/datetime/timezone.d:2154
+: (gdb) b 2152
+: Breakpoint 1 at 0x2747a08: file timezone.d, line 2152.
+: (gdb) r
+: (gdb) p name
+: $1 = "America/Los_Angeles"
+: (gdb) p tzDatabaseDir
+: $2 = "/usr/share/zoneinfo/"
+
+and run the tests fully without networking (if you are not in guix environment)
+
+: /tmp/guix-build-ldc-$ver.drv-2/ldc-$ver# /usr/bin/unshare -n runtime/phobos2-test-runner-debug
 
 note the originals are still in
 
@@ -67,43 +115,46 @@ to disable network access run as root
 Which throws an error
 
 : shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
-: /gnu/store/kpxi8h3669afr9r1bgvaf9ij3y4wdyyn-bash-minimal-4.4.12/bin/sh: /tmp/guix-build-ldc-1.7.0.drv-0/std.process temporary file ebe1260e-300b-460c-adf1-880a8459b3dd: No such file or directory
+: /gnu/store/kpxi8h3669afr9r1bgvaf9ij3y4wdyyn-bash-minimal-4.4.12/bin/sh: /tmp/guix-build-ldc-$ver.drv-0/std.process temporary file ebe1260e-300b-460c-adf1-880a8459b3dd: No such file or directory
 : ****** FAIL release64 std.process
 : core.exception.AssertError@std/process.d(1196): assertThrown failed: No ProcessException was thrown.
 
 edit the file (disable the test), rebuild and test. A git diff for this one looks like
 
 #+BEGIN_SRC diff
-diff --git a/runtime/phobos/std/process.d b/runtime/phobos/std/process.d
-index df83296..d921cdb 100644
---- a/runtime/phobos/std/process.d
-+++ b/runtime/phobos/std/process.d
-@@ -1171,7 +1171,7 @@ version (Posix) @system unittest
--@system unittest // Specifying a bad working directory.
-+@system version(skipunittest) unittest // Specifying a bad working directory.
+  diff --git a/runtime/phobos/std/process.d b/runtime/phobos/std/process.d
+  index df83296..d921cdb 100644
+  --- a/runtime/phobos/std/process.d
+  +++ b/runtime/phobos/std/process.d
+  @@ -1171,7 +1171,7 @@ version (Posix) @system unittest
+  -@system unittest // Specifying a bad working directory.
+  +@system version(skipunittest) unittest // Specifying a bad working directory.
 #+END_SRC
 
 To run tests with a shared library:
 
-: cd /tmp/guix-build-ldc-1.7.0.drv-2/build/runtime
+: cd /tmp/guix-build-ldc-$ver.drv-2/build/runtime
 : env LD_LIBRARY_PATH=../lib/ /usr/bin/unshare -n ./druntime-test-runner-shared
 
 In the final step
 
-: ./pre-inst-env guix environment guix --pure -- ./pre-inst-env guix build ldc@1.7.0 -K
+: ./pre-inst-env guix environment guix --pure -- ./pre-inst-env guix build ldc@$ver -K
 
 or a more complete
 
-: rm -rf /tmp/guix-build-ldc-0.17.4.drv-* ; time ./pre-inst-env guix environment guix --pure -- ./pre-inst-env guix build ldc --no-substitutes -K
+: rm -rf /tmp/guix-build-ldc-*.drv-* ; time ./pre-inst-env guix environment guix --pure -- ./pre-inst-env guix build ldc --no-substitutes -K
 
 Note you may want to remove the keep dir every time you rerun. In my
 version the environment contained a path reference to
-/tmp/guix-build-ldc-1.7.0.drv-0 even though I was in a different drv-2 tree.
+/tmp/guix-build-ldc-$ver.drv-0 even though I was in a different drv-2 tree.
 
-The list tests can be run with
+The lit tests can be run individually with
 
 : cd tests
 : ./runlit.py -v codegen/align.d
+
+or completely with
+
 : ./runlit.py -v .
 
 To speed up the Guix build + testing you can inject something like
@@ -120,6 +171,23 @@ To speed up the Guix build + testing you can inject something like
                       (system* "../build/runtime/phobos2-test-runner-debug")
                       ))
            (add-after 'check 'break (lambda () (#f)))
+#+END_SRC
+
+the actual patch looks like
+
+#+BEGIN_SRC
+                       ;; some tests call into gdb binary which needs SHELL and CC set
+                       (setenv "SHELL" (which "sh"))
+                       (setenv "CC" (string-append (assoc-ref inputs "gcc") "/bin/gcc"))
+-                      (invoke "make" "test" "-j" (number->string (parallel-job-count))))))))
++                      (with-directory-excursion "tests"
++                                                (zero? (system* "make"))
++                                                (zero? (system* "./runlit.py" "-v" ".")))
++                      (zero? (system* "make" "phobos2-test-runner-debug" "-j" (number->string (parallel-job-count))))
++                      (system* "../build/runtime/phobos2-test-runner-debug")
++                    )
++                    ))))
+       (native-inputs
 #+END_SRC
 
 Check also these hints
