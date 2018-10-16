@@ -57,20 +57,32 @@ env -i /bin/bash --login --noprofile --norc
 cd /tmp/guix-build-ldc-$ver.drv-2/
 . environment-variables
 cd ldc-$ver
+rm -rf CMakeFiles CMakeCache.txt
 cmake .
+make clean
 make -j 24
 make test -j 24
 #+END_SRC sh
 
-alternatively you may want to use a build container (no network by default)
+alternatively you may want to use a build container (no network by default and note you need to pull
+in all build dependencies)
 
 #+BEGIN_SRC sh
-~/.config/guix/current/bin/guix environment -C guix ldc clang llvm unzip gdb ncurses vim git cmake which less
+~/.config/guix/current/bin/guix environment -C guix --ad-hoc ldc clang llvm unzip gdb ncurses vim git make cmake which less tzdata binutils
 cd ldc-$ver
 rm -rf CMakeFiles CMakeCache.txt
 cmake .
+make clean
 make -j 24
 #+END_SRC
+
+to run the tests
+
+: cmake .
+
+to run one
+
+: ctest -R dmd-testsuite-debug
 
 to make one test set (note this is not in the build directory, but in the ldc source)
 

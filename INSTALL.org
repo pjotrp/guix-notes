@@ -43,6 +43,7 @@
  - [[#trouble-shooting][Trouble shooting]]
    - [[#failed-to-connect-to-daemon][Failed to connect to daemon]]
    - [[#x509-certificate-error][X.509 certificate error]]
+   - [[#guix-pull-error-git-error-the-ssl-certificate-is-invalid][guix pull: error: Git error: the SSL certificate is invalid]]
    - [[#error-build-failed-substituter-substitute-died-unexpectedly][error: build failed: substituter `substitute' died unexpectedly]]
    - [[#error-in-procedure-scm-error-no-code-for-module-gcrypt-hash][ERROR: In procedure scm-error: no code for module (gcrypt hash)]]
    - [[#packagesscm-error][packages.scm error]]
@@ -982,6 +983,10 @@ and set the environment as suggested by Guix. E.g.,
 export GIT_SSL_CAINFO="$HOME/.guix-profile/etc/ssl/certs/ca-certificates.crt${GIT_SSL_CAINFO:+:}$GIT_SSL_CAINFO"
 export SSL_CERT_DIR="$HOME/.guix-profile/etc/ssl/certs${SSL_CERT_DIR:+:}$SSL_CERT_DIR"
 #+end_src
+
+** guix pull: error: Git error: the SSL certificate is invalid
+
+Solution, see above X.509 certificate error
 
 ** error: build failed: substituter `substitute' died unexpectedly
 

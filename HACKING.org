@@ -25,6 +25,7 @@
    - [[#dependencies][Dependencies]]
  - [[#building-the-package][Building the package]]
  - [[#debugging-the-package][Debugging the package]]
+   - [[#log-files][Log files]]
    - [[#environment][Environment]]
    - [[#inside-guile-repl][Inside Guile (REPL)]]
    - [[#using-the-debugger][Using the debugger]]
@@ -379,9 +380,15 @@ The version is located in the package definition. E.g.
 
 ** Updating the HASH value
 
-#+begin_src scheme
+#+begin_src sh
   guix download http://cache.ruby-lang.org/pub/ruby/2.1/ruby-2.1.3.tar.gz
 #+end_src
+
+if you have downloaded a package or checked out a git repo you can also do
+
+#+begin_src sh
+~/.config/guix/current/bin/guix hash /gnu/store/ddg95a3q30qiiqz4gdkmmldj46s9bfmp-gemma-gn2-0.98-6b1e007-checkout -r
+#+end_src sh
 
 ** Use import to convert other packages from GNU, pypi, rubygems and Nix
 
@@ -454,6 +461,38 @@ the destination
 #+end_src
 
 * Debugging the package
+** Log files
+
+You can find the log files generated during the build process with
+
+: guix build --log-file something
+
+Ricardo wrote: does this also work for failed builds - without
+rebuilding it again?  It does seem to work.  To test this I added
+(error "foo") to a build phase in the “diamond” package and ran
+
+:   guix package -i diamond
+
+This ends with
+
+:   Build failed:  /gnu/store/wk9qbhmdzs62mp40casrndcgm3p50m3b-diamond-0.9.22.drv
+:   guix package: error: build failed: build of `/gnu/store/wk9qbhmdzs62mp40casrndcgm3p50m3b-diamond-0.9.22.drv' failed
+
+So I ran
+
+:   guix build --log-file /gnu/store/wk9qbhmdzs62mp40casrndcgm3p50m3b-diamond-0.9.22.drv
+
+which gave me
+
+:   /var/log/guix/drvs/wk/9qbhmdzs62mp40casrndcgm3p50m3b-diamond-0.9.22.drv.bz2
+
+which contains the build log for this failed build, including the "foo"
+error message.
+
+I would like this error log file location to be shown unprompted, but
+I think we would need to change build.cc, so that BuildError prints it
+in addition to the error message.
+
 ** Environment
 
 Before debugging it is important to have a clean environment.
