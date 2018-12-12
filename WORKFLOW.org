@@ -1,0 +1,86 @@
+* Reproducible Workflow
+
+In the quest for reproducible workflows I set out to create an example
+of a reproducible workflow using GNU Guix, IPFS and CWL. GNU Guix
+provides reproducible software deployment, IPFS provides
+content-addressable storage and CWL can describe a workflow that can
+run on backends that support it. In principle, these tools should be
+enough to provide reproducibility. This work was executed during the
+Biohackathon 2018 in Matsue, Japan.
+
+** GNU Guix installation
+
+The first step is to install the Guix daemon. This daemon allows
+regular users to install software packages on any Linux distribution
+(Debian, Fedora, CentOS: are all fine). GNU Guix does not interfere
+with the running Linux distribution. Installation instructions can be
+found [here] and [here]. The Guix deamon needs to be installed as
+root, but runs with user land privileges. For those who can not get
+root there are [work arounds]. And Ricardo Wurmus describes how MDC
+deploys GNU Guix on their HPC.
+
+** IPFS and CWL installation
+
+IPFS was recently added to GNU Guix and a CWL package existed in one of
+my own repositories, but it was written during Biohackathon 2015 and
+three years out of date.
+
+The first task was to update and add CWL to GNU Guix. This took me a few
+hours because quite a few dependencies had to be added in. Fortunately
+the Guix pypi import function made it easy by generating package definitions such as for
+the Python 'prov' package:
+
+I added the packages in these commits\FIXME.
+
+# CWL dependency graph
+
+Now, as a normal user, we can have the main tools installed with
+
+: guix package -i ipfs
+
+and because cwl is in my private tree I point the path there
+
+: env xxx guix package -i cwl-tools
+
+If Guix is correctly intalled most packages get downloaded and
+installed as binaries.  Guix only builds packages when it can not find
+a binary substitute.
+
+** Creating a CWL workflow
+
+We are going to run one of the pipelines from bcbio-nextgen as an
+example. Bcbio generates CWL which is rather convenient.
+
+** Install the tools to run
+
+** Add the data sources
+
+** Modify the CWL definition
+
+** Run CWL
+
+** Prove results are deterministic
+
+** Capture the provenance graph
+
+** Discussion
+
+Here we show the principle of a working reproducible pipeline. With
+little effort, anywone can create such a pipeline using GNU Guix, an
+addressable data source, and a CWL work flow definition that includes
+content-addressable references to software and data inputs. By running
+the workflow multiple times it can be asserted the outcome is
+deterministic and therefore reproducible.
+
+Determinism (and reproducibility) may break when the pipeline has
+software that does not behave well. Some tools give different results
+when run with the exact same inputs. The solution is to fix or avoid
+that software. Also, software may try to download inputs which can
+lead to different results over time. To be stringent, it may be
+advisable to disable network traffic when the workflow is running,
+e.g., with FIXME.
+
+To guarantee reproducibility it is necessary to fixate inputs and have
+well behaved software. With rogue or badly behaved software this may
+be a challenge.  The good news is that such behaviour is not so common
+and, if so, GNU Guix + IPFS will bring out any reproducibility issues.
