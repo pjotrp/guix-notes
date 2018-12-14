@@ -1,5 +1,7 @@
 * Reproducible Workflow
 
+/Note this document is a work in progress - complete in December 2018/
+
 In the quest for reproducible workflows I set out to create an example
 of a reproducible workflow using GNU Guix, IPFS and CWL. GNU Guix
 provides reproducible software deployment, IPFS provides
@@ -30,21 +32,35 @@ few hours because quite a few dependencies had to be added
 in. Fortunately the Guix pypi import function made it easy by
 generating package definitions such as for the Python 'prov' package:
 
-I added the packages in these [[https://gitlab.com/genenetwork/guix-bioinformatics/commits/master][commits]]. E.g. [[https://gitlab.com/genenetwork/guix-bioinformatics/commit/f65893ba096bc4b190d9101cca8fe490af80109e][update CWL]].
+I added the packages in these [[https://gitlab.com/genenetwork/guix-bioinformatics/commits/master][commits]]. E.g. [[https://gitlab.com/genenetwork/guix-bioinformatics/commit/f65893ba096bc4b190d9101cca8fe490af80109e][update CWL]]. Also some
+packages on Guix trunk needed to be updated, including [[https://gitlab.com/genenetwork/guix/commit/1204258ca29bba9966934507287eb320a64afe8f][python-rdflib
+and python-setuptools]].
+
+#+ATTR_HTML: :style margin-left: auto; margin-right: auto;
+[[http://biogems.info/cwltool-references.svg]]
 
 # CWL dependency graph
 
 Now, as a normal user, we can have the main tools installed with
 
-: guix package -i ipfs
+: guix package -i go-ipfs
 
 and because cwl is in my private tree I point the path there
 
-: env xxx guix package -i cwl-tools
+: git clone https://gitlab.com/genenetwork/guix-bioinformatics.git
+: env GUIX_PACKAGE_PATH=./guix-bionformatics guix package -i cwltool
 
 If Guix is correctly intalled most packages get downloaded and
 installed as binaries.  Guix only builds packages when it can not find
-a binary substitute.
+a binary substitute. And now I can run
+
+: cwltool --version
+: /gnu/store/nwrvpgf3l2d5pccg997cfjq2zqj0ja0j-cwltool-1.0.20181012180214/bin/.cwltool-real 1.0
+
+Note: installing CWL does not work, please contact me. Eventually all packages will
+get added to GNU Guix proper, and then it is a simple
+
+: guix package -i cwltool
 
 ** Creating a CWL workflow
 
@@ -59,6 +75,8 @@ and Guix.
 ** Install the tools to run
 
 ** Add the data sources
+
+Following [[https://docs.ipfs.io/introduction/usage/][IPFS instructions]].
 
 ** Modify the CWL definition
 
@@ -106,3 +124,13 @@ Some network related tests may fail (6 at this point). To build CWL in a contain
 you can do something like this:
 
 : env PYTHONPATH=here/lib/python3.6/site-packages:$PYTHONPATH python3 setup.py install --prefix here
+
+** Create dependency graph
+
+The full [[http://biogems.info/cwltool-references.pdf][package graph]] can be generated with
+
+: env GUIX_PACKAGE_PATH=~/izip/git/opensource/genenetwork/guix-bioinformatics ./pre-inst-env guix graph cwltool |dot -Tpdf > cwltool-package.pdf
+
+And the full [[http://biogems.info/cwltool-package.pdf][dependency graph]] can be generated with
+
+: env GUIX_PACKAGE_PATH=~/izip/git/opensource/genenetwork/guix-bioinformatics ./pre-inst-env guix graph  --type=references cwltool |dot -Tpdf > cwltool-references.pdf
