@@ -79,7 +79,7 @@ a binary substitute. And now I can run
 : /gnu/store/nwrvpgf3l2d5pccg997cfjq2zqj0ja0j-cwltool-1.0.20181012180214/bin/.cwltool-real 1.0
 
 Note: installing CWL does not work, please contact me. Eventually all packages will
-get added to GNU Guix proper, and then it is a simple
+get added to GNU Guix proper, and then it becomes a simple
 
 : guix package -i cwltool
 
@@ -93,19 +93,116 @@ from there. This pipeline uses github to store data and a Docker
 container to run a JVM tool. Good challenge to replace that with IPFS
 and Guix.
 
-** Install the tools to run
-
 ** Add the data sources
 
-Following [[https://docs.ipfs.io/introduction/usage/][IPFS instructions]].
+After above installation of go-ipfs, following [[https://docs.ipfs.io/introduction/usage/][IPFS instructions]] create a data
+directory
 
-** Modify the CWL definition
+: monza:/export/data/ipfs$ ipfs init
+:  initializing IPFS node at /home/wrk/.ipfs
+: generating 2048-bit RSA keypair...done
+: peer identity: QmYYUMYjFELLZLwJK2YDxGFx8AeN8eQv5VnmRQA7umC5YQ
 
-** Run CWL
+Start the daemon
+
+: env IPFS_PATH=/export/data/ipfs ipfs daemon
+
+and we can add the data
+
+#+BEGIN_SRC
+ipfs add -r DATA/
+added QmXwNNBT4SyWGnNogzDq8PTbtFi48Q9J6kXRWTRQGmgoNz DATA/small.ERR034597_1.fastq
+added QmcJ7P7eyMqhttSVssYhiRPUc9PxqAapVvS91Qo78xDjj3 DATA/small.ERR034597_2.fastq
+added QmfRb8TLfVnMbxauTPV2hx5EW6pYYYrCRmexcYCQyQpZjV DATA/small.chr22.fa
+added QmXaN36yNT82jQbUf2YuyV8symuF5NrdBX2hxz4mAG1Fby DATA/small.chr22.fa.amb
+added QmVM3SERieRzAdRMxpLuEKMuWT6cYkhCJsyqpGLj7qayoc DATA/small.chr22.fa.ann
+added QmfYpScLAEBXxyZmASWLJQMZU2Ze9UkV919jptGf4qm5EC DATA/small.chr22.fa.bwt
+added Qmc2P19eV77CspK8W1JZ7Y6fs2xRxh1khMsqMdfsPo1a7o DATA/small.chr22.fa.pac
+added QmV8xAwugh2Y35U3tzheZoywjXT1Kej2HBaJK1gXz8GycD DATA/small.chr22.fa.sa
+added QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE DATA
+#+END_SRC
+
+Test a file
+
+: ipfs cat QmfRb8TLfVnMbxauTPV2hx5EW6pYYYrCRmexcYCQyQpZjV
+
+and you should see the contents of small.chr22.fa. You can also browse to
+http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE
+
+** Run CWL script
+
+Following the instructions in the original workflow README
+
+: cwltool Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+
+complains we don't have Docker. Since we want to run without Docker specify
+
+: cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+
+Resulting in
+
+: 'fastqc' not found: [Errno 2] No such file or directory: 'fastqc': 'fastqc'
+
+which exists in Guix, so
+
+: guix package -i fastqc -p ~/opt/cwl --dry-run
+
+installs
+
+: fastqc       0.11.5  /gnu/store/sh0wj2c00vkkh218jb5p34gndfdmbhrf-fastqc-0.11.5
+
+after downloading
+
+#+BEGIN_SRC
+   /gnu/store/sh0wj2c00vkkh218jb5p34gndfdmbhrf-fastqc-0.11.5
+   /gnu/store/0j2j0i55s0xykfcgx9fswks8792gk4sk-java-cisd-jhdf5-14.12.6-39162
+   /gnu/store/bn8vb4zvdxpjl6z573bxyzqndd925x97-java-picard-1.113
+   /gnu/store/g08d57f1pbi6rrzlmcaib1iyc6ir5wn9-icedtea-3.7.0
+   /gnu/store/m0k3fdpgyms3fwbz24vaxclx6f1rwjdg-java-jbzip2-0.9.1
+#+END_SRC
+
+Note that the package is completely defined with its dependencies and
+'content-addressable'.
+
+After installing with Guix we can rerun the workflow and it fails at the next step with
+
+#+BEGIN_SRC
+/gnu/store/nwrvpgf3l2d5pccg997cfjq2zqj0ja0j-cwltool-1.0.20181012180214/bin/.cwltool-real 1.0
+Resolved 'Workflows/test-workflow.cwl' to 'file:///export/export/local/wrk/izip/git/opensource/cwl/hacchy1983-CWL-workflows/Workflows/test-workflow.cwl'
+[workflow ] start
+[workflow ] starting step qc1
+[step qc1] start
+[job qc1] /tmp/ig4k8x8m$ fastqc \
+    -o \
+    . \
+    /tmp/tmp0m1p3syh/stgca222f81-6346-4abf-a005-964e80dcf783/small.ERR034597_1.fastq
+Started analysis of small.ERR034597_1.fastq
+Approx 5% complete for small.ERR034597_1.fastq
+Approx 10% complete for small.ERR034597_1.fastq
+Approx 15% complete for small.ERR034597_1.fastq
+Approx 20% complete for small.ERR034597_1.fastq
+...
+
+Error: Unable to access jarfile /usr/local/share/trimmomatic/trimmomatic.jar
+#+END_SRC
+
+Success. fastqc runs fine and now we hit the next issue.  The
+/usr/local points out there is at least one problem :)
+
+** Run the workflow inside an isolated container without network
+
+To really make sure no dependencies 'bleed' in and no data gets pulled
+from the network we can run the workflow inside a container with no
+other tools than those defined in the Guix dependency graph. In
+addition the container can block the network.
 
 ** Prove results are deterministic
 
+tbd
+
 ** Capture the provenance graph
+
+tbd
 
 ** Discussion
 
@@ -129,7 +226,7 @@ well behaved software. With rogue or badly behaved software this may
 be a challenge.  The good news is that such behaviour is not so common
 and, if so, GNU Guix + IPFS will bring out any reproducibility issues.
 
-* Notes
+* Extra notes
 
 ** Building cwltool inside a Guix container
 
@@ -155,3 +252,7 @@ The full [[http://biogems.info/cwltool-references.pdf][package graph]] can be ge
 And the full [[http://biogems.info/cwltool-package.pdf][dependency graph]] can be generated with
 
 : env GUIX_PACKAGE_PATH=~/izip/git/opensource/genenetwork/guix-bioinformatics ./pre-inst-env guix graph  --type=references cwltool |dot -Tpdf > cwltool-references.pdf
+
+** Create a Docker container
+
+tbd
