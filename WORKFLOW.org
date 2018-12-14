@@ -14,10 +14,10 @@ The first step is to install the Guix daemon. This daemon allows
 regular users to install software packages on any Linux distribution
 (Debian, Fedora, CentOS: are all fine). GNU Guix does not interfere
 with the running Linux distribution. Installation instructions can be
-found [here] and [here]. The Guix deamon needs to be installed as
+found [[https://gitlab.com/pjotrp/guix-notes/blob/master/INSTALL.org][here]] and [[https://www.gnu.org/software/guix/manual/html_node/Binary-Installation.html][here]]. The Guix deamon needs to be installed as
 root, but runs with user land privileges. For those who can not get
 root there are [work arounds]. And Ricardo Wurmus describes how MDC
-deploys GNU Guix on their HPC.
+deploys GNU Guix on their [[https://guix.mdc-berlin.de/documentation.html][HPC]] and [[https://elephly.net/posts/2015-04-17-gnu-guix.html][here]]. More HPC blogs [[https://guix-hpc.bordeaux.inria.fr/blog/][here]].
 
 ** IPFS and CWL installation
 
@@ -25,12 +25,12 @@ IPFS was recently added to GNU Guix and a CWL package existed in one of
 my own repositories, but it was written during Biohackathon 2015 and
 three years out of date.
 
-The first task was to update and add CWL to GNU Guix. This took me a few
-hours because quite a few dependencies had to be added in. Fortunately
-the Guix pypi import function made it easy by generating package definitions such as for
-the Python 'prov' package:
+The first task was to update and add CWL to GNU Guix. This took me a
+few hours because quite a few dependencies had to be added
+in. Fortunately the Guix pypi import function made it easy by
+generating package definitions such as for the Python 'prov' package:
 
-I added the packages in these commits\FIXME.
+I added the packages in these [[https://gitlab.com/genenetwork/guix-bioinformatics/commits/master][commits]]. E.g. [[https://gitlab.com/genenetwork/guix-bioinformatics/commit/f65893ba096bc4b190d9101cca8fe490af80109e][update CWL]].
 
 # CWL dependency graph
 
@@ -48,8 +48,13 @@ a binary substitute.
 
 ** Creating a CWL workflow
 
-We are going to run one of the pipelines from bcbio-nextgen as an
-example. Bcbio generates CWL which is rather convenient.
+First I thought to run one of the pipelines from bcbio-nextgen as an
+example. Bcbio generates CWL which is rather convenient. But then at
+the BH18 there was a newly created CWL pipeline in
+https://github.com/hacchy1983/CWL-workflows and I decided to start
+from there. This pipeline uses github to store data and a Docker
+container to run a JVM tool. Good challenge to replace that with IPFS
+and Guix.
 
 ** Install the tools to run
 
@@ -84,3 +89,20 @@ To guarantee reproducibility it is necessary to fixate inputs and have
 well behaved software. With rogue or badly behaved software this may
 be a challenge.  The good news is that such behaviour is not so common
 and, if so, GNU Guix + IPFS will bring out any reproducibility issues.
+
+* Notes
+
+** Building cwltool inside a Guix container
+
+Guix containers allow isolation of the build system
+
+: env GUIX_PACKAGE_PATH=~/izip/git/opensource/genenetwork/guix-bioinformatics/ ~/izip/git/opensource/genenetwork/guix-monza/pre-inst-env guix environment -C guix --ad-hoc cwltool coreutils python
+
+Run the tests with
+
+: python3 setup.py build
+
+Some network related tests may fail (6 at this point). To build CWL in a container
+you can do something like this:
+
+: env PYTHONPATH=here/lib/python3.6/site-packages:$PYTHONPATH python3 setup.py install --prefix here
