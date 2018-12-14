@@ -32,14 +32,35 @@ few hours because quite a few dependencies had to be added
 in. Fortunately the Guix pypi import function made it easy by
 generating package definitions such as for the Python 'prov' package:
 
+#+BEGIN_SRC scheme
+(package
+  (name "python-prov")
+  (version "1.5.3")
+  (source
+    (origin
+      (method url-fetch)
+      (uri (pypi-uri "prov" version))
+      (sha256
+        (base32
+          "1a9h406laclxalmdny37m0yyw7y17n359akclbahimdggq853jd0"))))
+  (build-system python-build-system)
+  (home-page "https://github.com/trungdong/prov")
+  (synopsis
+    "A library for W3C Provenance Data Model supporting PROV-JSON, PROV-XML and PROV-O (RDF)")
+  (description
+    "A library for W3C Provenance Data Model supporting PROV-JSON, PROV-XML and PROV-O (RDF)")
+  (license license:expat))
+#+END_SRC
+
+Note that it fetches the latest version and even the software license!
+
 I added the packages in these [[https://gitlab.com/genenetwork/guix-bioinformatics/commits/master][commits]]. E.g. [[https://gitlab.com/genenetwork/guix-bioinformatics/commit/f65893ba096bc4b190d9101cca8fe490af80109e][update CWL]]. Also some
 packages on Guix trunk needed to be updated, including [[https://gitlab.com/genenetwork/guix/commit/1204258ca29bba9966934507287eb320a64afe8f][python-rdflib
-and python-setuptools]].
+and python-setuptools]]. This leads to the following dependency graph
+for cwltool.
 
 #+ATTR_HTML: :style margin-left: auto; margin-right: auto;
 [[http://biogems.info/cwltool-references.svg]]
-
-# CWL dependency graph
 
 Now, as a normal user, we can have the main tools installed with
 
