@@ -32,6 +32,10 @@ few hours because quite a few dependencies had to be added
 in. Fortunately the Guix pypi import function made it easy by
 generating package definitions such as for the Python 'prov' package:
 
+: guix import pypi prov
+
+renders a cut-and-paste package definition
+
 #+BEGIN_SRC scheme
 (package
   (name "python-prov")
@@ -53,6 +57,8 @@ generating package definitions such as for the Python 'prov' package:
 #+END_SRC
 
 Note that it fetches the latest version and even the software license!
+Note also how high-level the definition is. Not even a download URL to
+specify.
 
 I added the packages in these [[https://gitlab.com/genenetwork/guix-bioinformatics/commits/master][commits]]. E.g. [[https://gitlab.com/genenetwork/guix-bioinformatics/commit/f65893ba096bc4b190d9101cca8fe490af80109e][update CWL]]. Also some
 packages on Guix trunk needed to be updated, including [[https://gitlab.com/genenetwork/guix/commit/1204258ca29bba9966934507287eb320a64afe8f][python-rdflib
@@ -83,7 +89,7 @@ get added to GNU Guix proper, and then it becomes a simple
 
 : guix package -i cwltool
 
-** Creating a CWL workflow
+** Choosing a CWL workflow
 
 First I thought to run one of the pipelines from bcbio-nextgen as an
 example. Bcbio generates CWL which is rather convenient. But then at
@@ -91,7 +97,7 @@ the BH18 there was a newly created CWL pipeline in
 https://github.com/hacchy1983/CWL-workflows and I decided to start
 from there. This pipeline uses github to store data and a Docker
 container to run a JVM tool. Good challenge to replace that with IPFS
-and Guix.
+and Guix and make it reproducible.
 
 ** Add the data sources
 
@@ -111,15 +117,15 @@ and we can add the data
 
 #+BEGIN_SRC
 ipfs add -r DATA/
-added QmXwNNBT4SyWGnNogzDq8PTbtFi48Q9J6kXRWTRQGmgoNz DATA/small.ERR034597_1.fastq
-added QmcJ7P7eyMqhttSVssYhiRPUc9PxqAapVvS91Qo78xDjj3 DATA/small.ERR034597_2.fastq
-added QmfRb8TLfVnMbxauTPV2hx5EW6pYYYrCRmexcYCQyQpZjV DATA/small.chr22.fa
-added QmXaN36yNT82jQbUf2YuyV8symuF5NrdBX2hxz4mAG1Fby DATA/small.chr22.fa.amb
-added QmVM3SERieRzAdRMxpLuEKMuWT6cYkhCJsyqpGLj7qayoc DATA/small.chr22.fa.ann
-added QmfYpScLAEBXxyZmASWLJQMZU2Ze9UkV919jptGf4qm5EC DATA/small.chr22.fa.bwt
-added Qmc2P19eV77CspK8W1JZ7Y6fs2xRxh1khMsqMdfsPo1a7o DATA/small.chr22.fa.pac
-added QmV8xAwugh2Y35U3tzheZoywjXT1Kej2HBaJK1gXz8GycD DATA/small.chr22.fa.sa
-added QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE DATA
+  added QmXwNNBT4SyWGnNogzDq8PTbtFi48Q9J6kXRWTRQGmgoNz DATA/small.ERR034597_1.fastq
+  added QmcJ7P7eyMqhttSVssYhiRPUc9PxqAapVvS91Qo78xDjj3 DATA/small.ERR034597_2.fastq
+  added QmfRb8TLfVnMbxauTPV2hx5EW6pYYYrCRmexcYCQyQpZjV DATA/small.chr22.fa
+  added QmXaN36yNT82jQbUf2YuyV8symuF5NrdBX2hxz4mAG1Fby DATA/small.chr22.fa.amb
+  added QmVM3SERieRzAdRMxpLuEKMuWT6cYkhCJsyqpGLj7qayoc DATA/small.chr22.fa.ann
+  added QmfYpScLAEBXxyZmASWLJQMZU2Ze9UkV919jptGf4qm5EC DATA/small.chr22.fa.bwt
+  added Qmc2P19eV77CspK8W1JZ7Y6fs2xRxh1khMsqMdfsPo1a7o DATA/small.chr22.fa.pac
+  added QmV8xAwugh2Y35U3tzheZoywjXT1Kej2HBaJK1gXz8GycD DATA/small.chr22.fa.sa
+  added QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE DATA
 #+END_SRC
 
 Test a file
@@ -128,6 +134,11 @@ Test a file
 
 and you should see the contents of small.chr22.fa. You can also browse to
 http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE
+
+Next you ought to pin the data so it does not get garbage collected by IPFS
+
+: env IPFS_PATH=/export/data/ipfs ipfs pin add QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE
+:   pinned QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE recursively
 
 ** Run CWL script
 
@@ -187,7 +198,104 @@ Error: Unable to access jarfile /usr/local/share/trimmomatic/trimmomatic.jar
 #+END_SRC
 
 Success. fastqc runs fine and now we hit the next issue.  The
-/usr/local points out there is at least one problem :)
+/usr/local points out there is at least one problem :). There is also another issue in that
+the data files are specified from the source tree, e.g.
+
+#+BEGIN_SRC yaml
+fq1:  # type "File"
+    class: File
+    path: ../DATA/small.ERR034597_1.fastq
+    format: http://edamontology.org/format_1930
+#+END_SRC
+
+Here, btw, you may start to appreciate the added value of a CWL
+workflow definition. By using an EDAM ontology CWL gets metadata describing the data format which
+can be used down the line. Still, we need to fetch with IPFS so the description
+becomes
+
+#+BEGIN_SRC yaml
+fq1:  # type "File"
+    class: File
+    path: ../DATA/small.ERR034597_1.fastq
+    format: http://edamontology.org/format_1930
+#+END_SRC
+
+To make sure we do not fetch the old data I moved the old data files
+out of the way and modified the job description to use the IPFS local
+web server
+
+: git mv ./DATA ./DATA2
+: mkdir DATA
+
+#+BEGIN_SRC diff
+--- a/Jobs/small.ERR034597.test-workflow.yml
++++ b/Jobs/small.ERR034597.test-workflow.yml
+@@ -1,10 +1,10 @@
+ fq1:  # type "File"
+     class: File
+-    path: ../DATA/small.ERR034597_1.fastq
++    path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.ERR034597_1.fastq
+     format: http://edamontology.org/format_1930
+ fq2:  # type "File"
+     class: File
+-    path: ../DATA/small.ERR034597_2.fastq
++    path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.ERR034597_2.fastq
+     format: http://edamontology.org/format_1930
+ fadir:  # type "Directory"
+     class: Directory
+#+END_SRC
+
+The http fetches can be replaced later with a direct IPFS call which
+will fetch files transparently from the public IPFS somewhere - much
+like bittorrent does - and cache locally. We will need to add that
+support to CWL so we can write something like
+
+: path: ipfs://QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE
+
+This is safe because IPFS is content-addressable.
+
+Now the directory tree looks like
+
+#+BEGIN_SRC
+tree
+.
+├── DATA
+├── DATA2
+│   ├── small.chr22.fa
+│   ├── small.chr22.fa.amb
+│   ├── small.chr22.fa.ann
+│   ├── small.chr22.fa.bwt
+│   ├── small.chr22.fa.pac
+│   ├── small.chr22.fa.sa
+│   ├── small.ERR034597_1.fastq
+│   └── small.ERR034597_2.fastq
+├── Jobs
+│   ├── small.chr22.bwa-index.yml
+│   └── small.ERR034597.test-workflow.yml
+├── LICENSE
+├── README.md
+├── small.ERR034597_1_fastqc.html
+├── Tools
+│   ├── bwa-index.cwl
+│   ├── bwa-mem-PE.cwl
+│   ├── fastqc.cwl
+│   ├── samtools-sam2bam.cwl
+│   └── trimmomaticPE.cwl
+└── Workflows
+    └── test-workflow.cwl
+#+END_SRC
+
+and CWL runs up to
+
+: ILLUMINACLIP:/usr/local/share/trimmomatic/adapters/TruSeq2-PE.fa:2:40:15
+: Error: Unable to access jarfile /usr/local/share/trimmomatic/trimmomatic.jar
+
+** Adding a binary blob to GNU Guix
+
+Guix likes things to be built from source - it is a clear goal of the
+GNU project. But you can still stick in binary blobs if you want. Main
+thing is that they need to be in the /gnu/store to be seen at build
+time.
 
 ** Run the workflow inside an isolated container without network
 
