@@ -1,25 +1,57 @@
 * Reproducible Workflow
 
-/Note this document is a work in progress - complete in December 2018/
+/An example of building a fully reproducible pipeline - note this
+document is a work in progress - complete in December 2018/
 
 In the quest for reproducible workflows I set out to create an example
 of a reproducible workflow using GNU Guix, IPFS and CWL. GNU Guix
-provides reproducible software deployment, IPFS provides
-content-addressable storage and CWL can describe a workflow that can
-run on backends that support it. In principle, these tools should be
-enough to provide reproducibility. This work was executed during the
-Biohackathon 2018 in Matsue, Japan.
+provides content-addressable reproducible software deployment, IPFS
+provides content-addressable storage and CWL can describe a workflow
+that can run on backends that support it. In principle, these tools
+should be enough to provide reproducibility. This work was executed
+during the Biohackathon 2018 in Matsue, Japan.
+
+** Why content-addressable?
+
+[[https://en.wikipedia.org/wiki/Content-addressable_storage][Content addressable files]] are referenced to by a hash on their
+contents.  In the workflow below we use a file named small.chr22.fa
+that is used by its full path:
+
+: /ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.ERR034597_1.fastq.
+
+A hash value was computed over the fastq file and that became part of
+its reference. If the file changes in anyway, the hash changes and
+therefore the reference. This property quarantees you are *always*
+dealing with the same input data - a key property of a reproducible
+pipeline. There is no ambuigity with file names and what they
+represent. Files can not change without the filename changing.
+
+Similarly, every GNU Guix software reference includes a hash over its
+content. The reference to a fastq binary executable, for example,
+looks like
+
+: /gnu/store/fijv5bqhf8xmzcys2s70fqvp8xi9vn6m-fastqc-0.11.5/bin/fastqc.
+
+A reproducible pipeline therefore includes a unique reference to the
+binary tools. It is even better than that because all dependencies are
+included in the hash. Therefore the software dependency tree is
+'carved in stone'.
+
+Now this may appear a little elaborate. The good news is that most of
+these references are transparent. The Guix environment deals with
+resolving them as should become clear.
 
 ** GNU Guix installation
 
 The first step is to install the Guix daemon. This daemon allows
 regular users to install software packages on any Linux distribution
-(Debian, Fedora, CentOS: are all fine). GNU Guix does not interfere
+(Debian, Fedora and CentOS are all fine). GNU Guix does not interfere
 with the running Linux distribution. Installation instructions can be
-found [[https://gitlab.com/pjotrp/guix-notes/blob/master/INSTALL.org][here]] and [[https://www.gnu.org/software/guix/manual/html_node/Binary-Installation.html][here]]. The Guix deamon needs to be installed as
-root, but runs with user land privileges. For those who can not get
-root there are [work arounds]. And Ricardo Wurmus describes how MDC
-deploys GNU Guix on their [[https://guix.mdc-berlin.de/documentation.html][HPC]] and [[https://elephly.net/posts/2015-04-17-gnu-guix.html][here]]. More HPC blogs [[https://guix-hpc.bordeaux.inria.fr/blog/][here]].
+found [[https://gitlab.com/pjotrp/guix-notes/blob/master/INSTALL.org][here]] and [[https://www.gnu.org/software/guix/manual/html_node/Binary-Installation.html][here]]. The Guix deamon needs to be installed as root,
+but runs with user land privileges. For those who can not get root
+there are [[https://guix-hpc.bordeaux.inria.fr/blog/2017/10/using-guix-without-being-root/][work arounds]] (including the use of Docker). And Ricardo
+Wurmus describes how MDC deploys GNU Guix on their [[https://guix.mdc-berlin.de/documentation.html][HPC]] and [[https://elephly.net/posts/2015-04-17-gnu-guix.html][here]]. More
+HPC blogs [[https://guix-hpc.bordeaux.inria.fr/blog/][here]].
 
 ** IPFS and CWL installation
 
@@ -56,14 +88,14 @@ renders a cut-and-paste package definition
   (license license:expat))
 #+END_SRC
 
-Note that it fetches the latest version and even the software license!
-Note also how high-level the definition is. Not even a download URL to
-specify.
+This is all you need to add a Python package to GNU Guix. Note that it
+fetches the latest version and even the software license!  Note also
+how high-level the definition is. Not even a download URL to specify.
 
 I added the packages in these [[https://gitlab.com/genenetwork/guix-bioinformatics/commits/master][commits]]. E.g. [[https://gitlab.com/genenetwork/guix-bioinformatics/commit/f65893ba096bc4b190d9101cca8fe490af80109e][update CWL]]. Also some
 packages on Guix trunk needed to be updated, including [[https://gitlab.com/genenetwork/guix/commit/1204258ca29bba9966934507287eb320a64afe8f][python-rdflib
 and python-setuptools]]. This leads to the following dependency graph
-for cwltool.
+for cwltool which is generated by Guix itself:
 
 #+ATTR_HTML: :style margin-left: auto; margin-right: auto;
 [[http://biogems.info/cwltool-references.svg]]
@@ -72,7 +104,7 @@ Now, as a normal user, we can have the main tools installed with
 
 : guix package -i go-ipfs
 
-and because cwl is in my private tree I point the path there
+and because cwl is currently in my private tree I point the path there
 
 : git clone https://gitlab.com/genenetwork/guix-bioinformatics.git
 : env GUIX_PACKAGE_PATH=./guix-bionformatics guix package -i cwltool
@@ -84,8 +116,12 @@ a binary substitute. And now I can run
 : cwltool --version
 : /gnu/store/nwrvpgf3l2d5pccg997cfjq2zqj0ja0j-cwltool-1.0.20181012180214/bin/.cwltool-real 1.0
 
-Note: installing CWL does not work, please contact me. Eventually all packages will
-get added to GNU Guix proper, and then it becomes a simple
+Success!
+
+Note: installing CWL requires a local git checkout until I have added
+it to GNU Guix trunk. Please contact me if you want to try
+earlier. Eventually all packages will get added to GNU Guix proper,
+and then it becomes a simple
 
 : guix package -i cwltool
 
@@ -116,6 +152,7 @@ Start the daemon
 and we can add the data
 
 #+BEGIN_SRC
+export IPFS_PATH=/export/data/ipfs
 ipfs add -r DATA/
   added QmXwNNBT4SyWGnNogzDq8PTbtFi48Q9J6kXRWTRQGmgoNz DATA/small.ERR034597_1.fastq
   added QmcJ7P7eyMqhttSVssYhiRPUc9PxqAapVvS91Qo78xDjj3 DATA/small.ERR034597_2.fastq
@@ -293,9 +330,17 @@ and CWL runs up to
 ** Adding a binary blob to GNU Guix
 
 Guix likes things to be built from source - it is a clear goal of the
-GNU project. But you can still stick in binary blobs if you want. Main
-thing is that they need to be in the /gnu/store to be seen at build
-time.
+GNU project and the whole system is designed around that. But you can
+still stick in binary blobs if you want. Main thing is that they need
+to be in the /gnu/store to be seen at build time. Here I am going to
+show you how to do that, but keep in mind that for reproducible
+pipelines this is a questionable design choice. Much of reproducible
+science is about transparancy - and binary blobs do not cut
+it. Anything that is not transparent ought to be questioned.
+
+** Replacing the binary blob with a source build
+
+tbd
 
 ** Run the workflow inside an isolated container without network
 
@@ -317,17 +362,17 @@ tbd
 Here we show the principle of a working reproducible pipeline. With
 little effort, anywone can create such a pipeline using GNU Guix, an
 addressable data source, and a CWL work flow definition that includes
-content-addressable references to software and data inputs. By running
-the workflow multiple times it can be asserted the outcome is
-deterministic and therefore reproducible.
+content-addressable references to software and data inputs (here we
+used IPFS for data). By running the workflow multiple times it can be
+asserted the outcome is deterministic and therefore reproducible.
 
 Determinism (and reproducibility) may break when the pipeline has
 software that does not behave well. Some tools give different results
 when run with the exact same inputs. The solution is to fix or avoid
 that software. Also, software may try to download inputs which can
-lead to different results over time. To be stringent, it may be
-advisable to disable network traffic when the workflow is running,
-e.g., with FIXME.
+lead to different results over time (for example by including a time
+stamp in the output). To be stringent, it may be advisable to disable
+network traffic when the workflow is running, e.g., with FIXME.
 
 To guarantee reproducibility it is necessary to fixate inputs and have
 well behaved software. With rogue or badly behaved software this may
