@@ -1,35 +1,38 @@
 * Reproducible Workflow
 
 /An example of building a fully reproducible pipeline with
-provenance - note this document is a work in progress - complete in
+provenance - note this document is a work in progress - to complete in
 December 2018/
 
-In the quest for truely reproducible workflows I set out to create an
-example of a reproducible workflow using GNU Guix, IPFS and CWL. GNU
-Guix provides content-addressable reproducible software deployment,
-IPFS provides content-addressable storage and CWL can describe a
-workflow that can run on backends that support it. In principle, this
-combination of tools should be enough to provide reproducibility with
-provenance.
+In the *quest* for truely reproducible workflows I set out to create
+an example of a reproducible workflow using GNU Guix, IPFS and
+CWL. GNU Guix provides content-addressable reproducible software
+deployment, IPFS provides content-addressable storage and CWL can
+describe a workflow that can run on backends that support it. In
+principle, this combination of tools should be enough to provide
+reproducibility with provenance.
 
-/This work was executed during the Biohackathon 2018 in Matsue,
-Japan./
+/Note: this work was mostly executed during the Biohackathon 2018 in
+Matsue, Japan./
 
 ** Why content-addressable?
 
 [[https://en.wikipedia.org/wiki/Content-addressable_storage][Content addressable files]] are referenced to by a hash on their
-contents as part of the file path/URI.  In the workflow below we use a
-file named small.chr22.fa that is used by its full path:
+contents as part of the file path/URI. For example, in the workflow
+below we use a file named small.chr22.fa that is used by its full
+path:
 
 : /ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.ERR034597_1.fastq.
 
-A hash value was computed over the fastq file and that became part of
-its reference. If the file changes in anyway, even one single letter,
-the hash changes and therefore the reference. This property quarantees
-you are *always* dealing with the same input data - a key property of
-a reproducible pipeline. There can be no ambuigity with file names and
-what they represent. Files can not change without the filename
-changing.
+The short explanation:
+
+A hash value was computed over the fastq file and that became *part*
+of its reference. If the file *changes* in any way, even one single
+letter, the hash value changes and therefore the reference... This
+property quarantees you are *always* dealing with the same input
+data - a key property of any reproducible pipeline. There can be no
+ambuigity about file names and what they represent. Files can not
+*change* without the filename changing.
 
 Similarly, every GNU Guix software reference includes a hash over its
 content. The reference to a fastq binary executable, for example,
@@ -65,38 +68,19 @@ mount. More HPC blogs can be found [[https://guix-hpc.bordeaux.inria.fr/blog/][h
 
 IPFS was recently added to GNU Guix.  The first task was to update and
 add CWL to GNU Guix. This took me a few hours because quite a few
-dependencies had to be added in. Fortunately the Guix pypi import
-function made it easy by generating package definitions such as for
-the Python 'prov' package:
+dependencies had to be added in and some of these packages have
+'fixated' versions and ultimately do not build on Python 3.7. Of
+course this should be fixed but with Guix we can introduce older
+packages no problem. For this I created a special [[https://github.com/genenetwork/guix-cwl][channel]] and after
+setting up the channel on Debian, Ubuntu, Fedora, Arch (whatever)
+installation should be as easy as
 
-: guix import pypi prov
+: guix package -i cwltool -p ~/opt/cwl
 
-renders a cut-and-paste JSON style package definition
+Now to run the tool you need to set the paths etc with
 
-#+BEGIN_SRC scheme
-(package
-  (name "python-prov")
-  (version "1.5.3")
-  (source
-    (origin
-      (method url-fetch)
-      (uri (pypi-uri "prov" version))
-      (sha256
-        (base32
-          "1a9h406laclxalmdny37m0yyw7y17n359akclbahimdggq853jd0"))))
-  (build-system python-build-system)
-  (home-page "https://github.com/trungdong/prov")
-  (synopsis
-    "A library for W3C Provenance Data Model supporting PROV-JSON, PROV-XML and PROV-O (RDF)")
-  (description
-    "A library for W3C Provenance Data Model supporting PROV-JSON, PROV-XML and PROV-O (RDF)")
-  (license license:expat))
-#+END_SRC
-
-The difference with JSON is that this is executable Scheme code.  This
-is all you need to add a Python package to GNU Guix. Note that it
-fetches the latest version and even the software license!  Note also
-how high-level the definition is. Not even a download URL to specify.
+: . ~/opt/cwl/etc/profile
+: cwltool --help
 
 I added the packages in these [[https://gitlab.com/genenetwork/guix-bioinformatics/commits/master][commits]]. E.g. [[https://gitlab.com/genenetwork/guix-bioinformatics/commit/f65893ba096bc4b190d9101cca8fe490af80109e][update CWL]]. Also some
 packages on Guix trunk needed to be updated, including [[https://gitlab.com/genenetwork/guix/commit/1204258ca29bba9966934507287eb320a64afe8f][python-rdflib
@@ -105,15 +89,6 @@ for cwltool which is generated by Guix itself:
 
 #+ATTR_HTML: :style margin-left: auto; margin-right: auto;
 [[http://biogems.info/cwltool-references.svg]]
-
-Now, as a normal user, we can have the main tools installed with
-
-: guix package -i go-ipfs
-
-and because cwl is currently in my private tree I point the path there
-
-: git clone https://gitlab.com/genenetwork/guix-bioinformatics.git
-: env GUIX_PACKAGE_PATH=./guix-bionformatics guix package -i cwltool
 
 If Guix is correctly intalled most packages get downloaded and
 installed as binaries.  Guix only builds packages when it can not find
@@ -124,12 +99,9 @@ a binary substitute. And now I can run
 
 Success!
 
-Note: installing CWL requires a local git checkout until I have added
-it to GNU Guix trunk. Please contact me if you want to try
-earlier. Eventually all packages will get added to GNU Guix proper,
-and then it becomes a simple
+We can have the main tools installed in one go with
 
-: guix package -i cwltool
+: guix package -i go-ipfs cwltool -p ~/opt/cwl
 
 ** Choosing a CWL workflow
 

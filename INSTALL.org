@@ -637,7 +637,6 @@ screen -S guix-build # I tend to build in screen
 env -i /bin/bash --login --noprofile --norc
 #+end_src
 
-
 ** Alternative build route using a Guix profile
 
 Note: this is a lesser option than using guix environment because
