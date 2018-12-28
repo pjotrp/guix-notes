@@ -145,7 +145,7 @@ main system. This makes GNU Guix containers really small and fast.
 
 *** Docker
 
-You can create a Docker image without actually installing Docker(!)
+With GNU Guix you can create a Docker image without actually installing Docker(!)
 
 #+begin_src shell
 env GUIX_PACKAGE_PATH=../guix-bioinformatics/ \
@@ -158,7 +158,7 @@ env GUIX_PACKAGE_PATH=../guix-bioinformatics/ \
 note we now have the -S switch which can make the /usr/bin symlink
 into the profile.
 
-This produced a file which we can load into Docker
+This produced a file which we can be loaded into Docker
 
 : docker load --input /gnu/store/0p1ianjqqzbk1rr9rycaqcjdr2s13mcj-docker-pack.tar.gz
 : docker images
@@ -230,7 +230,7 @@ docker pull ubuntu
 The steps that follow will be somewhat similar, with each image building upon
 the image before it.
 
-The files created here can be found 
+The files created here can be found
 [[https://github.com/fredmanglis/guix-conda-docker/][in this repository]].
 
 The first image to be built only contains conda, and it was initialised with a
