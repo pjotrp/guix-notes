@@ -1,11 +1,10 @@
 # -*- mode: org; coding: utf-8; -*-
 #+TITLE: Creating a reproducible workflow with CWL
+#+AUTHOR: Pjotr Prins
 
 * Introduction
 
-/An example of building a fully reproducible pipeline with
-provenance - note this document is a work in progress - to complete in
-December 2018/
+/The quest for building a fully reproducible pipeline with provenance/
 
 In the *quest* for truely reproducible workflows I set out to create
 an example of a reproducible workflow using GNU Guix, IPFS and
@@ -16,7 +15,7 @@ principle, this combination of tools should be enough to provide
 reproducibility with provenance.
 
 /Note: this work was mostly executed during the Biohackathon 2018 in
-Matsue, Japan./
+Matsue, Japan/
 
 * Table of Contents                                                     :TOC:
  - [[#introduction][Introduction]]
@@ -39,6 +38,8 @@ Matsue, Japan./
 
 * Why content-addressable?
 
+/The short explanation:/
+
 [[https://en.wikipedia.org/wiki/Content-addressable_storage][Content addressable files]] are referenced to by a hash on their
 contents as part of the file path/URI. For example, in the workflow
 below we use a file named small.chr22.fa that is used by its full
@@ -46,13 +47,11 @@ path:
 
 : /ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.ERR034597_1.fastq.
 
-The short explanation:
-
 A hash value was computed over the fastq file and that became *part*
 of its reference. If the file *changes* in any way, even one single
 letter, the hash value changes and therefore the reference... This
 property quarantees you are *always* dealing with the same input
-data - a key property of any reproducible pipeline. There can be no
+data - a key property of any reproducible pipeline. There can be *no*
 ambuigity about file names and what they represent. Files can not
 *change* without the filename changing.
 
@@ -65,7 +64,7 @@ looks like
 A reproducible pipeline therefore includes a unique reference to the
 binary tool(s). It is even better than that because all dependencies
 are included in the hash. Therefore the software dependency tree is
-'carved in stone' and we can recover and draw the dependency graph as
+*carved in stone* and we can recover and draw the dependency graph as
 is shown below.
 
 Now this may appear a little elaborate. The good news is that most of
