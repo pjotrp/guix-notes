@@ -19,24 +19,67 @@ Matsue, Japan/
 
 * Table of Contents                                                     :TOC:
  - [[#introduction][Introduction]]
- - [[#why-content-addressable][Why content-addressable?]]
- - [[#gnu-guix-installation][GNU Guix installation]]
- - [[#ipfs-and-cwl-installation][IPFS and CWL installation]]
- - [[#choosing-a-cwl-workflow][Choosing a CWL workflow]]
- - [[#add-the-data-sources][Add the data sources]]
- - [[#run-cwl-script][Run CWL script]]
- - [[#adding-a-binary-blob-to-gnu-guix][Adding a binary blob to GNU Guix]]
- - [[#replacing-the-binary-blob-with-a-source-build][Replacing the binary blob with a source build]]
- - [[#run-the-workflow-inside-an-isolated-container-without-network][Run the workflow inside an isolated container without network]]
+   - [[#common-workflow-language-cwl][Common Workflow Language (CWL)]]
+   - [[#ipfs][IPFS]]
+   - [[#gnu-guix][GNU Guix]]
+   - [[#why-content-addressable][Why content-addressable?]]
+ - [[#getting-started][Getting started]]
+   - [[#gnu-guix-installation][GNU Guix installation]]
+   - [[#ipfs-and-cwl-installation][IPFS and CWL installation]]
+   - [[#short-recap][Short recap]]
+ - [[#the-workflow][The workflow]]
+   - [[#choosing-a-cwl-workflow][Choosing a CWL workflow]]
+   - [[#add-the-data-sources][Add the data sources]]
+   - [[#run-cwl-script][Run CWL script]]
+   - [[#trimmomatic-adding-a-binary-blob-to-gnu-guix][trimmomatic: adding a binary blob to GNU Guix]]
  - [[#prove-results-are-deterministic][Prove results are deterministic]]
  - [[#capture-the-provenance-graph][Capture the provenance graph]]
  - [[#discussion][Discussion]]
- - [[#extra-notes][Extra notes]]
+ - [[#notes][Notes]]
    - [[#building-cwltool-inside-a-guix-container][Building cwltool inside a Guix container]]
    - [[#create-dependency-graph][Create dependency graph]]
    - [[#create-a-docker-container][Create a Docker container]]
 
-* Why content-addressable?
+** Common Workflow Language (CWL)
+
+The Common Workflow Language (CWL) is a specification for describing
+analysis workflows and tools in a way that makes them portable and
+scalable across a variety of software and hardware environments, from
+workstations to cluster, cloud, and high performance computing (HPC)
+environments. CWL is designed to meet the needs of data-intensive
+science, such as Bioinformatics, Medical Imaging, Astronomy, Physics,
+and Chemistry. CWL started as an answer to ad hoc scripting of
+pipelines in bioinformatics and come up with something portable
+instead. The CWL promises a future of running pipelines that others
+have created. Something of a must when you know that there is a
+[[https://www.nature.com/news/1-500-scientists-lift-the-lid-on-reproducibility-1.19970][reproducibility crisis]] with a majority of published papers today
+describing bioinformatics data and methods that can not be
+reproduced. Some good points also made in this paper on [[https://academic.oup.com/gigascience/article/7/7/giy077/5046609][Experimenting
+with reproducibility: a case study of robustness in bioinformatics]] and
+in [[https://www.ncbi.nlm.nih.gov/pubmed/30277498][PiGx: reproducible genomics analysis pipelines with GNU Guix]].
+
+** IPFS
+
+The [[https://ipfs.io/][InterPlanetary File System]] is a protocol and network designed to
+create a content-addressable, peer-to-peer method of storing and
+sharing hypermedia in a distributed file system. IPFS is exciting
+because it delivers a way of connecting different sites together (say
+from different institutes) that can locate and serve files in a
+(reasonably) scalable way. IPFS is content-addressable (more on that
+below) and allows for deduplication, local caching and swarm-like
+software downloads over the network.  IPFS is free software and part
+of GNU Guix.
+
+** GNU Guix
+
+[[http://gnu.org/software/guix][GNU Guix]] is the package manager of the GNU Project. Originally based
+on the Nix package manager it has morphed into a substantial project
+in its own right with hundreds of committers and some 9,000 packages
+including a wide range of bioinformatics packages. GNU Guix can be
+deployed on any existing Linux distribution (I use Debian) and
+provides a rigorous and robust control of the dependency graph.
+
+** Why content-addressable?
 
 /The short explanation:/
 
@@ -71,7 +114,9 @@ Now this may appear a little elaborate. The good news is that most of
 these references are transparent. The Guix environment deals with
 resolving them as should become clear.
 
-* GNU Guix installation
+* Getting started
+
+** GNU Guix installation
 
 The first step is to install the Guix daemon. This daemon allows
 regular users to install software packages on any Linux distribution
@@ -80,21 +125,26 @@ with the running Linux distribution. Installation instructions can be
 found [[https://gitlab.com/pjotrp/guix-notes/blob/master/INSTALL.org][here]] and [[https://www.gnu.org/software/guix/manual/html_node/Binary-Installation.html][here]]. The Guix deamon needs to be installed as root,
 but runs with user land privileges. For those who can not get root
 there are [[https://guix-hpc.bordeaux.inria.fr/blog/2017/10/using-guix-without-being-root/][work arounds]] (including the use of Docker). And Ricardo
-Wurmus describes how MDC deploys GNU Guix on their [[https://guix.mdc-berlin.de/documentation.html][HPC]] and [[https://elephly.net/posts/2015-04-17-gnu-guix.html][here]]. For
-HPC we typically use a build host which has privileges, but all other
-HPC nodes simply mount one directory under /gnu/store using a network
-mount. More HPC blogs can be found [[https://guix-hpc.bordeaux.inria.fr/blog/][here]].
+Wurmus describes how MDC deploys GNU Guix on their [[https://guix.mdc-berlin.de/documentation.html][HPC]] and [[https://elephly.net/posts/2015-04-17-gnu-guix.html][here]]
+(essentially use one build host and copy files to the rest). For HPC
+we typically use a build host which has privileges, but all other HPC
+nodes simply mount one directory under /gnu/store using a network
+mount. More HPC blogs can be found [[https://guix-hpc.bordeaux.inria.fr/blog/][here]]. If you don't think it can be
+done on HPC, think again: [[https://archive.fosdem.org/2018/schedule/event/computecanada/][Compute Canada]] deploys Nix on their HPCs
+on over 120,000 cores. And if you can do Nix you can do Guix. Same
+principles.
 
-* IPFS and CWL installation
+** IPFS and CWL installation
 
 IPFS was recently added to GNU Guix.  The first task was to update and
 add CWL to GNU Guix. This took me a few hours because quite a few
 dependencies had to be added in and some of these packages have
 'fixated' versions and ultimately do not build on Python 3.7. Of
-course this should be fixed but with Guix we can introduce older
-packages no problem. For this I created a special [[https://github.com/genenetwork/guix-cwl][channel]] and after
+course this should be fixed but with Guix we can introduce both older
+and personally updated packages no problem (fixing dependency
+hell). To manage all this I created a special [[https://github.com/genenetwork/guix-cwl][channel]] and after
 setting up the channel (see the [[https://github.com/genenetwork/guix-cwl/blob/master/README.org][README]]) on Debian, Ubuntu, Fedora,
-Arch (whatever) installation should be as easy as
+Arch (etc.) installation should be as easy as
 
 : guix package -i cwltool -p ~/opt/cwl
 
@@ -120,11 +170,24 @@ a binary substitute. And now I can run
 
 Success!
 
-So, after adding the cwl channel we can have the main tools installed in one go with
+Note that the guix-cwl [[https://github.com/genenetwork/guix-cwl][channel]] also provides a Docker image which
+we'll update for cwltool.
+
+** Short recap
+
+After adding the cwl channel we can have the main tools installed in one go with
 
 : guix package -i go-ipfs cwltool -p ~/opt/cwl
 
-* Choosing a CWL workflow
+Again, to make the full environment availble do
+
+: . ~/opt/cwl/etc/profile
+: ipfs --version
+:   ipfs version 0.4.19
+
+* The workflow
+
+** Choosing a CWL workflow
 
 First I thought to run one of the pipelines from bcbio-nextgen as an
 example. Bcbio generates CWL which is rather convenient. But then at
@@ -132,22 +195,27 @@ the BH18 there was a newly created CWL pipeline in
 https://github.com/hacchy1983/CWL-workflows and I decided to start
 from there. This particular pipeline uses github to store data and a
 Docker container to run a JVM tool. Good challenge to replace that
-with IPFS and Guix and make it reproducible. Note that git does
-provide provenance but is not suitable for large data files. And even
-though Docker may provide reproducible binary blobs - it is hard to
-know what is in them, i.e., there is a trust issue, and it is usually
-impossible to recreate them exactly, which is a reproducibility
-issue. We can do better than that.
+with IPFS and Guix and make it fully reproducible.
 
-* Add the data sources
+Note that git does provide provenance but is not suitable for large
+data files. And even though Docker may provide reproducible binary
+blobs - it is hard to know what is in them, i.e., there is a trust
+issue, and it is usually impossible to recreate them exactly, which is
+a reproducibility issue. We can do better than that.
+
+** Add the data sources
+
+In the next step we are going to make the data available through
+IPFS (we installed above).
 
 After above installation of go-ipfs, following [[https://docs.ipfs.io/introduction/usage/][IPFS instructions]] create a data
 directory
 
-: monza:/export/data/ipfs$ ipfs init
-:  initializing IPFS node at /home/wrk/.ipfs
-: generating 2048-bit RSA keypair...done
-: peer identity: QmYYUMYjFELLZLwJK2YDxGFx8AeN8eQv5VnmRQA7umC5YQ
+: mkdir /export/data/ipfs
+: env IPFS_PATH=/export/data/ipfs ipfs init
+:   initializing IPFS node at /export/data/ipfs
+:   generating 2048-bit RSA keypair...done
+:   peer identity: QmUZsWGgHmJdG2pKK52eF9kG3DQ91fHWNJXUP9fTbzdJFR
 
 Start the daemon
 
@@ -157,7 +225,7 @@ and we can add the data
 
 #+BEGIN_SRC
 export IPFS_PATH=/export/data/ipfs
-ipfs add -r DATA/
+ipfs add -r DATA2/
   added QmXwNNBT4SyWGnNogzDq8PTbtFi48Q9J6kXRWTRQGmgoNz DATA/small.ERR034597_1.fastq
   added QmcJ7P7eyMqhttSVssYhiRPUc9PxqAapVvS91Qo78xDjj3 DATA/small.ERR034597_2.fastq
   added QmfRb8TLfVnMbxauTPV2hx5EW6pYYYrCRmexcYCQyQpZjV DATA/small.chr22.fa
@@ -176,12 +244,14 @@ Test a file
 and you should see the contents of small.chr22.fa. You can also browse to
 http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE
 
+Easy!
+
 Next you ought to pin the data so it does not get garbage collected by IPFS
 
-: env IPFS_PATH=/export/data/ipfs ipfs pin add QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE
+: ipfs pin add QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE
 :   pinned QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE recursively
 
-* Run CWL script
+** Run CWL script
 
 Following the instructions in the original workflow README
 
@@ -197,13 +267,13 @@ Resulting in
 
 which exists in Guix, so
 
-: guix package -i fastqc -p ~/opt/cwl --dry-run
+: guix package -i fastqc -p ~/opt/cwl
 
 installs
 
 : fastqc       0.11.5  /gnu/store/sh0wj2c00vkkh218jb5p34gndfdmbhrf-fastqc-0.11.5
 
-after downloading
+and also downloads missing fastqc dependencies
 
 #+BEGIN_SRC
    /gnu/store/sh0wj2c00vkkh218jb5p34gndfdmbhrf-fastqc-0.11.5
@@ -214,7 +284,11 @@ after downloading
 #+END_SRC
 
 Note that the package is completely defined with its dependencies and
-'content-addressable'. We can even see it pulls in Java and Picard.
+'content-addressable'. We can see it pulls in Java and Picard. Note
+also the software is made available under an 'isolated' profile in
+~/opt/cwl. We are not mixing with other software setups. And, in the
+end, all software installed in this profile can be hosted in a
+(Docker) container.
 
 After installing with Guix we can rerun the workflow and it fails at
 the next step with
@@ -327,38 +401,98 @@ tree
     └── test-workflow.cwl
 #+END_SRC
 
-and CWL runs up to
+and again CWL runs up to
 
 : ILLUMINACLIP:/usr/local/share/trimmomatic/adapters/TruSeq2-PE.fa:2:40:15
 : Error: Unable to access jarfile /usr/local/share/trimmomatic/trimmomatic.jar
 
-* Adding a binary blob to GNU Guix
+** trimmomatic: adding a binary blob to GNU Guix
+
+The original workflow pulls trimmomatic.jar as a Docker image. Just as an example
+I downloaded the jar file from source and created a GNU Guix package to make
+it available to the workflow.
 
 Guix likes things to be built from source - it is a clear goal of the
 GNU project and the whole system is designed around that. But you can
 still stick in binary blobs if you want. Main thing is that they need
-to be in the /gnu/store to be seen at build time. Here I am going to
-show you how to do that, but keep in mind that for reproducible
-pipelines this is a questionable design choice. Much of reproducible
-science is about transparancy - and binary blobs do not cut
-it. Anything that is not transparent ought to be questioned.
+to be available in the /gnu/store to be seen at build/install
+time. Here I am going to show you how to do that, but keep in mind
+that for reproducible pipelines this is a questionable design
+choice.
 
-* Replacing the binary blob with a source build
+I created a jar download for GNU Guix, see
+[[GUIX-SIMPLE-PACKAGE.org]]. This was done by creating a Guix channel as
+part of the repository. The idea of the package in words is:
+
+1. Download the jar and compute the HASH for Guix with
+
+: guix download http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.38.zip
+:   /gnu/store/pkjlw42f5ihbvx2af6macinf290l3197-Trimmomatic-0.38.zip
+:   0z34y7f9idnxgnyqdc29z4hwdp8f96mlqssyxvks4064nr1aya6l
+
+2. Check the contents of the Zip file
+
+: unzip -t /gnu/store/pkjlw42f5ihbvx2af6macinf290l3197-Trimmomatic-0.38.zip
+:    testing: Trimmomatic-0.38/trimmomatic-0.38.jar   OK
+
+3. On running 'guix install' Guix will unzip the file in a 'build' directory
+4. You need to tell Guix to copy the file into the target 'installation' directory -
+   we'll copy it into =lib/share/jar=
+5. After installation the jar will be available in the profile under that directory path
+
+If you want to see the actual package definition and how it is done
+see [[GUIX-SIMPLE-PACAKGE.org]].
+
+After installing the package and updating the profile try again after updating the
+paths for trimmomatic in
+
+#+BEGIN_SRC bash
+env GUIX_PACKAGE_PATH=../../cwl//hacchy1983-CWL-workflows/ ./pre-inst-env guix package -i trimmomatic-jar -p ~/opt/cwl
+
+# ---- Update the paths
+. ~/opt/cwl/etc/profile
+
+# ---- Run
+cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+#+END_SRC
+
+In the next step the workflow failed because bwa was missing, so added
+
+: guix package -i bwa -p ~/opt/cwl
+
+And then we got a different error
+
+: [E::bwa_idx_load_from_disk] fail to locate the index files
+
+Whoah. This workflow is broken because there are no index files!
+
+Actually if you check earlier IPFS upload you can see we added them with:
+
+#+BEGIN_SRC
+  added QmfRb8TLfVnMbxauTPV2hx5EW6pYYYrCRmexcYCQyQpZjV DATA/small.chr22.fa
+  added QmXaN36yNT82jQbUf2YuyV8symuF5NrdBX2hxz4mAG1Fby DATA/small.chr22.fa.amb
+  added QmVM3SERieRzAdRMxpLuEKMuWT6cYkhCJsyqpGLj7qayoc DATA/small.chr22.fa.ann
+  added QmfYpScLAEBXxyZmASWLJQMZU2Ze9UkV919jptGf4qm5EC DATA/small.chr22.fa.bwt
+  added Qmc2P19eV77CspK8W1JZ7Y6fs2xRxh1khMsqMdfsPo1a7o DATA/small.chr22.fa.pac
+  added QmV8xAwugh2Y35U3tzheZoywjXT1Kej2HBaJK1gXz8GycD DATA/small.chr22.fa.sa
+  added QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE DATA
+#+END_SRC
+
+But the workflow does not automatically fetch them. So, let's fix
+that. We'll simply add them using IPFS (though we could actually
+recreate them using 'bwa index' instead).
+
+After fixing that we got
+
+: Final process status is success
+
+Yes!
+
+* TODO Prove results are deterministic
 
 tbd
 
-* Run the workflow inside an isolated container without network
-
-To really make sure no dependencies 'bleed' in and no data gets pulled
-from the network we can run the workflow inside a container with no
-other tools than those defined in the Guix dependency graph. In
-addition the container can block the network.
-
-* Prove results are deterministic
-
-tbd
-
-* Capture the provenance graph
+* TODO Capture the provenance graph
 
 tbd
 
@@ -384,7 +518,7 @@ well behaved software. With rogue or badly behaved software this may
 be a challenge.  The good news is that such behaviour is not so common
 and, if so, GNU Guix + IPFS will bring out any reproducibility issues.
 
-* Extra notes
+* Notes
 
 ** Building cwltool inside a Guix container
 
@@ -411,6 +545,4 @@ And the full [[http://biogems.info/cwltool-package.pdf][dependency graph]] can b
 
 : env GUIX_PACKAGE_PATH=~/izip/git/opensource/genenetwork/guix-bioinformatics ./pre-inst-env guix graph  --type=references cwltool |dot -Tpdf > cwltool-references.pdf
 
-** Create a Docker container
-
-tbd
+** TODO Create a Docker container
