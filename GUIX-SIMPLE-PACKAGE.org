@@ -1,0 +1,33 @@
+# -*- mode: org; coding: utf-8; -*-
+#+TITLE: Creating a really simple package with GNU Guix
+#+AUTHOR: Pjotr Prins
+
+* TODO Introduction (WIP)
+
+/Ignore this document for now/
+
+Here we are going to create (pretty much) the most simple package
+possible with GNU Guix. We are going do download a jar file and make
+it available in the store to run with a (free software) Java JRE.
+
+Note that it is a clear goal of the GNU project and the whole system
+is designed around that. Even so, you can still stick in binary blobs
+if you want. Main thing is that they need to be available in the
+/gnu/store to be seen at build/install time. You can do that if you
+really need to.
+
+This way I hope you get a taste for Guix packaging - it is simple -
+and continue from here.
+
+https://github.com/timflutre/trimmomatic
+
+
+guix download http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.38.zip
+
+env GUIX_PACKAGE_PATH=../../cwl//hacchy1983-CWL-workflows/ ./pre-inst-env guix build trimmomatic-jar -K
+
+env GUIX_PACKAGE_PATH=../../cwl//hacchy1983-CWL-workflows/ ./pre-inst-env guix package -i trimmomatic-jar -p ~/opt/cwl
+
+java -jar ~/opt/cwl/lib/share/jar/trimmomatic-0.38.jar
+
+~/opt/cwl/bin/java -jar ~/opt/cwl/lib/share/jar/trimmomatic-0.38.jar
