@@ -423,9 +423,9 @@ time. Here I am going to show you how to do that, but keep in mind
 that for reproducible pipelines this is a questionable design
 choice.
 
-I created a jar download for GNU Guix, see
-[[GUIX-SIMPLE-PACKAGE.org]]. This was done by creating a Guix channel as
-part of the repository. The idea of the package in words is:
+I created a jar download for GNU Guix. This was done by creating a
+Guix channel as part of the repository. The idea of the package in
+words is:
 
 1. Download the jar and compute the HASH for Guix with
 
@@ -443,8 +443,28 @@ part of the repository. The idea of the package in words is:
    we'll copy it into =lib/share/jar=
 5. After installation the jar will be available in the profile under that directory path
 
+A definition therefore looks like:
+
+#+BEGIN_SRC yaml
+- fetch:
+    url: http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.38.zip
+    hash: 0z34y7f9idnxgnyqdc29z4hwdp8f96mlqssyxvks4064nr1aya6l
+- dependencies:
+  - java
+  - unzip
+- build:
+  - unzip zipfile
+  - copy-recursively "Trimmomatic-0.38" to target
+#+END_SRC
+
 If you want to see the actual package definition and how it is done
-see [[GUIX-SIMPLE-PACkAGE.org]].
+see
+https://github.com/pjotrp/CWL-workflows/blob/0f1c3c971f19956ca445a4ba50f575e972e4e835/package/trimmomatic.scm. The
+package is written in Scheme, and if you think away the parenthesis
+you have pretty much what we described. Note that one advantage of
+using Scheme is that we can define inline variables, such as =source=
+and =target=. Something CWL does by including a full blown Javascript
+interpreter.
 
 After installing the package and updating the profile try again after updating the
 paths for trimmomatic in
@@ -613,7 +633,16 @@ spirit of functional programming.
 
 * Capture the provenance graph
 
-** TODO GNU Guix software graph
+** GNU Guix software graph
+
+This figure shows the dependency graph for running the workflow. This
+includes our fastqc, trimmomatic-jar, bwa, ipfs-go and cwltool itself.
+
+#+ATTR_HTML: :style margin-left: auto; margin-right: auto; width=100%;
+[[http://biogems.info/cwltool-example.svg]]
+
+GNU Guix keeps track of all these dependencies and can therefore
+easily display the current graph.
 
 ** TODO CWL provenance graph
 
@@ -651,12 +680,15 @@ become stronger and stronger. And with the growing support any CWL
 user will get the benefit of capturing provenance graphs and other
 goodies.
 
-Beside improviging the documentation, I suggest CWL gets an option for
-checking determinism (run workflows multiple times and check results)
-and add some support for GNU Guix profiles - so it becomes even easier
-to create deterministic software deployments that are built from
-source, transparent and forever recreatable. It is particularly in
-these last two points that Docker falls short.
+Beside improving the documentation, I suggest CWL gets an option for
+checking determinism (run workflows multiple times and check results),
+add support for native IPFS (a Python IPFS [[https://github.com/ipfs/py-ipfs-api][implementation]] exists) and
+add some support for GNU Guix profiles - one single variable pointing
+in the GUIX_PROFILE path - so it becomes even easier to create
+deterministic software deployments that are built from source,
+transparent and recreatable for eternity (which is a very long
+time). It is particularly in these last two points that Docker falls
+short.
 
 Finally GNU Guix comes with its own workflow language [[https://www.guixwl.org/getting-started][GWL]] which
 natively makes use of GNU Guix facilities. It may be worth looking
@@ -686,8 +718,13 @@ The full [[http://biogems.info/cwltool-references.pdf][package graph]] can be ge
 
 : env GUIX_PACKAGE_PATH=~/izip/git/opensource/genenetwork/guix-bioinformatics ./pre-inst-env guix graph cwltool |dot -Tpdf > cwltool-package.pdf
 
-And the full [[http://biogems.info/cwltool-package.pdf][dependency graph]] can be generated with
+We also create a graph for all tools in this workflow we can do
+
+: env GUIX_PACKAGE_PATH=../../cwl//hacchy1983-CWL-workflows/:../guix-bioinformatics/ ./pre-inst-env guix graph cwltool go-ipfs trimmomatic-jar bwa fastqc | dot -Tpdf > full.pdf
+
+And the full [[http://biogems.info/cwltool-package.pdf][dependency graph]] for cwtool, that includes the build environment, can be generated with
 
 : env GUIX_PACKAGE_PATH=~/izip/git/opensource/genenetwork/guix-bioinformatics ./pre-inst-env guix graph  --type=references cwltool |dot -Tpdf > cwltool-references.pdf
+
 
 ** TODO Create a Docker container
