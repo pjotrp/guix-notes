@@ -33,9 +33,12 @@ Matsue, Japan/
    - [[#run-cwl-script][Run CWL script]]
    - [[#trimmomatic-adding-a-binary-blob-to-gnu-guix][trimmomatic: adding a binary blob to GNU Guix]]
  - [[#prove-results-are-deterministic][Prove results are deterministic]]
+ - [[#a-full-docker-container][A full Docker container]]
  - [[#capture-the-provenance-graph][Capture the provenance graph]]
+   - [[#gnu-guix-software-graph][GNU Guix software graph]]
+   - [[#cwl-provenance-graph][CWL provenance graph]]
  - [[#discussion][Discussion]]
- - [[#notes][Notes]]
+ - [[#extra-notes][Extra notes]]
    - [[#building-cwltool-inside-a-guix-container][Building cwltool inside a Guix container]]
    - [[#create-dependency-graph][Create dependency graph]]
    - [[#create-a-docker-container][Create a Docker container]]
@@ -441,7 +444,7 @@ part of the repository. The idea of the package in words is:
 5. After installation the jar will be available in the profile under that directory path
 
 If you want to see the actual package definition and how it is done
-see [[GUIX-SIMPLE-PACAKGE.org]].
+see [[GUIX-SIMPLE-PACkAGE.org]].
 
 After installing the package and updating the profile try again after updating the
 paths for trimmomatic in
@@ -482,28 +485,114 @@ But the workflow does not automatically fetch them. So, let's fix
 that. We'll simply add them using IPFS (though we could actually
 recreate them using 'bwa index' instead).
 
-After fixing that we got
+#+BEGIN_SRC diff
+diff --git a/Jobs/small.ERR034597.test-workflow.yml b/Jobs/small.ERR034597.test-workflow.yml
+index 9b9b153..51f2174 100644
+--- a/Jobs/small.ERR034597.test-workflow.yml
++++ b/Jobs/small.ERR034597.test-workflow.yml
+@@ -6,7 +6,18 @@ fq2:  # type "File"
+     class: File
+     path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.ERR034597_2.fastq
+     format: http://edamontology.org/format_1930
+-fadir:  # type "Directory"
+-    class: Directory
+-    path: ../DATA
+-ref: small.chr22  # type "string"
++ref:  # type "File"
++    class: File
++    path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.chr22.fa
++    format: http://edamontology.org/format_1929
++    secondaryFiles:
++      - class: File
++        path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.chr22.fa.amb
++      - class: File
++        path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.chr22.fa.ann
++      - class: File
++        path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.chr22.fa.bwt
++      - class: File
++        path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.chr22.fa.pac
++      - class: File
++        path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.chr22.fa.sa
+#+END_SRC
+
+To make the workflow work I had to replace the concept of an fa directory for bwa to using these
+files explicitely which better describes what is happening (as a bonus):
+
+#+BEGIN_SRC diff
+diff --git a/Tools/bwa-mem-PE.cwl b/Tools/bwa-mem-PE.cwl
+index fc0d12d..0f87af3 100644
+--- a/Tools/bwa-mem-PE.cwl
++++ b/Tools/bwa-mem-PE.cwl
+@@ -19,12 +19,17 @@ requirements:
+ baseCommand: [ bwa, mem ]
+
+ inputs:
+-  - id: fadir
+-    type: Directory
+-    doc: directory containing FastA file and index
+   - id: ref
+-    type: string
+-    doc: name of reference (e.g., hs37d5)
++    type: File
++    inputBinding:
++      position: 2
++    doc: Fasta reference (e.g., hs37d5)
++    secondaryFiles:
++      - .amb
++      - .ann
++      - .bwt
++      - .pac
++      - .sa
+   - id: fq1
+     type: File
+     format: edam:format_1930
+#+END_SRC
+
+After that we got
 
 : Final process status is success
 
 Yes!
 
-* TODO Prove results are deterministic
+The source and full diff can be viewed on [[https://github.com/hacchy1983/CWL-workflows/compare/master...pjotrp:guix-cwl][github]].
 
-tbd
+* Prove results are deterministic
 
-* TODO Capture the provenance graph
+GNU Guix has an option to rebuild packages multiple times and compare
+the results. In case there is a difference the packages can not be
+considered deterministic. For example software builds may contain a
+time stamp at time of build. This is harmless, but who is to tell the
+difference is not caused by something else? This is why the
+[[https://reproducible-builds.org/][reproducible builds]] project exist of which Guix is a member. See also
+[[http://savannah.gnu.org/forum/forum.php?forum_id=8407][GNU Guix Reproducible builds: a means to an end]].
 
-tbd
+The CWL runner does not have such an option (yet). I ran it by hand three times.
+The first time capture the MD5 values with
 
-* Discussion
+: find . -type f -print0 | xargs -0 md5sum > ~/md5sum.txt
 
-Here we show the principle of a working reproducible pipeline. With
-little effort, anywone can create such a pipeline using GNU Guix, an
-addressable data source, and a CWL work flow definition that includes
-content-addressable references to software and data inputs (here we
-used IPFS for data). By running the workflow multiple times it can be
-asserted the outcome is deterministic and therefore reproducible.
+next times check with
+
+: md5sum -c ~/md5sum.txt |grep -v OK
+
+it complained on one file
+
+: ./output.sam: FAILED
+: md5sum: WARNING: 1 computed checksum did NOT match
+
+and the @PG field in the output file contains a temporary path:
+
+#+BEGIN_SRC diff
+diff output.sam output.sam.2
+2c2
+< @PG   ID:bwa  PN:bwa  VN:0.7.17-r1188 CL:bwa mem -t 4 /gnu/tmp/cwl/tmpdoetk_3r/stge19b3f1c-864a-478e-8aee-087a61654aba/small.chr22.fa /gnu/tmp/cwl/tmpdoetk_3r/stgd649e430-caa8-491f-8621-6a2d6c67dcb9/small.ERR034597_1.fastq.trim.1P.fastq /gnu/tmp/cwl/tmpdoetk_3r/stg8330a0f5-751e-4685-911e-52a5c93ecded/small.ERR034597_2.fastq.trim.2P.fastq
+---
+> @PG   ID:bwa  PN:bwa  VN:0.7.17-r1188 CL:bwa mem -t 4 /gnu/tmp/cwl/tmpl860q0ng/stg2210ff0e-184d-47cb-bba3-36f48365ec27/small.chr22.fa /gnu/tmp/cwl/tmpl860q0ng/stgb694ec99-50fe-4aa6-bba4-37fa72ea7030/small.ERR034597_1.fastq.trim.1P.fastq /gnu/tmp/cwl/tmpl860q0ng/stgf3ace0cb-eb2d-4250-b8b7-eb79448a374f/small.ERR034597_2.fastq.trim.2P.fastq
+#+END_SRC
+
+To fix it we could add a step to the pipeline to filter out this field
+or force output to go into the same destination directory. Or tell bwa
+to skip the @PG field.
 
 Determinism (and reproducibility) may break when the pipeline has
 software that does not behave well. Some tools give different results
@@ -511,14 +600,70 @@ when run with the exact same inputs. The solution is to fix or avoid
 that software. Also, software may try to download inputs which can
 lead to different results over time (for example by including a time
 stamp in the output). To be stringent, it may be advisable to disable
-network traffic when the workflow is running, e.g., with FIXME.
+network traffic when the workflow is running. GNU Guix builds all its
+software without network, i.e., after downloading the files as
+described in the package definition the network is switched off and
+the build procedure runs without network in complete isolation. This
+guarantees software can not download non-deterministic material from
+the internet. It also guarantees no dependencies can 'bleed' in. This
+is why GNU Guix is called a 'functional package manager' - in the
+spirit of functional programming.
+
+* TODO A full Docker container
+
+* Capture the provenance graph
+
+** TODO GNU Guix software graph
+
+** TODO CWL provenance graph
+
+
+* Discussion
+
+Here we show the principle of a working reproducible pipeline. With
+little effort, anywone can create such a pipeline using GNU Guix, an
+addressable data source such as IPFS, and a CWL work flow definition
+that includes content-addressable references to software and data
+inputs (here we used IPFS for data). By running the workflow multiple
+times it can be asserted the outcome is deterministic and therefore
+reproducible.
+
+In the process of migrating the original Docker version of this
+workflow it came out that not all inputs were explicitely defined.
+
+This reproducible workflow captures the *full* graph, including all
+data, tools and cwl-runner itself! There was no need to use Docker at
+all. In fact, this version is better than the original Docker pipeline
+because both software and data are complete and guaranteed to run with
+the same (binary) tools.
 
 To guarantee reproducibility it is necessary to fixate inputs and have
 well behaved software. With rogue or badly behaved software this may
 be a challenge.  The good news is that such behaviour is not so common
 and, if so, GNU Guix + IPFS will bring out any reproducibility issues.
 
-* Notes
+Based on this exercise I also conclude that CWL is a very interesting
+technical proposition to write pipelines that can be shared. The
+online documentation is a bit wanting and, for example, to figure out
+the use of secondaryFiles for bwa I read through a number of existing
+[[https://view.commonwl.org/workflows][pipelines on github]]. With the growth of online pipelines CWL should
+become stronger and stronger. And with the growing support any CWL
+user will get the benefit of capturing provenance graphs and other
+goodies.
+
+Beside improviging the documentation, I suggest CWL gets an option for
+checking determinism (run workflows multiple times and check results)
+and add some support for GNU Guix profiles - so it becomes even easier
+to create deterministic software deployments that are built from
+source, transparent and forever recreatable. It is particularly in
+these last two points that Docker falls short.
+
+Finally GNU Guix comes with its own workflow language [[https://www.guixwl.org/getting-started][GWL]] which
+natively makes use of GNU Guix facilities. It may be worth looking
+into because it is both simpler and more rigorous and can be combined
+with CWL and in the future it may write CWL definitions.
+
+* Extra notes
 
 ** Building cwltool inside a Guix container
 
