@@ -639,7 +639,7 @@ This figure shows the dependency graph for running the workflow. This
 includes our fastqc, trimmomatic-jar, bwa, ipfs-go and cwltool itself.
 
 #+ATTR_HTML: :style margin-left: auto; margin-right: auto; width=100%;
-[[http://biogems.info/cwltool-example.svg]]
+[[http://biogems.info/workflow-example.svg]]
 
 GNU Guix keeps track of all these dependencies and can therefore
 easily display the current graph.
