@@ -652,7 +652,7 @@ provides.
 ** CWL provenance graph
 
 #+ATTR_HTML: :style margin-left: auto; margin-right: auto; width=100%;
-https://view.commonwl.org/graph/png/github.com/pjotrp/CWL-workflows/blob/master/Workflows/test-workflow.cwl
+[[https://view.commonwl.org/graph/png/github.com/pjotrp/CWL-workflows/blob/master/Workflows/test-workflow.cwl]]
 
 The figure was created by adding the workflow to the CWL viewer online
 (simply by pasting the github link). See
