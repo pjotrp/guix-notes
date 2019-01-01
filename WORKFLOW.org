@@ -33,10 +33,10 @@ Matsue, Japan/
    - [[#run-cwl-script][Run CWL script]]
    - [[#trimmomatic-adding-a-binary-blob-to-gnu-guix][trimmomatic: adding a binary blob to GNU Guix]]
  - [[#prove-results-are-deterministic][Prove results are deterministic]]
- - [[#a-full-docker-container][A full Docker container]]
  - [[#capture-the-provenance-graph][Capture the provenance graph]]
    - [[#gnu-guix-software-graph][GNU Guix software graph]]
    - [[#cwl-provenance-graph][CWL provenance graph]]
+ - [[#a-full-docker-container][A full Docker container]]
  - [[#discussion][Discussion]]
  - [[#extra-notes][Extra notes]]
    - [[#building-cwltool-inside-a-guix-container][Building cwltool inside a Guix container]]
@@ -629,8 +629,6 @@ the internet. It also guarantees no dependencies can 'bleed' in. This
 is why GNU Guix is called a 'functional package manager' - in the
 spirit of functional programming.
 
-* TODO A full Docker container
-
 * Capture the provenance graph
 
 ** GNU Guix software graph
@@ -641,11 +639,26 @@ includes our fastqc, trimmomatic-jar, bwa, ipfs-go and cwltool itself.
 #+ATTR_HTML: :style margin-left: auto; margin-right: auto; width=100%;
 [[http://biogems.info/workflow-example.svg]]
 
-GNU Guix keeps track of all these dependencies and can therefore
-easily display the current graph.
+GNU Guix keeps track of all these dependencies (which show versions,
+but can also show the hash values) and can therefore easily display
+the current graph. Note that the full graph that includes all *build*
+dependencies to create the software is a lot larger.
 
-** TODO CWL provenance graph
+The trend is that most software depends on an increasing number of
+other software compilers, tools, libraries and modules. To keep sane a
+rigorous way of managing them is wanted for and it is what GNU Guix
+provides.
 
+** CWL provenance graph
+
+#+ATTR_HTML: :style margin-left: auto; margin-right: auto; width=100%;
+https://view.commonwl.org/graph/png/github.com/pjotrp/CWL-workflows/blob/master/Workflows/test-workflow.cwl
+
+The figure was created by adding the workflow to the CWL viewer online
+(simply by pasting the github link). See
+https://view.commonwl.org/workflows/github.com/pjotrp/CWL-workflows/blob/master/Workflows/test-workflow.cwl
+
+* TODO A full Docker container
 
 * Discussion
 
