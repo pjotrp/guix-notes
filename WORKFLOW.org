@@ -6,7 +6,7 @@
 
 /The quest for building a fully reproducible pipeline with provenance/
 
-In the *quest* for truely reproducible workflows I set out to create
+In the *quest* for truly reproducible workflows I set out to create
 an example of a reproducible workflow using GNU Guix, IPFS and
 CWL. GNU Guix provides content-addressable reproducible software
 deployment, IPFS provides content-addressable storage and CWL can
@@ -39,7 +39,7 @@ Matsue, Japan/
  - [[#capture-the-provenance-graph][Capture the provenance graph]]
    - [[#gnu-guix-software-graph][GNU Guix software graph]]
    - [[#cwl-provenance-graph][CWL provenance graph]]
- - [[#containerized-run-of-workflow][Containerized run of workflow]]
+ - [[#containerised-run-of-workflow][Containerised run of workflow]]
    - [[#a-gnu-guix-cwl-workflow][A GNU Guix CWL workflow]]
    - [[#a-full-docker-container][A full Docker container]]
  - [[#discussion][Discussion]]
@@ -101,10 +101,10 @@ path:
 A hash value was computed over the fastq file and that became *part*
 of its reference. If the file *changes* in any way, even one single
 letter, the hash value changes and therefore the reference... This
-property quarantees you are *always* dealing with the same input
+property guarantees you are *always* dealing with the same input
 data - a key property of any reproducible pipeline. There can be *no*
-ambuigity about file names and what they represent. Files can not
-*change* without the filename changing.
+ambiguity about file names and what they represent. Files can not
+*change* without the file name changing.
 
 Similarly, every GNU Guix software reference includes a hash over its
 content. The reference to a fastq binary executable, for example,
@@ -130,7 +130,7 @@ The first step is to install the Guix daemon. This daemon allows
 regular users to install software packages on any Linux distribution
 (Debian, Fedora and CentOS are all fine). GNU Guix does not interfere
 with the running Linux distribution. Installation instructions can be
-found [[https://gitlab.com/pjotrp/guix-notes/blob/master/INSTALL.org][here]] and [[https://www.gnu.org/software/guix/manual/html_node/Binary-Installation.html][here]]. The Guix deamon needs to be installed as root,
+found [[https://gitlab.com/pjotrp/guix-notes/blob/master/INSTALL.org][here]] and [[https://www.gnu.org/software/guix/manual/html_node/Binary-Installation.html][here]]. The Guix daemon needs to be installed as root,
 but runs with user land privileges. For those who can not get root
 there are [[https://guix-hpc.bordeaux.inria.fr/blog/2017/10/using-guix-without-being-root/][work arounds]] (including the use of Docker). And Ricardo
 Wurmus describes how MDC deploys GNU Guix on their [[https://guix.mdc-berlin.de/documentation.html][HPC]] and [[https://elephly.net/posts/2015-04-17-gnu-guix.html][here]]
@@ -187,7 +187,7 @@ After adding the cwl channel we can have the main tools installed in one go with
 
 : guix package -i go-ipfs cwltool -p ~/opt/cwl
 
-Again, to make the full environment availble do
+Again, to make the full environment available do
 
 : . ~/opt/cwl/etc/profile
 : ipfs --version
@@ -373,7 +373,7 @@ web server
 
 The http fetches can be replaced later with a direct IPFS call which
 will fetch files transparently from the public IPFS somewhere - much
-like bittorrent does - and cache locally. We will need to add that
+like bit torrent does - and cache locally. We will need to add that
 support to CWL so we can write something like
 
 : path: ipfs://QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE
@@ -543,7 +543,7 @@ index 9b9b153..51f2174 100644
 #+END_SRC
 
 To make the workflow work I had to replace the concept of an fa directory for bwa to using these
-files explicitely which better describes what is happening (as a bonus):
+files explicitly which better describes what is happening (as a bonus):
 
 #+BEGIN_SRC diff
 diff --git a/Tools/bwa-mem-PE.cwl b/Tools/bwa-mem-PE.cwl
@@ -671,7 +671,7 @@ show them in a browser. Second, I could not find out how to update a
 view once a repo had been linked. It should be possible to update
 information - at least to create a new generation of workflow.
 
-* Containerized run of workflow
+* Containerised run of workflow
 
 Now you may ask at this point: what is actually the difference with
 the original workflow? There are a few differences - first we were
@@ -746,13 +746,15 @@ Now we have the software stack in a GNU Guix container we can also have Guix
 create a Docker container with
 
 : guix pack -f docker cwltool trimmomatic-jar bwa fastqc go-ipfs curl
+:   /gnu/store/57fg8hfah46rclg3vybb9nckg6766izp-docker-pack.tar.gz
 
-which writes out a container that can be uploaded to docker hup.
+which writes out a container that can be uploaded to docker hub or
+some other repo. See also https://github.com/genenetwork/guix-cwl.
 
 * Discussion
 
 Here we show the principle of a working reproducible pipeline. With
-little effort, anywone can create such a pipeline using GNU Guix, an
+little effort, anyone can create such a pipeline using GNU Guix, an
 addressable data source such as IPFS, and a CWL work flow definition
 that includes content-addressable references to software and data
 inputs (here we used IPFS for data). By running the workflow multiple
@@ -760,7 +762,7 @@ times it can be asserted the outcome is deterministic and therefore
 reproducible.
 
 In the process of migrating the original Docker version of this
-workflow it came out that not all inputs were explicitely defined.
+workflow it came out that not all inputs were explicitly defined.
 
 This reproducible workflow captures the *full* graph, including all
 data, tools and cwl-runner itself! There was no need to use Docker at
@@ -811,7 +813,7 @@ GNU Guix provides a viable alternative in that (1) it is built from
 source which means a workflow with tools can be audited and considered
 more secure and (2) provides full transparency, recreatability (read
 faithful reproducibility). With GNU Guix and CWL you don't need
-Docker, though it is still possbible to run Guix created Docker images
+Docker, though it is still possible to run Guix created Docker images
 with these advantages.
 
 Finally GNU Guix comes with its own workflow language [[https://www.guixwl.org/getting-started][GWL]] which
@@ -846,7 +848,7 @@ We also create a graph for all tools in this workflow we can do
 
 : env GUIX_PACKAGE_PATH=../../cwl//hacchy1983-CWL-workflows/:~/izip/git/opensource/gnu/channels/guix-cwl ./pre-inst-env guix graph cwltool go-ipfs trimmomatic-jar bwa fastqc | dot -Tpdf > full.pdf
 
-And the full [[http://biogems.info/cwltool-package.pdf][dependency graph]] for cwtool, that includes the build environment, can be generated with
+And the full [[http://biogems.info/cwltool-package.pdf][dependency graph]] for cwltool, that includes the build environment, can be generated with
 
 : env GUIX_PACKAGE_PATH=~/izip/git/opensource/gnu/channels/guix-cwl ./pre-inst-env guix graph  --type=references cwltool |dot -Tpdf > cwltool-references.pdf
 
