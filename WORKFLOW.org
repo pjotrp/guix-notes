@@ -805,13 +805,16 @@ use the CWL.  CWLviewer is useful for discovering workflows created by
 other researchers and to find examples of CWL scripts.
 
 Based on this exercise I also conclude that CWL is a very interesting
-technical proposition to write pipelines that can be shared. The
-online documentation is a bit wanting and, for example, to figure out
-the use of secondaryFiles for bwa I read through a number of existing
-[[https://view.commonwl.org/workflows][pipelines on github]]. With the growth of online pipelines CWL should
-become stronger and stronger. And with the growing support any CWL
-user will get the benefit of capturing provenance graphs and other
-goodies.
+technical proposition to write pipelines that can be shared. I really
+like that CWL is reasonably simple and that responsibilities are split
+into three, i.e., data inputs are separate from software inputs and
+software inputs are split from the workflow definition.  The online
+documentation for CWL is still a bit wanting and, for example, to
+figure out the use of secondaryFiles for bwa I read through a number
+of existing [[https://view.commonwl.org/workflows][pipelines on github]]. With the growth of online pipelines
+CWL should become stronger and stronger. And with the growing support
+any CWL user will get the benefit of capturing provenance graphs and
+other goodies.
 
 Beside improving the documentation, I suggest CWL gets an option for
 checking determinism (run workflows multiple times and check results),
