@@ -39,7 +39,9 @@ Matsue, Japan/
  - [[#capture-the-provenance-graph][Capture the provenance graph]]
    - [[#gnu-guix-software-graph][GNU Guix software graph]]
    - [[#cwl-provenance-graph][CWL provenance graph]]
- - [[#a-full-docker-container][A full Docker container]]
+ - [[#containerized-run-of-workflow][Containerized run of workflow]]
+   - [[#a-gnu-guix-cwl-workflow][A GNU Guix CWL workflow]]
+   - [[#a-full-docker-container][A full Docker container]]
  - [[#discussion][Discussion]]
  - [[#extra-notes][Extra notes]]
    - [[#building-cwltool-inside-a-guix-container][Building cwltool inside a Guix container]]
@@ -669,7 +671,83 @@ show them in a browser. Second, I could not find out how to update a
 view once a repo had been linked. It should be possible to update
 information - at least to create a new generation of workflow.
 
-* TODO A full Docker container
+* Containerized run of workflow
+
+Now you may ask at this point: what is actually the difference with
+the original workflow? There are a few differences - first we were
+forced to make the inputs more explicit. In the original there was no
+mention of BWA index files, they just sat in the github
+repository. The main difference, however, is that we were forced to
+specify all tools and their dependencies. The original workflow simply
+assumed the tools would already be on the system including the CWL
+runner cwltool itself! The tools were specified as CWL hints:
+
+#+BEGIN_SRC yaml
+hints:
+  - class: DockerRequirement
+    dockerPull: 'quay.io/biocontainers/fastqc:0.11.7--pl5.22.0_2'
+#+END_SRC
+
+The Docker link is a 'hint' which means local installations of tools
+get preferential treatment. So, apart from downloading a separate
+Docker image for every tool (and every time on a HPC compute node) we
+also have the risk of tools 'bleeding' in from the local environment
+(correct me if I am wrong here).
+
+** A GNU Guix CWL workflow
+
+To ascertain no tools bleed in to our workflow from the underlying
+system AND to make sure we don't miss out on any dependencies we can
+run our workflow inside a GNU Guix container. This is not a Docker
+container - more on that in the next section. Let's create a container.
+
+The original command was
+
+: env TMPDIR=/gnu/tmp/cwl cwltool --preserve-environment TMPDIR --preserve-environment GUIX_PROFILE --leave-tmpdir \
+:   --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+
+Now we are going to run that inside a Guix container this means only
+the items that are dependencies of the tools we specify are included
+in the container. Note that we switch on networking to be able to
+fetch data through IPFS:
+
+: env GUIX_PACKAGE_PATH=~/izip/git/opensource/cwl/hacchy1983-CWL-workflows/:~/izip/git/opensource/gnu/channels/guix-cwl \
+:   ~/izip/git/opensource/genenetwork/guix-lario/pre-inst-env guix environment --network -C guix \
+:   --ad-hoc cwltool trimmomatic-jar bwa fastqc go-ipfs curl
+
+Interestingly, building the container brought out a dependency which
+actually had somehow led in through my system. I had to modify a
+Python dependency so it was the correct version for cwltool. I was also
+getting errors
+
+:  File "/gnu/store/4z148ghmc90cb382sg1lvxja1myavq5b-python-typing-3.6.6/lib/python3.7/site-packages/typing.py", line 1004, in __new__
+:    self._abc_registry = extra._abc_registry
+:  AttributeError: type object 'Callable' has no attribute '_abc_registry'
+
+despite having fixed this earlier. The issue is that Typing is now
+part of Python 3.7, but somehow this module has been pulled into the
+path. From the Guix graph I could tell cwltools and python-mypy were
+still pulling typing as a dependency. Removing it fixed that (actually
+it turned out I was using a different GUIX_PACKAGE_PATH channel).
+
+Main conclusion: GNU Guix is rigorous AND you can fix stuff!
+
+Now run the workflow with
+
+: cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+
+I first had to update the Guix profile so as to use the direct store
+path in the new container for trimmomatic - but otherwise it works as
+advertised. See the [[https://gist.github.com/pjotrp/53c4ab2cdfb95b1466955d1b9d790f25][output]].
+
+** A full Docker container
+
+Now we have the software stack in a GNU Guix container we can also have Guix
+create a Docker container with
+
+: guix pack -f docker cwltool trimmomatic-jar bwa fastqc go-ipfs curl
+
+which writes out a container that can be uploaded to docker hup.
 
 * Discussion
 
@@ -716,8 +794,25 @@ add some support for GNU Guix profiles - one single variable pointing
 in the GUIX_PROFILE path - so it becomes even easier to create
 deterministic software deployments that are built from source,
 transparent and recreatable for eternity (which is a very long
-time). It is particularly in these last two points that Docker falls
-short.
+time).
+
+It is particularly in these last two points of transparency and
+recreatability that Docker falls short. A Docker image is a binary
+'blob' and it is impossible to go back from the image alone and see
+how it was built. This is not transparent. Also, in almost all cases,
+Docker build instructions include the equivalent of a 'apt-get update'
+which essentially says the image will end up being different every
+time you try to create it. This means it is virtually impossible to
+recreate an image. Our greatest concern, however, is that of
+trust. Downloading a binary blob over the internet is not a great idea
+in almost all cases and especially when dealing with privacy concerns.
+
+GNU Guix provides a viable alternative in that (1) it is built from
+source which means a workflow with tools can be audited and considered
+more secure and (2) provides full transparency, recreatability (read
+faithful reproducibility). With GNU Guix and CWL you don't need
+Docker, though it is still possbible to run Guix created Docker images
+with these advantages.
 
 Finally GNU Guix comes with its own workflow language [[https://www.guixwl.org/getting-started][GWL]] which
 natively makes use of GNU Guix facilities. It may be worth looking
@@ -730,7 +825,7 @@ with CWL and in the future it may write CWL definitions.
 
 Guix containers allow isolation of the build system
 
-: env GUIX_PACKAGE_PATH=~/izip/git/opensource/genenetwork/guix-bioinformatics/ ~/izip/git/opensource/genenetwork/guix-monza/pre-inst-env guix environment -C guix --ad-hoc cwltool coreutils python
+: env GUIX_PACKAGE_PATH=~/izip/git/opensource/gnu/channels/guix-cwl ~/izip/git/opensource/genenetwork/guix-monza/pre-inst-env guix environment -C guix --ad-hoc cwltool coreutils python
 
 Run the tests with
 
@@ -745,15 +840,16 @@ you can do something like this:
 
 The full [[http://biogems.info/cwltool-references.pdf][package graph]] can be generated with
 
-: env GUIX_PACKAGE_PATH=~/izip/git/opensource/genenetwork/guix-bioinformatics ./pre-inst-env guix graph cwltool |dot -Tpdf > cwltool-package.pdf
+: env GUIX_PACKAGE_PATH=~/izip/git/opensource/gnu/channels/guix-cwl ./pre-inst-env guix graph cwltool |dot -Tpdf > cwltool-package.pdf
 
 We also create a graph for all tools in this workflow we can do
 
-: env GUIX_PACKAGE_PATH=../../cwl//hacchy1983-CWL-workflows/:../guix-bioinformatics/ ./pre-inst-env guix graph cwltool go-ipfs trimmomatic-jar bwa fastqc | dot -Tpdf > full.pdf
+: env GUIX_PACKAGE_PATH=../../cwl//hacchy1983-CWL-workflows/:~/izip/git/opensource/gnu/channels/guix-cwl ./pre-inst-env guix graph cwltool go-ipfs trimmomatic-jar bwa fastqc | dot -Tpdf > full.pdf
 
 And the full [[http://biogems.info/cwltool-package.pdf][dependency graph]] for cwtool, that includes the build environment, can be generated with
 
-: env GUIX_PACKAGE_PATH=~/izip/git/opensource/genenetwork/guix-bioinformatics ./pre-inst-env guix graph  --type=references cwltool |dot -Tpdf > cwltool-references.pdf
+: env GUIX_PACKAGE_PATH=~/izip/git/opensource/gnu/channels/guix-cwl ./pre-inst-env guix graph  --type=references cwltool |dot -Tpdf > cwltool-references.pdf
 
+** Create a Docker container
 
-** TODO Create a Docker container
+: guix pack -f docker cwltool trimmomatic-jar bwa fastqc go-ipfs curl
