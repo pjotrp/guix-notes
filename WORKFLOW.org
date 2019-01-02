@@ -654,7 +654,7 @@ provides.
 ** CWL provenance graph
 
 #+ATTR_HTML: :style margin-left: auto; margin-right: auto; width=100%;
-https://raw.githubusercontent.com/pjotrp/CWL-workflows/guix-cwl/graph.png
+[[https://raw.githubusercontent.com/pjotrp/CWL-workflows/guix-cwl/graph.png]]
 
 The figure was created by adding the workflow to the CWL viewer online
 (simply by pasting the github link). See
