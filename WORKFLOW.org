@@ -57,15 +57,23 @@ scalable across a variety of software and hardware environments, from
 workstations to cluster, cloud, and high performance computing (HPC)
 environments. CWL is designed to meet the needs of data-intensive
 science, such as Bioinformatics, Medical Imaging, Astronomy, Physics,
-and Chemistry. CWL started as an answer to ad hoc scripting of
-pipelines in bioinformatics and come up with something portable
-instead. The CWL promises a future of running pipelines that others
-have created. Something of a must when you know that there is a
+and Chemistry.
+
+CWL started as an answer to ad hoc scripting of pipelines in
+bioinformatics and come up with something portable instead. The CWL
+promises a future of running pipelines that others have
+created. Something of a must when you know that there is a
 [[https://www.nature.com/news/1-500-scientists-lift-the-lid-on-reproducibility-1.19970][reproducibility crisis]] with a majority of published papers today
 describing bioinformatics data and methods that can not be
 reproduced. Some good points also made in this paper on [[https://academic.oup.com/gigascience/article/7/7/giy077/5046609][Experimenting
 with reproducibility: a case study of robustness in bioinformatics]] and
 in [[https://www.ncbi.nlm.nih.gov/pubmed/30277498][PiGx: reproducible genomics analysis pipelines with GNU Guix]].
+
+CWL definitions are pretty simple once you understand that
+responsibilities are split into three, i.e., [[https://github.com/pjotrp/CWL-workflows/blob/master/Jobs/small.ERR034597.test-workflow.yml][data inputs]] (aka Jobs in
+CWL parlance) are separate from [[https://github.com/pjotrp/CWL-workflows/blob/master/Tools/fastqc.cwl][software inputs]] (aka Tools) and
+software inputs are split from the [[https://github.com/pjotrp/CWL-workflows/blob/master/Workflows/test-workflow.cwl][workflow definition]] (fortunately
+known as Workflows).
 
 ** IPFS
 
@@ -846,7 +854,9 @@ with these advantages.
 Finally GNU Guix comes with its own workflow language [[https://www.guixwl.org/getting-started][GWL]] which
 natively makes use of GNU Guix facilities. It may be worth looking
 into because it is both simpler and more rigorous and can be combined
-with CWL and in the future it may write CWL definitions.
+with CWL and in the future it may write CWL definitions. I am sure
+I'll introduce a mix of GWL and CWL workflows in my pipelines in the
+future.
 
 * Extra notes
 
