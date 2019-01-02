@@ -42,6 +42,7 @@ Matsue, Japan/
  - [[#containerised-run-of-workflow][Containerised run of workflow]]
    - [[#a-gnu-guix-cwl-workflow][A GNU Guix CWL workflow]]
    - [[#a-full-docker-container][A full Docker container]]
+ - [[#future-work][Future work]]
  - [[#discussion][Discussion]]
  - [[#extra-notes][Extra notes]]
    - [[#building-cwltool-inside-a-guix-container][Building cwltool inside a Guix container]]
@@ -745,11 +746,34 @@ advertised. See the [[https://gist.github.com/pjotrp/53c4ab2cdfb95b1466955d1b9d7
 Now we have the software stack in a GNU Guix container we can also have Guix
 create a Docker container with
 
-: guix pack -f docker cwltool trimmomatic-jar bwa fastqc go-ipfs curl
+: guix pack -f docker cwltool trimmomatic-jar bwa fastqc go-ipfs
 :   /gnu/store/57fg8hfah46rclg3vybb9nckg6766izp-docker-pack.tar.gz
 
 which writes out a container that can be uploaded to docker hub or
 some other repo. See also https://github.com/genenetwork/guix-cwl.
+
+* Future work
+
+Now we have all software running correctly in an isolated container
+created by GNU Guix and we fetch all data as inputs from IPFS we have
+achieved the fully reproducible pipeline that could be uploaded on the
+internet and be run by anyone anywhere.
+
+There are two improvements to be made:
+
+1. Include the CWL scripts in the container
+2. Create a package definitions that forces the dependencies for
+   =cwltool trimmomatic-jar bwa fastqc go-ipfs= into the container so
+   we can do
+
+: guix pack -f docker my-workflow
+
+And everything is pulled into the container. We could even make a Guix
+package (and therefor container) that includes all data inputs.
+
+I will leave this as an exercise for the reader right now, but with
+research objects and 'live publications' the enforcement of such
+practices may be around the corner.
 
 * Discussion
 
