@@ -196,9 +196,11 @@ First I thought to run one of the pipelines from bcbio-nextgen as an
 example. Bcbio generates CWL which is rather convenient. But then at
 the BH18 there was a newly created CWL pipeline in
 https://github.com/hacchy1983/CWL-workflows and I decided to start
-from there. This particular pipeline uses github to store data and a
-Docker container to run a JVM tool. Good challenge to replace that
-with IPFS and Guix and make it fully reproducible.
+from there (note that my original fork represents a simpler version
+than the current workflow in that repository). This particular pipeline
+uses github to store data and a Docker container to run a JVM
+tool. Good challenge to replace that with IPFS and Guix and make it
+fully reproducible.
 
 Note that git does provide provenance but is not suitable for large
 data files. And even though Docker may provide reproducible binary
@@ -652,11 +654,17 @@ provides.
 ** CWL provenance graph
 
 #+ATTR_HTML: :style margin-left: auto; margin-right: auto; width=100%;
-[[https://view.commonwl.org/graph/png/github.com/pjotrp/CWL-workflows/blob/master/Workflows/test-workflow.cwl]]
+https://raw.githubusercontent.com/pjotrp/CWL-workflows/guix-cwl/graph.png
 
 The figure was created by adding the workflow to the CWL viewer online
 (simply by pasting the github link). See
-https://view.commonwl.org/workflows/github.com/pjotrp/CWL-workflows/blob/master/Workflows/test-workflow.cwl
+https://view.commonwl.org/workflows/github.com/pjotrp/CWL-workflows/blob/guix-cwl/Workflows/test-workflow.cwl
+
+There are two issues with the cwlviewer. First, the PNG/SVG output
+links do not end in .png and .svg respectively which makes it hard to
+show them in a browser. Second, I could not find out how to update a
+view once a repo had been linked. It should be possible to update
+information - at least to create a new generation of workflow.
 
 * TODO A full Docker container
 
@@ -683,6 +691,11 @@ To guarantee reproducibility it is necessary to fixate inputs and have
 well behaved software. With rogue or badly behaved software this may
 be a challenge.  The good news is that such behaviour is not so common
 and, if so, GNU Guix + IPFS will bring out any reproducibility issues.
+
+With CWL come a range of tools including cwlviewer which we used to
+generate the [[https://view.commonwl.org/workflows/github.com/pjotrp/CWL-workflows/blob/guix-cwl/Workflows/test-workflow.cwl][workflow information]]. Such tools come for 'free' when you
+use the CWL.  CWLviewer is useful for discovering workflows created by
+other researchers and to find examples of CWL scripts.
 
 Based on this exercise I also conclude that CWL is a very interesting
 technical proposition to write pipelines that can be shared. The
