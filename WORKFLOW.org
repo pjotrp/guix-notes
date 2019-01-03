@@ -797,11 +797,13 @@ fix it).
 Now we have the software stack in a GNU Guix container we can also have Guix
 create a Docker container with
 
-: guix pack -f docker cwltool trimmomatic-jar bwa fastqc go-ipfs
-:   /gnu/store/57fg8hfah46rclg3vybb9nckg6766izp-docker-pack.tar.gz
+#+BEGIN_SRC bash
+guix pack -f docker cwltool trimmomatic-jar bwa fastqc go-ipfs
+  /gnu/store/57fg8hfah46rclg3vybb9nckg6766izp-docker-pack.tar.gz
+#+END_SRC
 
 which writes out a container that can be uploaded to docker hub or
-some other repo. See also https://github.com/genenetwork/guix-cw
+some other repo. See also https://github.com/genenetwork/guix-cwl
 
 * Future work
 
