@@ -876,14 +876,14 @@ CWL should become stronger and stronger. And with the growing support
 any CWL user will get the benefit of capturing provenance graphs and
 other goodies.
 
-Beside improving the documentation, I suggest CWL gets an option for
-checking determinism (run workflows multiple times and check results),
-add support for native IPFS (a Python IPFS [[https://github.com/ipfs/py-ipfs-api][implementation]] exists) and
-add some support for GNU Guix profiles - one single variable pointing
-in the GUIX_PROFILE path - so it becomes even easier to create
+Beside improving the documentation, I suggest CWL runners get an
+option for checking determinism (run workflows multiple times and
+check results), add support for native IPFS (a Python IPFS
+[[https://github.com/ipfs/py-ipfs-api][implementation]] exists, alternatively [[https://github.com/ipfs/go-ipfs/blob/master/docs/fuse.md][IPFS fuse]] could be used) and add
+some support for GNU Guix profiles - one single variable pointing in
+the GUIX_PROFILE path - so it becomes even easier to create
 deterministic software deployments that are built from source,
-transparent and recreatable for eternity (which is a very long
-time).
+transparent and recreatable for eternity (which is a very long time).
 
 It is particularly in these last two points of transparency and
 recreatability that Docker falls short. A Docker image is a binary
@@ -901,14 +901,18 @@ source which means a workflow with tools can be audited and considered
 more secure and (2) provides full transparency, recreatability (read
 faithful reproducibility). With GNU Guix and CWL you don't need
 Docker, though it is still possible to run Guix created Docker images
-that also have these Guix advantages.
+that also have these Guix advantages. Another advantage of Guix
+containers over Docker containers is that they are [[https://github.com/pjotrp/guix-notes/blob/master/CONTAINERS.org][lighter]] and therefore
+faster.
 
 Finally, GNU Guix comes with its own workflow language [[https://www.guixwl.org/getting-started][GWL]] which
 natively makes use of GNU Guix facilities. It may be worth looking
 into because it is both simpler and more rigorous and can be combined
 with CWL and in the future it may write CWL definitions. I am sure
 I'll introduce a mix of GWL and CWL workflows in my pipelines in the
-future.
+future. Guix could also benefit from an online repository of channels
+and pipelines similar to [[https://view.commonwl.org/workflows/github.com/nci-gdc/gdc-dnaseq-cwl/blob/0c1a40ea1efb1656644ccec0b7abe659539340e7/workflows/bamfastq_align/transform.cwl][view.commonwl.org]]. Very useful. Kudo's to the
+creators.
 
 * Extra notes
 
