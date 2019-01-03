@@ -77,6 +77,7 @@ CWL parlance) are separate from [[https://github.com/pjotrp/CWL-workflows/blob/m
 software inputs are split from the [[https://github.com/pjotrp/CWL-workflows/blob/master/Workflows/test-workflow.cwl][workflow definition]] (fortunately
 known as Workflows).
 
+
 ** IPFS
 
 The [[https://ipfs.io/][InterPlanetary File System]] is a protocol and network designed to
@@ -212,8 +213,8 @@ ipfs --version
 
 ** Choosing a CWL workflow
 
-First, I thought to run one of the pipelines from bcbio-nextgen as an
-example. Bcbio conveniently generates CWL. But then at the BH18 there
+First, I thought to run one of the pipelines from [[https://github.com/bcbio/bcbio-nextgen][bcbio-nextgen]] as an
+example. Bcbio conveniently generates CWL (they switched from Python scripts to CWL scripts). But then at the BH18 there
 was a newly created CWL pipeline in
 https://github.com/hacchy1983/CWL-workflows and I decided to start
 from there. This particular pipeline uses github to store data and a
@@ -271,9 +272,7 @@ ipfs cat QmfRb8TLfVnMbxauTPV2hx5EW6pYYYrCRmexcYCQyQpZjV
 #+END_SRC
 
 and you should see the contents of small.chr22.fa. You can also browse to
-[[http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE]].
-
-Easy!
+[[http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE]] on your local machine.
 
 Next you ought to pin the data so it does not get garbage collected by IPFS.
 
@@ -290,7 +289,8 @@ Follow the instructions in the original workflow README
 cwltool Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
 #+END_SRC
 
-complains we don't have Docker. Since we want to run without Docker specify
+where the first CWL describes the workflow and the second the data inputs. This command
+complains we don't have Docker. Since we want to run without Docker specify --no-container:
 
 #+BEGIN_SRC bash
 cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
