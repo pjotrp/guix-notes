@@ -508,7 +508,8 @@ After installing the package and updating the profile try again after updating t
 paths for trimmomatic in
 
 #+BEGIN_SRC bash
-env GUIX_PACKAGE_PATH=../../cwl//hacchy1983-CWL-workflows/ ./pre-inst-env guix package -i trimmomatic-jar -p ~/opt/cwl
+env GUIX_PACKAGE_PATH=../hacchy1983-CWL-workflows/ \
+  ./pre-inst-env guix package -i trimmomatic-jar -p ~/opt/cwl
 
 # ---- Update the paths
 . ~/opt/cwl/etc/profile
@@ -517,7 +518,9 @@ env GUIX_PACKAGE_PATH=../../cwl//hacchy1983-CWL-workflows/ ./pre-inst-env guix p
 cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
 #+END_SRC
 
-In the next step the workflow failed because bwa was missing, so added
+The GUIX_PACKAGE_PATH points into the workflow directory where I created the package.
+
+In the next step the workflow failed because bwa was missing, so added bwa with Guix
 
 #+BEGIN_SRC bash
 guix package -i bwa -p ~/opt/cwl
@@ -527,9 +530,10 @@ And then we got a different error
 
 : [E::bwa_idx_load_from_disk] fail to locate the index files
 
-Whoah. This workflow is broken because there are no index files!
+This workflow is broken because there are no index files! The original CWL script
+just assumed they were in the =fadir= directory.
 
-Actually if you check earlier IPFS upload you can see we added them with:
+If you check the earlier IPFS upload you can see we added them with:
 
 #+BEGIN_SRC bash
   added QmfRb8TLfVnMbxauTPV2hx5EW6pYYYrCRmexcYCQyQpZjV DATA/small.chr22.fa
@@ -541,9 +545,9 @@ Actually if you check earlier IPFS upload you can see we added them with:
   added QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE DATA
 #+END_SRC
 
-But the workflow does not automatically fetch them. So, let's fix
-that. We'll simply add them using IPFS (though we could actually
-recreate them using 'bwa index' instead).
+But the CWL workflow does not automatically fetch them. So, let's fix
+that. We'll simply add them using IPFS (though, alternatively, we
+could recreate them using 'bwa index' instead).
 
 #+BEGIN_SRC diff
 diff --git a/Jobs/small.ERR034597.test-workflow.yml b/Jobs/small.ERR034597.test-workflow.yml
@@ -724,11 +728,12 @@ hints:
     dockerPull: 'quay.io/biocontainers/fastqc:0.11.7--pl5.22.0_2'
 #+END_SRC
 
-The Docker link is a 'hint' which means local installations of tools
-get preferential treatment. So, apart from downloading a separate
-Docker image for every tool (and every time on a HPC compute node) we
-also have the risk of tools 'bleeding' in from the local environment
-(correct me if I am wrong here).
+The Docker link is a 'hint' which means the CWL runner will try to
+fetch the image using Docker by default. Without Docker (the
+--no-container switch), local installations of tools get preferential
+treatment. So, apart from downloading a separate Docker image for
+every tool (and every time on a HPC compute node) we also have the
+risk of tools 'bleeding' in from the local environment
 
 ** A GNU Guix CWL workflow
 
@@ -739,26 +744,34 @@ container - more on that in the next section. Let's create a container.
 
 The original command was
 
-: env TMPDIR=/gnu/tmp/cwl cwltool --preserve-environment TMPDIR --preserve-environment GUIX_PROFILE --leave-tmpdir \
-:   --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+#+BEGIN_SRC bash
+env TMPDIR=/gnu/tmp/cwl cwltool --preserve-environment TMPDIR \
+  --preserve-environment GUIX_PROFILE --leave-tmpdir \
+  --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+#+END_SRC
 
 Now we are going to run that inside a Guix container this means only
 the items that are dependencies of the tools we specify are included
 in the container. Note that we switch on networking to be able to
 fetch data through IPFS:
 
-: env GUIX_PACKAGE_PATH=~/izip/git/opensource/cwl/hacchy1983-CWL-workflows/:~/izip/git/opensource/gnu/channels/guix-cwl \
-:   ~/izip/git/opensource/genenetwork/guix-lario/pre-inst-env guix environment --network -C guix \
-:   --ad-hoc cwltool trimmomatic-jar bwa fastqc go-ipfs curl
+#+BEGIN_SRC bash
+env GUIX_PACKAGE_PATH=../hacchy1983-CWL-workflows \
+  guix environment --network -C guix \
+  --ad-hoc cwltool trimmomatic-jar bwa fastqc go-ipfs curl
+#+END_SRC
 
 Interestingly, building the container brought out a dependency which
 actually had somehow led in through my system. I had to modify a
 Python dependency so it was the correct version for cwltool. I was also
 getting errors
 
-:  File "/gnu/store/4z148ghmc90cb382sg1lvxja1myavq5b-python-typing-3.6.6/lib/python3.7/site-packages/typing.py", line 1004, in __new__
-:    self._abc_registry = extra._abc_registry
-:  AttributeError: type object 'Callable' has no attribute '_abc_registry'
+#+BEGIN_SRC bash
+File "/gnu/store/4z14..avq5b-python-typing-3.6.6/lib/python3.7/site-packages/typing.py",
+  line 1004, in __new__
+  self._abc_registry = extra._abc_registry
+AttributeError: type object 'Callable' has no attribute '_abc_registry'
+#+END_SRC
 
 despite having fixed this earlier. The issue is that Typing is now
 part of Python 3.7, but somehow this module has been pulled into the
@@ -770,12 +783,14 @@ Main conclusion: GNU Guix is rigorous. All mistakes get caught.
 
 Now run the workflow with
 
-: cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+#+BEGIN_SRC bash
+cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+#+END_SRC
 
 I first had to update the Guix profile so as to use the direct store
 path in the new container for trimmomatic - but otherwise it works as
-advertised. See the [[https://gist.github.com/pjotrp/53c4ab2cdfb95b1466955d1b9d790f25][output]]
-(the listed error is harmless).
+advertised. See the [[https://gist.github.com/pjotrp/53c4ab2cdfb95b1466955d1b9d790f25][output]] (the listed error is harmless, but I should
+fix it).
 
 ** A full Docker container
 
@@ -786,7 +801,7 @@ create a Docker container with
 :   /gnu/store/57fg8hfah46rclg3vybb9nckg6766izp-docker-pack.tar.gz
 
 which writes out a container that can be uploaded to docker hub or
-some other repo. See also https://github.com/genenetwork/guix-cwl.
+some other repo. See also https://github.com/genenetwork/guix-cw
 
 * Future work
 
