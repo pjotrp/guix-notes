@@ -45,7 +45,6 @@ Matsue, Japan/
  - [[#future-work][Future work]]
  - [[#discussion][Discussion]]
  - [[#extra-notes][Extra notes]]
-   - [[#building-cwltool-inside-a-guix-container][Building cwltool inside a Guix container]]
    - [[#create-dependency-graph][Create dependency graph]]
    - [[#create-a-docker-container][Create a Docker container]]
 
@@ -119,7 +118,9 @@ Similarly, every GNU Guix software reference includes a hash over its
 content. The reference to a fastq binary executable, for example,
 looks like
 
-: /gnu/store/fijv5bqhf8xmzcys2s70fqvp8xi9vn6m-fastqc-0.11.5/bin/fastqc.
+#+BEGIN_SRC bash
+/gnu/store/fijv5bqhf8xmzcys2s70fqvp8xi9vn6m-fastqc-0.11.5/bin/fastqc.
+#+END_SRC
 
 A reproducible pipeline therefore includes a unique reference to the
 binary tool(s). It is even better than that because all dependencies
@@ -231,19 +232,23 @@ IPFS (installed above).
 After above installation of go-ipfs, following [[https://docs.ipfs.io/introduction/usage/][IPFS instructions]] create a data
 directory
 
-: mkdir /export/data/ipfs
-: env IPFS_PATH=/export/data/ipfs ipfs init
-:   initializing IPFS node at /export/data/ipfs
-:   generating 2048-bit RSA keypair...done
-:   peer identity: QmUZsWGgHmJdG2pKK52eF9kG3DQ91fHWNJXUP9fTbzdJFR
+#+BEGIN_SRC bash
+mkdir /export/data/ipfs
+env IPFS_PATH=/export/data/ipfs ipfs init
+  initializing IPFS node at /export/data/ipfs
+  generating 2048-bit RSA keypair...done
+  peer identity: QmUZsWGgHmJdG2pKK52eF9kG3DQ91fHWNJXUP9fTbzdJFR
+#+END_SRC
 
 Start the daemon
 
-: env IPFS_PATH=/export/data/ipfs ipfs daemon
+#+BEGIN_SRC bash
+env IPFS_PATH=/export/data/ipfs ipfs daemon
+#+END_SRC
 
 and we can add the data
 
-#+BEGIN_SRC
+#+BEGIN_SRC bash
 export IPFS_PATH=/export/data/ipfs
 ipfs add -r DATA2/
   added QmXwNNBT4SyWGnNogzDq8PTbtFi48Q9J6kXRWTRQGmgoNz DATA/small.ERR034597_1.fastq
@@ -259,7 +264,9 @@ ipfs add -r DATA2/
 
 Test a file
 
-: ipfs cat QmfRb8TLfVnMbxauTPV2hx5EW6pYYYrCRmexcYCQyQpZjV
+#+BEGIN_SRC bash
+ipfs cat QmfRb8TLfVnMbxauTPV2hx5EW6pYYYrCRmexcYCQyQpZjV
+#+END_SRC
 
 and you should see the contents of small.chr22.fa. You can also browse to
 [[http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE]].
@@ -268,18 +275,24 @@ Easy!
 
 Next you ought to pin the data so it does not get garbage collected by IPFS
 
-: ipfs pin add QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE
-:   pinned QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE recursively
+#+BEGIN_SRC bash
+ipfs pin add QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE
+  pinned QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE recursively
+#+END_SRC
 
 ** Run CWL script
 
 Following the instructions in the original workflow README
 
-: cwltool Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+#+BEGIN_SRC bash
+cwltool Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+#+END_SRC
 
 complains we don't have Docker. Since we want to run without Docker specify
 
-: cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+#+BEGIN_SRC bash
+cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+#+END_SRC
 
 Resulting in
 
@@ -287,7 +300,9 @@ Resulting in
 
 which exists in Guix, so
 
-: guix package -i fastqc -p ~/opt/cwl
+#+BEGIN_SRC bash
+guix package -i fastqc -p ~/opt/cwl
+#+END_SRC
 
 installs
 
@@ -295,7 +310,7 @@ installs
 
 and also downloads missing fastqc dependencies
 
-#+BEGIN_SRC
+#+BEGIN_SRC bash
    /gnu/store/sh0wj2c00vkkh218jb5p34gndfdmbhrf-fastqc-0.11.5
    /gnu/store/0j2j0i55s0xykfcgx9fswks8792gk4sk-java-cisd-jhdf5-14.12.6-39162
    /gnu/store/bn8vb4zvdxpjl6z573bxyzqndd925x97-java-picard-1.113
@@ -313,9 +328,9 @@ end, all software installed in this profile can be hosted in a
 After installing with Guix we can rerun the workflow and it fails at
 the next step with
 
-#+BEGIN_SRC
+#+BEGIN_SRC bash
 /gnu/store/nwrvpgf3l2d5pccg997cfjq2zqj0ja0j-cwltool-1.0.20181012180214/bin/.cwltool-real 1.0
-Resolved 'Workflows/test-workflow.cwl' to 'file:///export/export/local/wrk/izip/git/opensource/cwl/hacchy1983-CWL-workflows/Workflows/test-workflow.cwl'
+Resolved 'Workflows/test-workflow.cwl' to '/hacchy1983-CWL-workflows/Workflows/test-workflow.cwl'
 [workflow ] start
 [workflow ] starting step qc1
 [step qc1] start
@@ -346,15 +361,17 @@ fq1:  # type "File"
 
 Here, btw, you may start to appreciate the added value of a CWL
 workflow definition. By using an EDAM ontology CWL gets metadata describing the data format which
-can be used down the line. 
+can be used down the line.
 
 
 To make sure we do not fetch the old data I moved the old data files
-out of the way and modified the job description to use the IPFS local
-web server
+out of the way, so the script can not find them, and modified the job
+description to use the IPFS local web server
 
-: git mv ./DATA ./DATA2
-: mkdir DATA
+#+BEGIN_SRC bash
+git mv ./DATA ./DATA2
+mkdir DATA
+#+END_SRC
 
 We need to fetch with IPFS so the description
 becomes
@@ -366,12 +383,12 @@ becomes
  fq1:  # type "File"
      class: File
 -    path: ../DATA/small.ERR034597_1.fastq
-+    path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.ERR034597_1.fastq
++    path: http://localhost:8080/ipfs/QmR8..h1tE/small.ERR034597_1.fastq
      format: http://edamontology.org/format_1930
  fq2:  # type "File"
      class: File
 -    path: ../DATA/small.ERR034597_2.fastq
-+    path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.ERR034597_2.fastq
++    path: http://localhost:8080/ipfs/QmR8..h1tE/small.ERR034597_2.fastq
      format: http://edamontology.org/format_1930
  fadir:  # type "Directory"
      class: Directory
@@ -388,7 +405,7 @@ This would be safe because IPFS is content-addressable.
 
 Now the directory tree looks like
 
-#+BEGIN_SRC
+#+BEGIN_SRC bash
 tree
 .
 ├── DATA
@@ -442,14 +459,18 @@ words is:
 
 + Download the jar and compute the HASH for Guix with
 
-: guix download http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.38.zip
-:   /gnu/store/pkjlw42f5ihbvx2af6macinf290l3197-Trimmomatic-0.38.zip
-:   0z34y7f9idnxgnyqdc29z4hwdp8f96mlqssyxvks4064nr1aya6l
+#+BEGIN_SRC bash
+guix download http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.38.zip
+  /gnu/store/pkjlw42f5ihbvx2af6macinf290l3197-Trimmomatic-0.38.zip
+  0z34y7f9idnxgnyqdc29z4hwdp8f96mlqssyxvks4064nr1aya6l
+#+END_SRC
 
 + Check the contents of the Zip file
 
-: unzip -t /gnu/store/pkjlw42f5ihbvx2af6macinf290l3197-Trimmomatic-0.38.zip
-:    testing: Trimmomatic-0.38/trimmomatic-0.38.jar   OK
+#+BEGIN_SRC bash
+unzip -t /gnu/store/pkjlw42f5ihbvx2af6macinf290l3197-Trimmomatic-0.38.zip
+   testing: Trimmomatic-0.38/trimmomatic-0.38.jar   OK
+#+END_SRC
 
 + On running 'guix install' Guix will unzip the file in a 'build' directory
 + You need to tell Guix to copy the file into the target 'installation' directory -
@@ -494,7 +515,9 @@ cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-wor
 
 In the next step the workflow failed because bwa was missing, so added
 
-: guix package -i bwa -p ~/opt/cwl
+#+BEGIN_SRC bash
+guix package -i bwa -p ~/opt/cwl
+#+END_SRC
 
 And then we got a different error
 
@@ -504,7 +527,7 @@ Whoah. This workflow is broken because there are no index files!
 
 Actually if you check earlier IPFS upload you can see we added them with:
 
-#+BEGIN_SRC
+#+BEGIN_SRC bash
   added QmfRb8TLfVnMbxauTPV2hx5EW6pYYYrCRmexcYCQyQpZjV DATA/small.chr22.fa
   added QmXaN36yNT82jQbUf2YuyV8symuF5NrdBX2hxz4mAG1Fby DATA/small.chr22.fa.amb
   added QmVM3SERieRzAdRMxpLuEKMuWT6cYkhCJsyqpGLj7qayoc DATA/small.chr22.fa.ann
@@ -775,7 +798,9 @@ There are two improvements to be made:
    =cwltool trimmomatic-jar bwa fastqc go-ipfs= into the container so
    we can do
 
-: guix pack -f docker my-workflow
+#+BEGIN_SRC bash
+guix pack -f docker my-workflow
+#+END_SRC
 
 And everything is pulled into the container. We could even make a Guix
 package (and therefor container) that includes all data inputs.
@@ -784,15 +809,22 @@ I will leave this as an exercise for the reader right now, but with
 research objects and 'live publications' the enforcement of such
 practices may be around the corner.
 
+In the near future we can imagine that a scientific publication is
+accompanied by a 'live document'. I.e., the pipeline with datasets can
+be rerun by anyone, anywhere. And results can be reproduced and
+validated. With the current technology stack it can become a common
+requirement with journal publications. Prototypes of such live
+publications should appear in the coming two years.
+
 * Discussion
 
-Here we show the principle of a working reproducible pipeline. With
-little effort, anyone can create such a pipeline using GNU Guix, an
-addressable data source such as IPFS, and a CWL work flow definition
-that includes content-addressable references to software and data
-inputs (here we used IPFS for data). By running the workflow multiple
-times it can be asserted the outcome is deterministic and therefore
-reproducible.
+Here we show the principle of a working reproducible and rerunnable
+pipeline. With little effort, anyone can create such a pipeline using
+GNU Guix, an addressable data source such as IPFS, and a CWL work flow
+definition that includes content-addressable references to software
+and data inputs (here we used IPFS for data). By running the workflow
+multiple times it can be asserted the outcome is deterministic and
+therefore reproducible.
 
 In the process of migrating the original Docker version of this
 workflow it came out that not all inputs were explicitly defined.
@@ -852,7 +884,7 @@ faithful reproducibility). With GNU Guix and CWL you don't need
 Docker, though it is still possible to run Guix created Docker images
 that also have these Guix advantages.
 
-Finally GNU Guix comes with its own workflow language [[https://www.guixwl.org/getting-started][GWL]] which
+Finally, GNU Guix comes with its own workflow language [[https://www.guixwl.org/getting-started][GWL]] which
 natively makes use of GNU Guix facilities. It may be worth looking
 into because it is both simpler and more rigorous and can be combined
 with CWL and in the future it may write CWL definitions. I am sure
@@ -861,35 +893,28 @@ future.
 
 * Extra notes
 
-** Building cwltool inside a Guix container
-
-Guix containers allow isolation of the build system
-
-: env GUIX_PACKAGE_PATH=~/izip/git/opensource/gnu/channels/guix-cwl ~/izip/git/opensource/genenetwork/guix-monza/pre-inst-env guix environment -C guix --ad-hoc cwltool coreutils python
-
-Run the tests with
-
-: python3 setup.py build
-
-Some network related tests may fail (6 at this point). To build CWL in a container
-you can do something like this:
-
-: env PYTHONPATH=here/lib/python3.6/site-packages:$PYTHONPATH python3 setup.py install --prefix here
-
 ** Create dependency graph
 
 The full [[http://biogems.info/cwltool-references.pdf][package graph]] can be generated with
 
-: env GUIX_PACKAGE_PATH=~/izip/git/opensource/gnu/channels/guix-cwl ./pre-inst-env guix graph cwltool |dot -Tpdf > cwltool-package.pdf
+#+BEGIN_SRC bash
+guix graph cwltool |dot -Tpdf > cwltool-package.pdf
+#+END_SRC
 
 We also create a graph for all tools in this workflow we can do
 
-: env GUIX_PACKAGE_PATH=../../cwl//hacchy1983-CWL-workflows/:~/izip/git/opensource/gnu/channels/guix-cwl ./pre-inst-env guix graph cwltool go-ipfs trimmomatic-jar bwa fastqc | dot -Tpdf > full.pdf
+#+BEGIN_SRC bash
+guix graph cwltool go-ipfs trimmomatic-jar bwa fastqc | dot -Tpdf > full.pdf
+#+END_SRC
 
 And the full [[http://biogems.info/cwltool-package.pdf][dependency graph]] for cwltool, that includes the build environment, can be generated with
 
-: env GUIX_PACKAGE_PATH=~/izip/git/opensource/gnu/channels/guix-cwl ./pre-inst-env guix graph  --type=references cwltool |dot -Tpdf > cwltool-references.pdf
+#+BEGIN_SRC bash
+guix graph  --type=references cwltool |dot -Tpdf > cwltool-references.pdf
+#+END_SRC
 
 ** Create a Docker container
 
-: guix pack -f docker cwltool trimmomatic-jar bwa fastqc go-ipfs curl
+#+BEGIN_SRC bash
+guix pack -f docker cwltool trimmomatic-jar bwa fastqc go-ipfs curl
+#+END_SRC
