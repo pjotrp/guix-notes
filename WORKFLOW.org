@@ -197,13 +197,17 @@ we'll update for cwltool.
 
 After adding the cwl channel we can have the main tools installed in one go with
 
-: guix package -i go-ipfs cwltool -p ~/opt/cwl
+#+BEGIN_SRC bash
+guix package -i go-ipfs cwltool -p ~/opt/cwl
+#+END_SRC
 
 Again, to make the full environment available do
 
-: . ~/opt/cwl/etc/profile
-: ipfs --version
-:   ipfs version 0.4.19
+#+BEGIN_SRC bash
+. ~/opt/cwl/etc/profile
+ipfs --version
+  ipfs version 0.4.19
+#+END_SRC
 
 * The workflow
 
