@@ -148,13 +148,13 @@ we typically use a build host that has privileges, but all other HPC
 nodes simply mount one directory under /gnu/store using a network
 mount. More HPC blogs on this topic [[https://guix-hpc.bordeaux.inria.fr/blog/][here]]. If you don't think it can be
 done on HPC, think again: [[https://archive.fosdem.org/2018/schedule/event/computecanada/][Compute Canada]] deploys Nix on their HPCs
-on over 120,000 cores. And if you can do Nix, you can do Guix. Same
+(over 120,000 cores). And if you can do Nix, you can do Guix. Same
 principles.
 
 ** IPFS and CWL installation
 
-IPFS was recently added to GNU Guix.  The first task for me for this project was to update and
-add cwltool, the reference implementation of CWL, to GNU Guix. This took me a few hours because quite a few
+IPFS was recently added to GNU Guix.  The first task for me was to update and
+add cwltool to GNU Guix. cwltool is the reference implementation of CWL. This took me a few hours because quite a few
 dependencies had to be added in, and some of these packages have
 'fixated' versions and ultimately do not build on recent Python 3.7. Of
 course this should be fixed with cwltools, but with Guix we can introduce both older
