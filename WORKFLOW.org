@@ -65,7 +65,7 @@ future of far more efficient pipeline assembly and use, building on
 components others have created and tested. The objectives of CWL are
 now more important than ever, especially given the [[https://www.nature.com/news/1-500-scientists-lift-the-lid-on-reproducibility-1.19970][reproducibility
 crisis]]. Many important publications can not be reproduced using source
-data and the reported workflow. Many of these problems are also
+data and the reported workflow. These problems are also
 highlighted in
 [[https://academic.oup.com/gigascience/article/7/7/giy077/5046609][Experimenting
 with reproducibility: a case study of robustness in bioinformatics]]
