@@ -191,14 +191,14 @@ setting up the channel (see the [README](https://github.com/genenetwork/guix-cwl
 Arch (etc.) the installation should be as easy as
 
 ```sh
-    guix package -i cwltool -p ~/opt/cwl
+guix package -i cwltool -p ~/opt/cwl
 ```
 
 Now to run the tool you need to set the paths etc. with
 
 ```sh
-    . ~/opt/cwl/etc/profile
-    cwltool --help
+. ~/opt/cwl/etc/profile
+cwltool --help
 ```
 
 I added the packages in these [commits](https://gitlab.com/genenetwork/guix-bioinformatics/commits/master), for example [update CWL](https://gitlab.com/genenetwork/guix-bioinformatics/commit/f65893ba096bc4b190d9101cca8fe490af80109e). Also some
@@ -215,8 +215,8 @@ installed as binaries. Guix only builds packages when it can not find
 a binary substitute. And now I can run
 
 ```sh
-    cwltool --version
-    /gnu/store/nwrvpgf3l2d5pccg997cfjq2zqj0ja0j-cwltool-1.0.20181012180214/bin/.cwltool-real 1.0
+cwltool --version
+/gnu/store/nwrvpgf3l2d5pccg997cfjq2zqj0ja0j-cwltool-1.0.20181012180214/bin/.cwltool-real 1.0
 ```
 
 Success!
@@ -232,15 +232,15 @@ we will update for cwltool.
 After adding the cwl channel we can have the main tools installed in one go with
 
 ```sh
-    guix package -i go-ipfs cwltool -p ~/opt/cwl
+guix package -i go-ipfs cwltool -p ~/opt/cwl
 ```
 
 Again, to make the full environment available do
 
 ```sh
-    . ~/opt/cwl/etc/profile
-    ipfs --version
-      ipfs version 0.4.19
+. ~/opt/cwl/etc/profile
+ipfs --version
+  ipfs version 0.4.19
 ```
 
 
@@ -279,17 +279,17 @@ After the installation of go-ipfs, create a data structure following the [IPFS i
 directory
 
 ```sh
-    mkdir /export/data/ipfs
-    env IPFS_PATH=/export/data/ipfs ipfs init
-      initializing IPFS node at /export/data/ipfs
-      generating 2048-bit RSA keypair...done
-      peer identity: QmUZsWGgHmJdG2pKK52eF9kG3DQ91fHWNJXUP9fTbzdJFR
+mkdir /export/data/ipfs
+env IPFS_PATH=/export/data/ipfs ipfs init
+  initializing IPFS node at /export/data/ipfs
+  generating 2048-bit RSA keypair...done
+  peer identity: QmUZsWGgHmJdG2pKK52eF9kG3DQ91fHWNJXUP9fTbzdJFR
 ```
 
 Start the daemon
 
 ```sh
-    env IPFS_PATH=/export/data/ipfs ipfs daemon
+env IPFS_PATH=/export/data/ipfs ipfs daemon
 ```
 
 (note that ipfs uses quite a bit of bandwidth to talk to its
@@ -299,23 +299,23 @@ network, for example).
 And now we can add the data
 
 ```sh
-    export IPFS_PATH=/export/data/ipfs
-    ipfs add -r DATA2/
-      added QmXwNNBT4SyWGnNogzDq8PTbtFi48Q9J6kXRWTRQGmgoNz DATA/small.ERR034597_1.fastq
-      added QmcJ7P7eyMqhttSVssYhiRPUc9PxqAapVvS91Qo78xDjj3 DATA/small.ERR034597_2.fastq
-      added QmfRb8TLfVnMbxauTPV2hx5EW6pYYYrCRmexcYCQyQpZjV DATA/small.chr22.fa
-      added QmXaN36yNT82jQbUf2YuyV8symuF5NrdBX2hxz4mAG1Fby DATA/small.chr22.fa.amb
-      added QmVM3SERieRzAdRMxpLuEKMuWT6cYkhCJsyqpGLj7qayoc DATA/small.chr22.fa.ann
-      added QmfYpScLAEBXxyZmASWLJQMZU2Ze9UkV919jptGf4qm5EC DATA/small.chr22.fa.bwt
-      added Qmc2P19eV77CspK8W1JZ7Y6fs2xRxh1khMsqMdfsPo1a7o DATA/small.chr22.fa.pac
-      added QmV8xAwugh2Y35U3tzheZoywjXT1Kej2HBaJK1gXz8GycD DATA/small.chr22.fa.sa
-      added QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE DATA
+export IPFS_PATH=/export/data/ipfs
+ipfs add -r DATA2/
+  added QmXwNNBT4SyWGnNogzDq8PTbtFi48Q9J6kXRWTRQGmgoNz DATA/small.ERR034597_1.fastq
+  added QmcJ7P7eyMqhttSVssYhiRPUc9PxqAapVvS91Qo78xDjj3 DATA/small.ERR034597_2.fastq
+  added QmfRb8TLfVnMbxauTPV2hx5EW6pYYYrCRmexcYCQyQpZjV DATA/small.chr22.fa
+  added QmXaN36yNT82jQbUf2YuyV8symuF5NrdBX2hxz4mAG1Fby DATA/small.chr22.fa.amb
+  added QmVM3SERieRzAdRMxpLuEKMuWT6cYkhCJsyqpGLj7qayoc DATA/small.chr22.fa.ann
+  added QmfYpScLAEBXxyZmASWLJQMZU2Ze9UkV919jptGf4qm5EC DATA/small.chr22.fa.bwt
+  added Qmc2P19eV77CspK8W1JZ7Y6fs2xRxh1khMsqMdfsPo1a7o DATA/small.chr22.fa.pac
+  added QmV8xAwugh2Y35U3tzheZoywjXT1Kej2HBaJK1gXz8GycD DATA/small.chr22.fa.sa
+  added QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE DATA
 ```
 
 Test a file
 
 ```sh
-    ipfs cat QmfRb8TLfVnMbxauTPV2hx5EW6pYYYrCRmexcYCQyQpZjV
+ipfs cat QmfRb8TLfVnMbxauTPV2hx5EW6pYYYrCRmexcYCQyQpZjV
 ```
 
 and you should see the contents of small.chr22.fa. You can also browse to
@@ -324,8 +324,8 @@ and you should see the contents of small.chr22.fa. You can also browse to
 Next you ought to pin the data so it does not get garbage collected by IPFS.
 
 ```sh
-    ipfs pin add QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE
-      pinned QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE recursively
+ipfs pin add QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE
+  pinned QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE recursively
 ```
 
 
@@ -336,14 +336,14 @@ Next you ought to pin the data so it does not get garbage collected by IPFS.
 Follow the instructions in the original workflow README
 
 ```sh
-    cwltool Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+cwltool Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
 ```
 
 where the first CWL describes the workflow and the second the data inputs. This command
 complains we don't have Docker. Since we want to run without Docker specify &#x2013;no-container:
 
 ```sh
-    cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
 ```
 
 Resulting in
@@ -353,7 +353,7 @@ Resulting in
 which exists in Guix, so
 
 ```sh
-    guix package -i fastqc -p ~/opt/cwl
+guix package -i fastqc -p ~/opt/cwl
 ```
 
 installs
@@ -379,23 +379,23 @@ After installing with Guix we can rerun the workflow and note that it fails at
 the next step with
 
 ```sh
-    /gnu/store/nwrvpgf3l2d5pccg997cfjq2zqj0ja0j-cwltool-1.0.20181012180214/bin/.cwltool-real 1.0
-    Resolved 'Workflows/test-workflow.cwl' to '/hacchy1983-CWL-workflows/Workflows/test-workflow.cwl'
-    [workflow ] start
-    [workflow ] starting step qc1
-    [step qc1] start
-    [job qc1] /tmp/ig4k8x8m$ fastqc \
-        -o \
-        . \
-        /tmp/tmp0m1p3syh/stgca222f81-6346-4abf-a005-964e80dcf783/small.ERR034597_1.fastq
-    Started analysis of small.ERR034597_1.fastq
-    Approx 5% complete for small.ERR034597_1.fastq
-    Approx 10% complete for small.ERR034597_1.fastq
-    Approx 15% complete for small.ERR034597_1.fastq
-    Approx 20% complete for small.ERR034597_1.fastq
-    ...
+/gnu/store/nwrvpgf3l2d5pccg997cfjq2zqj0ja0j-cwltool-1.0.20181012180214/bin/.cwltool-real 1.0
+Resolved 'Workflows/test-workflow.cwl' to '/hacchy1983-CWL-workflows/Workflows/test-workflow.cwl'
+[workflow ] start
+[workflow ] starting step qc1
+[step qc1] start
+[job qc1] /tmp/ig4k8x8m$ fastqc \
+-o \
+. \
+/tmp/tmp0m1p3syh/stgca222f81-6346-4abf-a005-964e80dcf783/small.ERR034597_1.fastq
+Started analysis of small.ERR034597_1.fastq
+Approx 5% complete for small.ERR034597_1.fastq
+Approx 10% complete for small.ERR034597_1.fastq
+Approx 15% complete for small.ERR034597_1.fastq
+Approx 20% complete for small.ERR034597_1.fastq
+...
 
-    Error: Unable to access jarfile /usr/local/share/trimmomatic/trimmomatic.jar
+Error: Unable to access jarfile /usr/local/share/trimmomatic/trimmomatic.jar
 ```
 
 Partial success. fastqc runs fine and now we hit the next issue.  The
@@ -403,10 +403,10 @@ Partial success. fastqc runs fine and now we hit the next issue.  The
 the data files are specified from the source tree, e.g.
 
 ```yaml
-    fq1:  # type "File"
-        class: File
-        path: ../DATA/small.ERR034597_1.fastq
-        format: http://edamontology.org/format_1930
+fq1:  # type "File"
+    class: File
+    path: ../DATA/small.ERR034597_1.fastq
+    format: http://edamontology.org/format_1930
 ```
 
 Here you may start to appreciate the added value of a CWL
@@ -418,29 +418,29 @@ out of the way and modified the job description to use the IPFS local
 web server
 
 ```sh
-    git mv ./DATA ./DATA2
-    mkdir DATA
+git mv ./DATA ./DATA2
+mkdir DATA
 ```
 
 We need to fetch with IPFS so the description
 becomes
 
-```patch
-    --- a/Jobs/small.ERR034597.test-workflow.yml
-    +++ b/Jobs/small.ERR034597.test-workflow.yml
-    @@ -1,10 +1,10 @@
-     fq1:  # type "File"
-         class: File
-    -    path: ../DATA/small.ERR034597_1.fastq
-    +    path: http://localhost:8080/ipfs/QmR8..h1tE/small.ERR034597_1.fastq
-         format: http://edamontology.org/format_1930
-     fq2:  # type "File"
-         class: File
-    -    path: ../DATA/small.ERR034597_2.fastq
-    +    path: http://localhost:8080/ipfs/QmR8..h1tE/small.ERR034597_2.fastq
-         format: http://edamontology.org/format_1930
-     fadir:  # type "Directory"
-         class: Directory
+```diff
+--- a/Jobs/small.ERR034597.test-workflow.yml
++++ b/Jobs/small.ERR034597.test-workflow.yml
+@@ -1,10 +1,10 @@
+ fq1:  # type "File"
+     class: File
+-    path: ../DATA/small.ERR034597_1.fastq
++    path: http://localhost:8080/ipfs/QmR8..h1tE/small.ERR034597_1.fastq
+     format: http://edamontology.org/format_1930
+ fq2:  # type "File"
+     class: File
+-    path: ../DATA/small.ERR034597_2.fastq
++    path: http://localhost:8080/ipfs/QmR8..h1tE/small.ERR034597_2.fastq
+     format: http://edamontology.org/format_1930
+ fadir:  # type "Directory"
+     class: Directory
 ```
 
 The http fetches can be replaced later with a direct IPFS call which
@@ -519,7 +519,7 @@ words is:
 -   Check the contents of the Zip file
 
 ```sh
-    unzip -t /gnu/store/pkjlw42f5ihbvx2af6macinf290l3197-Trimmomatic-0.38.zip
+unzip -t /gnu/store/pkjlw42f5ihbvx2af6macinf290l3197-Trimmomatic-0.38.zip
        testing: Trimmomatic-0.38/trimmomatic-0.38.jar   OK
 ```
 
@@ -531,15 +531,15 @@ words is:
 A (paraphrased) YAML definition therefore looks like:
 
 ```yaml
-    - fetch:
-        url: http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.38.zip
-        hash: 0z34y7f9idnxgnyqdc29z4hwdp8f96mlqssyxvks4064nr1aya6l
-    - dependencies:
-      - java
-      - unzip
-    - build:
-      - unzip zipfile
-      - copy-recursively "Trimmomatic-0.38" to target
+- fetch:
+    url: http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.38.zip
+    hash: 0z34y7f9idnxgnyqdc29z4hwdp8f96mlqssyxvks4064nr1aya6l
+- dependencies:
+    - java
+    - unzip
+- build:
+    - unzip zipfile
+    - copy-recursively "Trimmomatic-0.38" to target
 ```
 
 If you want to see the actual package definition and how it is done
@@ -555,14 +555,14 @@ After installing the package and updating the profile, try again after updating 
 paths for trimmomatic in
 
 ```sh
-    env GUIX_PACKAGE_PATH=../hacchy1983-CWL-workflows/ \
-      ./pre-inst-env guix package -i trimmomatic-jar -p ~/opt/cwl
+env GUIX_PACKAGE_PATH=../hacchy1983-CWL-workflows/ \
+  ./pre-inst-env guix package -i trimmomatic-jar -p ~/opt/cwl
 
-    # ---- Update the paths
-    . ~/opt/cwl/etc/profile
+# ---- Update the paths
+. ~/opt/cwl/etc/profile
 
-    # ---- Run
-    cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+# ---- Run
+cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
 ```
 
 The GUIX<sub>PACKAGE</sub><sub>PATH</sub> points into the workflow directory where I created the package.
@@ -575,7 +575,7 @@ The GUIX<sub>PACKAGE</sub><sub>PATH</sub> points into the workflow directory whe
 In the next step the workflow failed because bwa was missing, so added bwa with Guix
 
 ```sh
-    guix package -i bwa -p ~/opt/cwl
+guix package -i bwa -p ~/opt/cwl
 ```
 
 And then we got a different error
@@ -599,67 +599,67 @@ But the workflow does not automatically fetch them. So, we need to fix
 that. Just add them using IPFS (though we could actually
 recreate them using 'bwa index' instead).
 
-```patch
-    diff --git a/Jobs/small.ERR034597.test-workflow.yml b/Jobs/small.ERR034597.test-workflow.yml
-    index 9b9b153..51f2174 100644
-    --- a/Jobs/small.ERR034597.test-workflow.yml
-    +++ b/Jobs/small.ERR034597.test-workflow.yml
-    @@ -6,7 +6,18 @@ fq2:  # type "File"
-         class: File
-         path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.ERR034597_2.fastq
-         format: http://edamontology.org/format_1930
-    -fadir:  # type "Directory"
-    -    class: Directory
-    -    path: ../DATA
-    -ref: small.chr22  # type "string"
-    +ref:  # type "File"
-    +    class: File
-    +    path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.chr22.fa
-    +    format: http://edamontology.org/format_1929
-    +    secondaryFiles:
-    +      - class: File
-    +        path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.chr22.fa.amb
-    +      - class: File
-    +        path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.chr22.fa.ann
-    +      - class: File
-    +        path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.chr22.fa.bwt
-    +      - class: File
-    +        path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.chr22.fa.pac
-    +      - class: File
-    +        path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.chr22.fa.sa
+```diff
+diff --git a/Jobs/small.ERR034597.test-workflow.yml b/Jobs/small.ERR034597.test-workflow.yml
+index 9b9b153..51f2174 100644
+--- a/Jobs/small.ERR034597.test-workflow.yml
++++ b/Jobs/small.ERR034597.test-workflow.yml
+@@ -6,7 +6,18 @@ fq2:  # type "File"
+     class: File
+     path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.ERR034597_2.fastq
+     format: http://edamontology.org/format_1930
+-fadir:  # type "Directory"
+-    class: Directory
+-    path: ../DATA
+-ref: small.chr22  # type "string"
++ref:  # type "File"
++    class: File
++    path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.chr22.fa
++    format: http://edamontology.org/format_1929
++    secondaryFiles:
++      - class: File
++        path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.chr22.fa.amb
++      - class: File
++        path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.chr22.fa.ann
++      - class: File
++        path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.chr22.fa.bwt
++      - class: File
++        path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.chr22.fa.pac
++      - class: File
++        path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.chr22.fa.sa
 ```
 
 To make the workflow work I had to replace the concept of an fa directory for bwa to using these
 files explicitly which better describes what is happening (as a bonus):
 
-```patch
-    diff --git a/Tools/bwa-mem-PE.cwl b/Tools/bwa-mem-PE.cwl
-    index fc0d12d..0f87af3 100644
-    --- a/Tools/bwa-mem-PE.cwl
-    +++ b/Tools/bwa-mem-PE.cwl
-    @@ -19,12 +19,17 @@ requirements:
-     baseCommand: [ bwa, mem ]
+```diff
+diff --git a/Tools/bwa-mem-PE.cwl b/Tools/bwa-mem-PE.cwl
+index fc0d12d..0f87af3 100644
+--- a/Tools/bwa-mem-PE.cwl
++++ b/Tools/bwa-mem-PE.cwl
+@@ -19,12 +19,17 @@ requirements:
+ baseCommand: [ bwa, mem ]
 
-     inputs:
-    -  - id: fadir
-    -    type: Directory
-    -    doc: directory containing FastA file and index
-       - id: ref
-    -    type: string
-    -    doc: name of reference (e.g., hs37d5)
-    +    type: File
-    +    inputBinding:
-    +      position: 2
-    +    doc: Fasta reference (e.g., hs37d5)
-    +    secondaryFiles:
-    +      - .amb
-    +      - .ann
-    +      - .bwt
-    +      - .pac
-    +      - .sa
-       - id: fq1
-         type: File
-         format: edam:format_1930
+ inputs:
+-  - id: fadir
+-    type: Directory
+-    doc: directory containing FastA file and index
+   - id: ref
+-    type: string
+-    doc: name of reference (e.g., hs37d5)
++    type: File
++    inputBinding:
++      position: 2
++    doc: Fasta reference (e.g., hs37d5)
++    secondaryFiles:
++      - .amb
++      - .ann
++      - .bwt
++      - .pac
++      - .sa
+   - id: fq1
+     type: File
+     format: edam:format_1930
 ```
 
 After that we got
@@ -687,30 +687,30 @@ The referenc CWL runner does not have such an option (yet). I ran it by hand thr
 The first time capture the MD5 values with
 
 ```sh
-    find . -type f -print0 | xargs -0 md5sum > ~/md5sum.txt
+find . -type f -print0 | xargs -0 md5sum > ~/md5sum.txt
 ```
 
 next times check with
 
 ```sh
-    md5sum -c ~/md5sum.txt |grep -v OK
+md5sum -c ~/md5sum.txt |grep -v OK
 ```
 
 it complained on one file
 
 ```sh
-    ./output.sam: FAILED
+./output.sam: FAILED
     md5sum: WARNING: 1 computed checksum did NOT match
 ```
 
 and the @PG field in the output file contains a temporary path:
 
-```patch
-    diff output.sam output.sam.2
-    2c2
-    < @PG   ID:bwa  PN:bwa  VN:0.7.17-r1188 CL:bwa mem -t 4 /gnu/tmp/cwl/tmpdoetk_3r/stge19b3f1c-864a-478e-8aee-087a61654aba/small.chr22.fa /gnu/tmp/cwl/tmpdoetk_3r/stgd649e430-caa8-491f-8621-6a2d6c67dcb9/small.ERR034597_1.fastq.trim.1P.fastq /gnu/tmp/cwl/tmpdoetk_3r/stg8330a0f5-751e-4685-911e-52a5c93ecded/small.ERR034597_2.fastq.trim.2P.fastq
-    ---
-    > @PG   ID:bwa  PN:bwa  VN:0.7.17-r1188 CL:bwa mem -t 4 /gnu/tmp/cwl/tmpl860q0ng/stg2210ff0e-184d-47cb-bba3-36f48365ec27/small.chr22.fa /gnu/tmp/cwl/tmpl860q0ng/stgb694ec99-50fe-4aa6-bba4-37fa72ea7030/small.ERR034597_1.fastq.trim.1P.fastq /gnu/tmp/cwl/tmpl860q0ng/stgf3ace0cb-eb2d-4250-b8b7-eb79448a374f/small.ERR034597_2.fastq.trim.2P.fastq
+```diff
+diff output.sam output.sam.2
+2c2
+< @PG   ID:bwa  PN:bwa  VN:0.7.17-r1188 CL:bwa mem -t 4 /gnu/tmp/cwl/tmpdoetk_3r/stge19b3f1c-864a-478e-8aee-087a61654aba/small.chr22.fa /gnu/tmp/cwl/tmpdoetk_3r/stgd649e430-caa8-491f-8621-6a2d6c67dcb9/small.ERR034597_1.fastq.trim.1P.fastq /gnu/tmp/cwl/tmpdoetk_3r/stg8330a0f5-751e-4685-911e-52a5c93ecded/small.ERR034597_2.fastq.trim.2P.fastq
+---
+> @PG   ID:bwa  PN:bwa  VN:0.7.17-r1188 CL:bwa mem -t 4 /gnu/tmp/cwl/tmpl860q0ng/stg2210ff0e-184d-47cb-bba3-36f48365ec27/small.chr22.fa /gnu/tmp/cwl/tmpl860q0ng/stgb694ec99-50fe-4aa6-bba4-37fa72ea7030/small.ERR034597_1.fastq.trim.1P.fastq /gnu/tmp/cwl/tmpl860q0ng/stgf3ace0cb-eb2d-4250-b8b7-eb79448a374f/small.ERR034597_2.fastq.trim.2P.fastq
 ```
 
 To fix this we could add a step to the pipeline to filter out this field
@@ -792,9 +792,9 @@ assumed the tools would already be on the system including the CWL
 runner cwltool itself! The tools were specified as CWL hints:
 
 ```yaml
-    hints:
-      - class: DockerRequirement
-        dockerPull: 'quay.io/biocontainers/fastqc:0.11.7--pl5.22.0_2'
+hints:
+  - class: DockerRequirement
+    dockerPull: 'quay.io/biocontainers/fastqc:0.11.7--pl5.22.0_2'
 ```
 
 The Docker link is a 'hint' which means the CWL runner will try to
@@ -822,9 +822,9 @@ section. Let's create a container.
 The original command was
 
 ```sh
-    env TMPDIR=/gnu/tmp/cwl cwltool --preserve-environment TMPDIR \
-      --preserve-environment GUIX_PROFILE --leave-tmpdir \
-      --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+env TMPDIR=/gnu/tmp/cwl cwltool --preserve-environment TMPDIR \
+  --preserve-environment GUIX_PROFILE --leave-tmpdir \
+  --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
 ```
 
 Now we are going to run that inside a Guix container this means only
@@ -833,15 +833,15 @@ in the container. Note that we switch on networking to be able to
 fetch data through IPFS:
 
 ```sh
-    env GUIX_PACKAGE_PATH=../hacchy1983-CWL-workflows \
-      guix environment --network -C guix \
-      --ad-hoc cwltool trimmomatic-jar bwa fastqc go-ipfs curl
+env GUIX_PACKAGE_PATH=../hacchy1983-CWL-workflows \
+  guix environment --network -C guix \
+  --ad-hoc cwltool trimmomatic-jar bwa fastqc go-ipfs curl
 ```
 
 Now run the workflow with
 
 ```sh
-    cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
 ```
 
 I first had to update the Guix profile so as to use the direct store
@@ -858,8 +858,8 @@ Now we have the software stack in a GNU Guix container we can also have Guix
 create a Docker container with
 
 ```sh
-    guix pack -f docker cwltool trimmomatic-jar bwa fastqc go-ipfs
-      /gnu/store/57fg8hfah46rclg3vybb9nckg6766izp-docker-pack.tar.gz
+guix pack -f docker cwltool trimmomatic-jar bwa fastqc go-ipfs
+  /gnu/store/57fg8hfah46rclg3vybb9nckg6766izp-docker-pack.tar.gz
 ```
 
 which writes out a container that can be uploaded to docker hub or
@@ -885,7 +885,7 @@ There are two improvements to be made:
     we can do
 
 ```sh
-    guix pack -f docker my-workflow
+guix pack -f docker my-workflow
 ```
 
 And everything is pulled into the container. We could even make a Guix
@@ -999,19 +999,19 @@ creators.
 The full [package graph](http://biogems.info/cwltool-references.pdf) can be generated with
 
 ```sh
-    guix graph cwltool |dot -Tpdf > cwltool-package.pdf
+guix graph cwltool |dot -Tpdf > cwltool-package.pdf
 ```
 
 We also create a graph for all tools in this workflow we can do
 
 ```sh
-    guix graph cwltool go-ipfs trimmomatic-jar bwa fastqc | dot -Tpdf > full.pdf
+guix graph cwltool go-ipfs trimmomatic-jar bwa fastqc | dot -Tpdf > full.pdf
 ```
 
 And the full [dependency graph](http://biogems.info/cwltool-package.pdf) for cwltool, that includes the build environment, can be generated with
 
 ```sh
-    guix graph  --type=references cwltool |dot -Tpdf > cwltool-references.pdf
+guix graph  --type=references cwltool |dot -Tpdf > cwltool-references.pdf
 ```
 
 
@@ -1020,5 +1020,5 @@ And the full [dependency graph](http://biogems.info/cwltool-package.pdf) for cwl
 ## Create a Docker container
 
 ```sh
-    guix pack -f docker cwltool trimmomatic-jar bwa fastqc go-ipfs curl
+guix pack -f docker cwltool trimmomatic-jar bwa fastqc go-ipfs curl
 ```
