@@ -199,7 +199,7 @@ Now to run the tool you need to set the paths etc. with
 ```sh
     . ~/opt/cwl/etc/profile
     cwltool --help
-```sh
+```
 
 I added the packages in these [commits](https://gitlab.com/genenetwork/guix-bioinformatics/commits/master), for example [update CWL](https://gitlab.com/genenetwork/guix-bioinformatics/commit/f65893ba096bc4b190d9101cca8fe490af80109e). Also some
 packages on Guix trunk needed to be updated, including [python-rdflib
@@ -217,7 +217,7 @@ a binary substitute. And now I can run
 ```sh
     cwltool --version
     /gnu/store/nwrvpgf3l2d5pccg997cfjq2zqj0ja0j-cwltool-1.0.20181012180214/bin/.cwltool-real 1.0
-```sh
+```
 
 Success!
 
@@ -233,7 +233,7 @@ After adding the cwl channel we can have the main tools installed in one go with
 
 ```sh
     guix package -i go-ipfs cwltool -p ~/opt/cwl
-```sh
+```
 
 Again, to make the full environment available do
 
@@ -241,7 +241,7 @@ Again, to make the full environment available do
     . ~/opt/cwl/etc/profile
     ipfs --version
       ipfs version 0.4.19
-```sh
+```
 
 
 <a id="orgd5ecc15"></a>
@@ -284,13 +284,13 @@ directory
       initializing IPFS node at /export/data/ipfs
       generating 2048-bit RSA keypair...done
       peer identity: QmUZsWGgHmJdG2pKK52eF9kG3DQ91fHWNJXUP9fTbzdJFR
-```sh
+```
 
 Start the daemon
 
 ```sh
     env IPFS_PATH=/export/data/ipfs ipfs daemon
-```sh
+```
 
 (note that ipfs uses quite a bit of bandwidth to talk to its
 peers. For that reason don't keep the daemon running on a mobile
@@ -310,13 +310,13 @@ And now we can add the data
       added Qmc2P19eV77CspK8W1JZ7Y6fs2xRxh1khMsqMdfsPo1a7o DATA/small.chr22.fa.pac
       added QmV8xAwugh2Y35U3tzheZoywjXT1Kej2HBaJK1gXz8GycD DATA/small.chr22.fa.sa
       added QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE DATA
-```sh
+```
 
 Test a file
 
 ```sh
     ipfs cat QmfRb8TLfVnMbxauTPV2hx5EW6pYYYrCRmexcYCQyQpZjV
-```sh
+```
 
 and you should see the contents of small.chr22.fa. You can also browse to
 <http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE> on your local machine.
@@ -326,7 +326,7 @@ Next you ought to pin the data so it does not get garbage collected by IPFS.
 ```sh
     ipfs pin add QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE
       pinned QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE recursively
-```sh
+```
 
 
 <a id="org47e82f7"></a>
@@ -337,14 +337,14 @@ Follow the instructions in the original workflow README
 
 ```sh
     cwltool Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
-```sh
+```
 
 where the first CWL describes the workflow and the second the data inputs. This command
 complains we don't have Docker. Since we want to run without Docker specify &#x2013;no-container:
 
 ```sh
     cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
-```sh
+```
 
 Resulting in
 
@@ -354,7 +354,7 @@ which exists in Guix, so
 
 ```sh
     guix package -i fastqc -p ~/opt/cwl
-```sh
+```
 
 installs
 
@@ -396,7 +396,7 @@ the next step with
     ...
 
     Error: Unable to access jarfile /usr/local/share/trimmomatic/trimmomatic.jar
-```sh
+```
 
 Partial success. fastqc runs fine and now we hit the next issue.  The
 /usr/local points out there is at least one problem :). There is also another issue in that
@@ -420,7 +420,7 @@ web server
 ```sh
     git mv ./DATA ./DATA2
     mkdir DATA
-```sh
+```
 
 We need to fetch with IPFS so the description
 becomes
@@ -563,7 +563,7 @@ paths for trimmomatic in
 
     # ---- Run
     cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
-```sh
+```
 
 The GUIX<sub>PACKAGE</sub><sub>PATH</sub> points into the workflow directory where I created the package.
 
@@ -576,7 +576,7 @@ In the next step the workflow failed because bwa was missing, so added bwa with 
 
 ```sh
     guix package -i bwa -p ~/opt/cwl
-```sh
+```
 
 And then we got a different error
 
@@ -688,20 +688,20 @@ The first time capture the MD5 values with
 
 ```sh
     find . -type f -print0 | xargs -0 md5sum > ~/md5sum.txt
-```sh
+```
 
 next times check with
 
 ```sh
     md5sum -c ~/md5sum.txt |grep -v OK
-```sh
+```
 
 it complained on one file
 
 ```sh
     ./output.sam: FAILED
     md5sum: WARNING: 1 computed checksum did NOT match
-```sh
+```
 
 and the @PG field in the output file contains a temporary path:
 
@@ -825,7 +825,7 @@ The original command was
     env TMPDIR=/gnu/tmp/cwl cwltool --preserve-environment TMPDIR \
       --preserve-environment GUIX_PROFILE --leave-tmpdir \
       --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
-```sh
+```
 
 Now we are going to run that inside a Guix container this means only
 the items that are dependencies of the tools we specify are included
@@ -836,13 +836,13 @@ fetch data through IPFS:
     env GUIX_PACKAGE_PATH=../hacchy1983-CWL-workflows \
       guix environment --network -C guix \
       --ad-hoc cwltool trimmomatic-jar bwa fastqc go-ipfs curl
-```sh
+```
 
 Now run the workflow with
 
 ```sh
     cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
-```sh
+```
 
 I first had to update the Guix profile so as to use the direct store
 path in the new container for trimmomatic - but otherwise it works as
@@ -860,7 +860,7 @@ create a Docker container with
 ```sh
     guix pack -f docker cwltool trimmomatic-jar bwa fastqc go-ipfs
       /gnu/store/57fg8hfah46rclg3vybb9nckg6766izp-docker-pack.tar.gz
-```sh
+```
 
 which writes out a container that can be uploaded to docker hub or
 some other repo without using Docker. See also
@@ -886,7 +886,7 @@ There are two improvements to be made:
 
 ```sh
     guix pack -f docker my-workflow
-```sh
+```
 
 And everything is pulled into the container. We could even make a Guix
 package (and therefor container) that includes all data inputs.
@@ -1000,19 +1000,19 @@ The full [package graph](http://biogems.info/cwltool-references.pdf) can be gene
 
 ```sh
     guix graph cwltool |dot -Tpdf > cwltool-package.pdf
-```sh
+```
 
 We also create a graph for all tools in this workflow we can do
 
 ```sh
     guix graph cwltool go-ipfs trimmomatic-jar bwa fastqc | dot -Tpdf > full.pdf
-```sh
+```
 
 And the full [dependency graph](http://biogems.info/cwltool-package.pdf) for cwltool, that includes the build environment, can be generated with
 
 ```sh
     guix graph  --type=references cwltool |dot -Tpdf > cwltool-references.pdf
-```sh
+```
 
 
 <a id="org475d172"></a>
@@ -1021,4 +1021,4 @@ And the full [dependency graph](http://biogems.info/cwltool-package.pdf) for cwl
 
 ```sh
     guix pack -f docker cwltool trimmomatic-jar bwa fastqc go-ipfs curl
-```sh
+```
