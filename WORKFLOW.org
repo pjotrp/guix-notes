@@ -137,7 +137,6 @@ most of these references are transparent. The Guix environment deals
 with resolving them as should become clear.
 
 * Getting started
-
 ** GNU Guix installation
 
 The first step is to install the Guix. Guix allows
@@ -256,7 +255,11 @@ Start the daemon
 env IPFS_PATH=/export/data/ipfs ipfs daemon
 #+END_SRC
 
-and we can add the data
+(note that ipfs uses quite a bit of bandwidth to talk to its
+peers. For that reason don't keep the daemon running on a mobile
+network, for example).
+
+And now we can add the data
 
 #+BEGIN_SRC bash
 export IPFS_PATH=/export/data/ipfs
