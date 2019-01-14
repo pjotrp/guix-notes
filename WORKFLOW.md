@@ -1,39 +1,7 @@
-
-# Table of Contents
-
-1.  [Introduction](#org9618575)
-    1.  [Common Workflow Language (CWL)](#org17122da)
-    2.  [IPFS](#org09cc6f0)
-    3.  [GNU Guix](#org3203428)
-    4.  [Why content-addressable?](#orgd727637)
-2.  [Getting started](#orgd5430da)
-    1.  [GNU Guix installation](#org8801964)
-    2.  [IPFS and CWL installation](#orgd4cebd1)
-    3.  [Short recap](#org6af2910)
-3.  [The workflow](#orgd5ecc15)
-    1.  [Choosing a CWL workflow](#orgf92823c)
-    2.  [Add the data sources](#org9c578e7)
-    3.  [Run CWL script](#org47e82f7)
-    4.  [trimmomatic: adding a binary blob to GNU Guix](#org42325c3)
-    5.  [bwa: adding bwa to the profile](#orgcac9712)
-4.  [Prove results are deterministic](#org759f9e2)
-5.  [Capture the provenance graph](#orga0f2f8f)
-    1.  [GNU Guix software graph](#orgaf08275)
-    2.  [CWL provenance graph](#orgd39788a)
-6.  [Containerised run of workflow](#org87edbd6)
-    1.  [A GNU Guix CWL workflow](#org5fa55eb)
-    2.  [A full Docker container](#org1085993)
-7.  [Future work](#org76623e9)
-8.  [Discussion](#orgc2e75e5)
-9.  [Extra notes](#org360747a)
-    1.  [Create dependency graph](#orgf97df14)
-    2.  [Create a Docker container](#org475d172)
-
-
-
 <a id="org9618575"></a>
 
-# Introduction
+# Creating a reproducible workflow with CWL
+by Pjotr Prins
 
 *The quest to build a fully reproducible software pipeline with provenance*
 
@@ -49,6 +17,38 @@ reproducibility with provenance and improved security.
 
 *Note: this work was mostly executed during the Biohackathon 2018 in
 Matsue, Japan*
+
+
+# Table of Contents
+
+1.  [Introduction](#org9618575)
+    *  [Common Workflow Language (CWL)](#org17122da)
+    *  [IPFS](#org09cc6f0)
+    *  [GNU Guix](#org3203428)
+    *  [Why content-addressable?](#orgd727637)
+2.  [Getting started](#orgd5430da)
+    *  [GNU Guix installation](#org8801964)
+    *  [IPFS and CWL installation](#orgd4cebd1)
+    *  [Short recap](#org6af2910)
+3.  [The workflow](#orgd5ecc15)
+    *  [Choosing a CWL workflow](#orgf92823c)
+    *  [Add the data sources](#org9c578e7)
+    *  [Run CWL script](#org47e82f7)
+    *  [trimmomatic: adding a binary blob to GNU Guix](#org42325c3)
+    *  [bwa: adding bwa to the profile](#orgcac9712)
+4.  [Prove results are deterministic](#org759f9e2)
+5.  [Capture the provenance graph](#orga0f2f8f)
+    *  [GNU Guix software graph](#orgaf08275)
+    *  [CWL provenance graph](#orgd39788a)
+6.  [Containerised run of workflow](#org87edbd6)
+    *  [A GNU Guix CWL workflow](#org5fa55eb)
+    *  [A full Docker container](#org1085993)
+7.  [Future work](#org76623e9)
+8.  [Discussion](#orgc2e75e5)
+9.  [Extra notes](#org360747a)
+    *  [Create dependency graph](#orgf97df14)
+    *  [Create a Docker container](#org475d172)
+
 
 
 <a id="org17122da"></a>
@@ -190,12 +190,16 @@ hell. To manage all this I created a special Guix [channel](https://github.com/g
 setting up the channel (see the [README](https://github.com/genenetwork/guix-cwl/blob/master/README.org)) on Debian, Ubuntu, Fedora,
 Arch (etc.) the installation should be as easy as
 
+```sh
     guix package -i cwltool -p ~/opt/cwl
+```
 
 Now to run the tool you need to set the paths etc. with
 
+```sh
     . ~/opt/cwl/etc/profile
     cwltool --help
+```sh
 
 I added the packages in these [commits](https://gitlab.com/genenetwork/guix-bioinformatics/commits/master), for example [update CWL](https://gitlab.com/genenetwork/guix-bioinformatics/commit/f65893ba096bc4b190d9101cca8fe490af80109e). Also some
 packages on Guix trunk needed to be updated, including [python-rdflib
@@ -210,8 +214,10 @@ If Guix is correctly installed most packages get downloaded and
 installed as binaries. Guix only builds packages when it can not find
 a binary substitute. And now I can run
 
+```sh
     cwltool --version
     /gnu/store/nwrvpgf3l2d5pccg997cfjq2zqj0ja0j-cwltool-1.0.20181012180214/bin/.cwltool-real 1.0
+```sh
 
 Success!
 
@@ -225,13 +231,17 @@ we will update for cwltool.
 
 After adding the cwl channel we can have the main tools installed in one go with
 
+```sh
     guix package -i go-ipfs cwltool -p ~/opt/cwl
+```sh
 
 Again, to make the full environment available do
 
+```sh
     . ~/opt/cwl/etc/profile
     ipfs --version
       ipfs version 0.4.19
+```sh
 
 
 <a id="orgd5ecc15"></a>
@@ -268,15 +278,19 @@ IPFS (as installed above).
 After the installation of go-ipfs, create a data structure following the [IPFS instructions](https://docs.ipfs.io/introduction/usage/)
 directory
 
+```sh
     mkdir /export/data/ipfs
     env IPFS_PATH=/export/data/ipfs ipfs init
       initializing IPFS node at /export/data/ipfs
       generating 2048-bit RSA keypair...done
       peer identity: QmUZsWGgHmJdG2pKK52eF9kG3DQ91fHWNJXUP9fTbzdJFR
+```sh
 
 Start the daemon
 
+```sh
     env IPFS_PATH=/export/data/ipfs ipfs daemon
+```sh
 
 (note that ipfs uses quite a bit of bandwidth to talk to its
 peers. For that reason don't keep the daemon running on a mobile
@@ -284,6 +298,7 @@ network, for example).
 
 And now we can add the data
 
+```sh
     export IPFS_PATH=/export/data/ipfs
     ipfs add -r DATA2/
       added QmXwNNBT4SyWGnNogzDq8PTbtFi48Q9J6kXRWTRQGmgoNz DATA/small.ERR034597_1.fastq
@@ -295,18 +310,23 @@ And now we can add the data
       added Qmc2P19eV77CspK8W1JZ7Y6fs2xRxh1khMsqMdfsPo1a7o DATA/small.chr22.fa.pac
       added QmV8xAwugh2Y35U3tzheZoywjXT1Kej2HBaJK1gXz8GycD DATA/small.chr22.fa.sa
       added QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE DATA
+```sh
 
 Test a file
 
+```sh
     ipfs cat QmfRb8TLfVnMbxauTPV2hx5EW6pYYYrCRmexcYCQyQpZjV
+```sh
 
 and you should see the contents of small.chr22.fa. You can also browse to
 <http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE> on your local machine.
 
 Next you ought to pin the data so it does not get garbage collected by IPFS.
 
+```sh
     ipfs pin add QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE
       pinned QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE recursively
+```sh
 
 
 <a id="org47e82f7"></a>
@@ -315,12 +335,16 @@ Next you ought to pin the data so it does not get garbage collected by IPFS.
 
 Follow the instructions in the original workflow README
 
+```sh
     cwltool Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+```sh
 
 where the first CWL describes the workflow and the second the data inputs. This command
 complains we don't have Docker. Since we want to run without Docker specify &#x2013;no-container:
 
+```sh
     cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+```sh
 
 Resulting in
 
@@ -328,7 +352,9 @@ Resulting in
 
 which exists in Guix, so
 
+```sh
     guix package -i fastqc -p ~/opt/cwl
+```sh
 
 installs
 
@@ -352,6 +378,7 @@ end, all software installed in this profile can be hosted in a
 After installing with Guix we can rerun the workflow and note that it fails at
 the next step with
 
+```sh
     /gnu/store/nwrvpgf3l2d5pccg997cfjq2zqj0ja0j-cwltool-1.0.20181012180214/bin/.cwltool-real 1.0
     Resolved 'Workflows/test-workflow.cwl' to '/hacchy1983-CWL-workflows/Workflows/test-workflow.cwl'
     [workflow ] start
@@ -369,15 +396,18 @@ the next step with
     ...
 
     Error: Unable to access jarfile /usr/local/share/trimmomatic/trimmomatic.jar
+```sh
 
 Partial success. fastqc runs fine and now we hit the next issue.  The
 /usr/local points out there is at least one problem :). There is also another issue in that
 the data files are specified from the source tree, e.g.
 
+```yaml
     fq1:  # type "File"
         class: File
         path: ../DATA/small.ERR034597_1.fastq
         format: http://edamontology.org/format_1930
+```
 
 Here you may start to appreciate the added value of a CWL
 workflow definition. By using an EDAM ontology CWL gets metadata describing the data format which
@@ -387,12 +417,15 @@ To make sure we do not fetch the old data I moved the old  files
 out of the way and modified the job description to use the IPFS local
 web server
 
+```sh
     git mv ./DATA ./DATA2
     mkdir DATA
+```sh
 
 We need to fetch with IPFS so the description
 becomes
 
+```diff
     --- a/Jobs/small.ERR034597.test-workflow.yml
     +++ b/Jobs/small.ERR034597.test-workflow.yml
     @@ -1,10 +1,10 @@
@@ -408,6 +441,7 @@ becomes
          format: http://edamontology.org/format_1930
      fadir:  # type "Directory"
          class: Directory
+         ```
 
 The http fetches can be replaced later with a direct IPFS call which
 will fetch files transparently from the public IPFS somewhere - much
@@ -421,6 +455,7 @@ This would be safe because IPFS is content-addressable.
 
 Now the directory tree looks like
 
+```
     tree
     .
     ├── DATA
@@ -447,6 +482,7 @@ Now the directory tree looks like
     │   └── trimmomaticPE.cwl
     └── Workflows
         └── test-workflow.cwl
+```
 
 and again CWL runs up to
 
@@ -482,8 +518,10 @@ words is:
 
 -   Check the contents of the Zip file
 
+```sh
     unzip -t /gnu/store/pkjlw42f5ihbvx2af6macinf290l3197-Trimmomatic-0.38.zip
        testing: Trimmomatic-0.38/trimmomatic-0.38.jar   OK
+```
 
 -   On running 'guix install' Guix will unzip the file in a 'build' directory
 -   You need to tell Guix to copy the file into the target 'installation' directory -
@@ -492,6 +530,7 @@ words is:
 
 A (paraphrased) YAML definition therefore looks like:
 
+```yaml
     - fetch:
         url: http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.38.zip
         hash: 0z34y7f9idnxgnyqdc29z4hwdp8f96mlqssyxvks4064nr1aya6l
@@ -501,6 +540,7 @@ A (paraphrased) YAML definition therefore looks like:
     - build:
       - unzip zipfile
       - copy-recursively "Trimmomatic-0.38" to target
+```
 
 If you want to see the actual package definition and how it is done
 see
@@ -514,6 +554,7 @@ interpreter.
 After installing the package and updating the profile, try again after updating the
 paths for trimmomatic in
 
+```sh
     env GUIX_PACKAGE_PATH=../hacchy1983-CWL-workflows/ \
       ./pre-inst-env guix package -i trimmomatic-jar -p ~/opt/cwl
 
@@ -522,6 +563,7 @@ paths for trimmomatic in
 
     # ---- Run
     cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+```sh
 
 The GUIX<sub>PACKAGE</sub><sub>PATH</sub> points into the workflow directory where I created the package.
 
@@ -532,7 +574,9 @@ The GUIX<sub>PACKAGE</sub><sub>PATH</sub> points into the workflow directory whe
 
 In the next step the workflow failed because bwa was missing, so added bwa with Guix
 
+```sh
     guix package -i bwa -p ~/opt/cwl
+```sh
 
 And then we got a different error
 
@@ -555,6 +599,7 @@ But the workflow does not automatically fetch them. So, we need to fix
 that. Just add them using IPFS (though we could actually
 recreate them using 'bwa index' instead).
 
+```diff
     diff --git a/Jobs/small.ERR034597.test-workflow.yml b/Jobs/small.ERR034597.test-workflow.yml
     index 9b9b153..51f2174 100644
     --- a/Jobs/small.ERR034597.test-workflow.yml
@@ -582,10 +627,12 @@ recreate them using 'bwa index' instead).
     +        path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.chr22.fa.pac
     +      - class: File
     +        path: http://localhost:8080/ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.chr22.fa.sa
+```
 
 To make the workflow work I had to replace the concept of an fa directory for bwa to using these
 files explicitly which better describes what is happening (as a bonus):
 
+```diff
     diff --git a/Tools/bwa-mem-PE.cwl b/Tools/bwa-mem-PE.cwl
     index fc0d12d..0f87af3 100644
     --- a/Tools/bwa-mem-PE.cwl
@@ -613,6 +660,7 @@ files explicitly which better describes what is happening (as a bonus):
        - id: fq1
          type: File
          format: edam:format_1930
+```
 
 After that we got
 
@@ -638,24 +686,32 @@ difference is not caused by something else? This is why the
 The referenc CWL runner does not have such an option (yet). I ran it by hand three times.
 The first time capture the MD5 values with
 
+```sh
     find . -type f -print0 | xargs -0 md5sum > ~/md5sum.txt
+```sh
 
 next times check with
 
+```sh
     md5sum -c ~/md5sum.txt |grep -v OK
+```sh
 
 it complained on one file
 
+```sh
     ./output.sam: FAILED
     md5sum: WARNING: 1 computed checksum did NOT match
+```sh
 
 and the @PG field in the output file contains a temporary path:
 
+```diff
     diff output.sam output.sam.2
     2c2
     < @PG   ID:bwa  PN:bwa  VN:0.7.17-r1188 CL:bwa mem -t 4 /gnu/tmp/cwl/tmpdoetk_3r/stge19b3f1c-864a-478e-8aee-087a61654aba/small.chr22.fa /gnu/tmp/cwl/tmpdoetk_3r/stgd649e430-caa8-491f-8621-6a2d6c67dcb9/small.ERR034597_1.fastq.trim.1P.fastq /gnu/tmp/cwl/tmpdoetk_3r/stg8330a0f5-751e-4685-911e-52a5c93ecded/small.ERR034597_2.fastq.trim.2P.fastq
     ---
     > @PG   ID:bwa  PN:bwa  VN:0.7.17-r1188 CL:bwa mem -t 4 /gnu/tmp/cwl/tmpl860q0ng/stg2210ff0e-184d-47cb-bba3-36f48365ec27/small.chr22.fa /gnu/tmp/cwl/tmpl860q0ng/stgb694ec99-50fe-4aa6-bba4-37fa72ea7030/small.ERR034597_1.fastq.trim.1P.fastq /gnu/tmp/cwl/tmpl860q0ng/stgf3ace0cb-eb2d-4250-b8b7-eb79448a374f/small.ERR034597_2.fastq.trim.2P.fastq
+```
 
 To fix this we could add a step to the pipeline to filter out this field
 or force output to go into the same destination directory. Or tell bwa
@@ -735,9 +791,11 @@ specify all tools and their dependencies. The original workflow simply
 assumed the tools would already be on the system including the CWL
 runner cwltool itself! The tools were specified as CWL hints:
 
+```yaml
     hints:
       - class: DockerRequirement
         dockerPull: 'quay.io/biocontainers/fastqc:0.11.7--pl5.22.0_2'
+```
 
 The Docker link is a 'hint' which means the CWL runner will try to
 fetch the image using Docker by default. Without enabling Docker (the
@@ -763,22 +821,28 @@ section. Let's create a container.
 
 The original command was
 
+```sh
     env TMPDIR=/gnu/tmp/cwl cwltool --preserve-environment TMPDIR \
       --preserve-environment GUIX_PROFILE --leave-tmpdir \
       --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+```sh
 
 Now we are going to run that inside a Guix container this means only
 the items that are dependencies of the tools we specify are included
 in the container. Note that we switch on networking to be able to
 fetch data through IPFS:
 
+```sh
     env GUIX_PACKAGE_PATH=../hacchy1983-CWL-workflows \
       guix environment --network -C guix \
       --ad-hoc cwltool trimmomatic-jar bwa fastqc go-ipfs curl
+```sh
 
 Now run the workflow with
 
+```sh
     cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
+```sh
 
 I first had to update the Guix profile so as to use the direct store
 path in the new container for trimmomatic - but otherwise it works as
@@ -793,8 +857,10 @@ fix it).
 Now we have the software stack in a GNU Guix container we can also have Guix
 create a Docker container with
 
+```sh
     guix pack -f docker cwltool trimmomatic-jar bwa fastqc go-ipfs
       /gnu/store/57fg8hfah46rclg3vybb9nckg6766izp-docker-pack.tar.gz
+```sh
 
 which writes out a container that can be uploaded to docker hub or
 some other repo without using Docker. See also
@@ -818,7 +884,9 @@ There are two improvements to be made:
     `cwltool trimmomatic-jar bwa fastqc go-ipfs` into the container so
     we can do
 
+```sh
     guix pack -f docker my-workflow
+```sh
 
 And everything is pulled into the container. We could even make a Guix
 package (and therefor container) that includes all data inputs.
@@ -930,19 +998,27 @@ creators.
 
 The full [package graph](http://biogems.info/cwltool-references.pdf) can be generated with
 
+```sh
     guix graph cwltool |dot -Tpdf > cwltool-package.pdf
+```sh
 
 We also create a graph for all tools in this workflow we can do
 
+```sh
     guix graph cwltool go-ipfs trimmomatic-jar bwa fastqc | dot -Tpdf > full.pdf
+```sh
 
 And the full [dependency graph](http://biogems.info/cwltool-package.pdf) for cwltool, that includes the build environment, can be generated with
 
+```sh
     guix graph  --type=references cwltool |dot -Tpdf > cwltool-references.pdf
+```sh
 
 
 <a id="org475d172"></a>
 
 ## Create a Docker container
 
+```sh
     guix pack -f docker cwltool trimmomatic-jar bwa fastqc go-ipfs curl
+```sh
