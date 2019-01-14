@@ -81,21 +81,24 @@ known as Workflows).
 ** IPFS
 
 The [[https://ipfs.io/][InterPlanetary File System]] is a protocol and network designed to
-create content-addressable, peer-to-peer method of storing and
-sharing hypermedia in a distributed file system. IPFS provides a way of connecting different data sources and sites together (say from different institutes), and can locate and serve files in a
+create content-addressable, peer-to-peer method of storing and sharing
+hypermedia in a distributed file system. IPFS provides a way of
+connecting different data sources and sites together (say from
+different institutes), and can locate and serve files in a
 (reasonably) scalable way. IPFS is content-addressable (more on this
 below) and allows for deduplication, local caching, and swarm-like
-software downloads over the network. IPFS is free software and part
-of GNU Guix.
+software downloads over the network. IPFS is free software and
+available through GNU Guix.
 
 ** GNU Guix
 
-[[http://gnu.org/software/guix][GNU Guix]] is the package manager of the GNU Project. Originally based
-on the Nix package manager it has morphed into a substantial project
-in its own right with hundreds of committers and roughly 9,000 packages
-including a wide range of bioinformatics packages. GNU Guix can be
-deployed on any existing Linux distribution (I use Debian) and
-provides rigorous and robust controls of dependency graphs.
+[[http://gnu.org/software/guix][GNU Guix]] is the package manager of the GNU Project. Originally Guix
+forked the build/install daemon from the [[https://nixos.org/nix/][Nix project]]. Guix has morphed into a
+substantial project in its own right with its own unique packaging
+system and related tools and with hundreds of committers and roughly
+9,000 packages including a wide range of bioinformatics packages. GNU
+Guix can be deployed on any existing Linux distribution (I use Debian)
+and provides rigorous and robust controls of dependency graphs.
 
 ** Why content-addressable?
 
@@ -103,13 +106,13 @@ provides rigorous and robust controls of dependency graphs.
 
 [[https://en.wikipedia.org/wiki/Content-addressable_storage][Content addressable files]] are referenced to by a hash on their
 contents as part of the file path/URI. For example, in the workflow
-below I use a file named small.chr22.fa that is used by its full
+below I use a file named small.chr22.fa that is referenced by its full
 path:
 
 : /ipfs/QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE/small.ERR034597_1.fastq.
 
 A hash value is computed over the fastq file and becomes *part*
-of the reference. If the file content *changes* in any way, even a single
+of the reference. If the file contents *change* in any way, even a single
 letter, the hash value changes, and therefore the reference. This
 property guarantees you are *always* dealing with the same input
 data - a key property of any reproducible pipeline. There can be *no*
@@ -136,21 +139,24 @@ with resolving them as should become clear.
 
 ** GNU Guix installation
 
-The first step is to install the Guix daemon. This daemon allows
+The first step is to install the Guix. Guix allows
 regular users to install software packages on any Linux distribution
 (Debian, Fedora, and CentOS are all fine). GNU Guix does not interfere
-with  running the Linux distribution. Installation instructions are here at
- [[https://gitlab.com/pjotrp/guix-notes/blob/master/INSTALL.org][GitLab]] and here at [[https://www.gnu.org/software/guix/manual/html_node/Binary-Installation.html][GNU.org]]. The Guix daemon needs to be installed as root,
-but runs with user land privileges. For those who can not get access to root
-there are [[https://guix-hpc.bordeaux.inria.fr/blog/2017/10/using-guix-without-being-root/][work arounds]], including the use of Docker. Ricardo
-Wurmus describes how MDC deploys GNU Guix on their [[https://guix.mdc-berlin.de/documentation.html][HPC]] and [[https://elephly.net/posts/2015-04-17-gnu-guix.html][here]]
-(essentially use one build host and copy files to the rest). For HPC
-we typically use a build host that has privileges, but all other HPC
-nodes simply mount one directory under /gnu/store using a network
-mount. More HPC blogs on this topic [[https://guix-hpc.bordeaux.inria.fr/blog/][here]]. If you don't think it can be
-done on HPC, think again: [[https://archive.fosdem.org/2018/schedule/event/computecanada/][Compute Canada]] deploys Nix on their HPCs
-(over 120,000 cores). And if you can do Nix, you can do Guix. Same
-principles.
+with  running the Linux distribution.
+
+An [[https://git.savannah.gnu.org/cgit/guix.git/plain/etc/guix-install.sh][install script]] can be run on the command line. That is the easy
+option.  More installation instructions are here at [[https://gitlab.com/pjotrp/guix-notes/blob/master/INSTALL.org][GitLab]] and here at
+[[https://www.gnu.org/software/guix/manual/html_node/Binary-Installation.html][GNU.org]]. The short of it is that the Guix (daemon) needs to be installed
+as root, but runs with user land privileges. For those who can not get
+access to root there are [[https://guix-hpc.bordeaux.inria.fr/blog/2017/10/using-guix-without-being-root/][work arounds]], including the use of
+Docker. Ricardo Wurmus describes how MDC deploys GNU Guix on their [[https://guix.mdc-berlin.de/documentation.html][HPC]]
+and [[https://elephly.net/posts/2015-04-17-gnu-guix.html][here]] (essentially use one build host and copy files to the
+rest). For HPC we typically use a build host that has privileges, but
+all other HPC nodes simply mount one directory under /gnu/store using
+a network mount. More HPC blogs on this topic [[https://guix-hpc.bordeaux.inria.fr/blog/][here]]. If you don't think
+it can be done on HPC, think again: [[https://archive.fosdem.org/2018/schedule/event/computecanada/][Compute Canada]] deploys Nix on
+their HPCs (over 120,000 cores). And if you can do Nix, you can do
+Guix. Same principles.
 
 ** IPFS and CWL installation
 
@@ -159,8 +165,8 @@ add cwltool to GNU Guix. cwltool is the reference implementation of CWL. This to
 dependencies had to be added in, and some of these packages have
 'fixated' versions and ultimately do not build on recent Python 3.7. Of
 course this should be fixed with cwltools, but with Guix we can introduce both older
-and recently updated packages without issues (we call this fixing dependency
-hell). To manage all this I created a special Guix [[https://github.com/genenetwork/guix-cwl][channel]] and after
+and recently updated packages without issues, i.e., fixing dependency
+hell. To manage all this I created a special Guix [[https://github.com/genenetwork/guix-cwl][channel]] and after
 setting up the channel (see the [[https://github.com/genenetwork/guix-cwl/blob/master/README.org][README]]) on Debian, Ubuntu, Fedora,
 Arch (etc.) the installation should be as easy as
 
@@ -758,26 +764,6 @@ env GUIX_PACKAGE_PATH=../hacchy1983-CWL-workflows \
   --ad-hoc cwltool trimmomatic-jar bwa fastqc go-ipfs curl
 #+END_SRC
 
-Interestingly, building the container brought out a dependency which
-actually had somehow led in through my system. I had to modify a
-Python dependency so it was the correct version for cwltool. I was also
-getting errors
-
-#+BEGIN_SRC bash
-File "/gnu/store/4z14..avq5b-python-typing-3.6.6/lib/python3.7/site-packages/typing.py",
-  line 1004, in __new__
-  self._abc_registry = extra._abc_registry
-AttributeError: type object 'Callable' has no attribute '_abc_registry'
-#+END_SRC
-
-despite having fixed this earlier. The issue is that Typing is now
-part of Python 3.7, but somehow this module has been pulled into the
-path. From the Guix graph I could tell cwltools and python-mypy were
-still pulling typing as a dependency. Removing it fixed that (actually
-it turned out I was using a different GUIX_PACKAGE_PATH - stupid me).
-
-Main conclusion: GNU Guix is rigorous. All mistakes get caught.
-
 Now run the workflow with
 
 #+BEGIN_SRC bash
@@ -800,7 +786,9 @@ guix pack -f docker cwltool trimmomatic-jar bwa fastqc go-ipfs
 #+END_SRC
 
 which writes out a container that can be uploaded to docker hub or
-some other repo. See also https://github.com/genenetwork/guix-cwl
+some other repo without using Docker. See also
+https://github.com/genenetwork/guix-cwl where we dit exactly that. A
+recent version of Docker is packaged in GNU Guix.
 
 * Future work
 
@@ -905,9 +893,10 @@ that also have these Guix advantages. Another advantage of Guix
 containers over Docker containers is that they are [[https://github.com/pjotrp/guix-notes/blob/master/CONTAINERS.org][lighter]] and therefore
 faster.
 
-Finally, GNU Guix comes with its own workflow language [[https://www.guixwl.org/getting-started][GWL]] that
-natively makes use of GNU Guix facilities. It may be worth looking
-into because it is both simpler and more rigorous and can be combined
+Finally, we are working on a workflow language that integrates
+reproducible software deployment: the Guix Workflow Language, or [[https://www.guixwl.org/getting-started][GWL]].
+This is still work-in-progress but we believe this approach is
+promising because it is both simpler and more rigorous and can be combined
 with CWL, and in the future it may write CWL definitions. I am sure
 I'll introduce a mix of GWL and CWL workflows in my pipelines in the
 near future. Guix could also benefit from an online repository of channels
