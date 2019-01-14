@@ -425,7 +425,7 @@ web server
 We need to fetch with IPFS so the description
 becomes
 
-```diff
+```patch
     --- a/Jobs/small.ERR034597.test-workflow.yml
     +++ b/Jobs/small.ERR034597.test-workflow.yml
     @@ -1,10 +1,10 @@
@@ -441,7 +441,7 @@ becomes
          format: http://edamontology.org/format_1930
      fadir:  # type "Directory"
          class: Directory
-         ```
+```
 
 The http fetches can be replaced later with a direct IPFS call which
 will fetch files transparently from the public IPFS somewhere - much
@@ -599,7 +599,7 @@ But the workflow does not automatically fetch them. So, we need to fix
 that. Just add them using IPFS (though we could actually
 recreate them using 'bwa index' instead).
 
-```diff
+```patch
     diff --git a/Jobs/small.ERR034597.test-workflow.yml b/Jobs/small.ERR034597.test-workflow.yml
     index 9b9b153..51f2174 100644
     --- a/Jobs/small.ERR034597.test-workflow.yml
@@ -632,7 +632,7 @@ recreate them using 'bwa index' instead).
 To make the workflow work I had to replace the concept of an fa directory for bwa to using these
 files explicitly which better describes what is happening (as a bonus):
 
-```diff
+```patch
     diff --git a/Tools/bwa-mem-PE.cwl b/Tools/bwa-mem-PE.cwl
     index fc0d12d..0f87af3 100644
     --- a/Tools/bwa-mem-PE.cwl
@@ -705,7 +705,7 @@ it complained on one file
 
 and the @PG field in the output file contains a temporary path:
 
-```diff
+```patch
     diff output.sam output.sam.2
     2c2
     < @PG   ID:bwa  PN:bwa  VN:0.7.17-r1188 CL:bwa mem -t 4 /gnu/tmp/cwl/tmpdoetk_3r/stge19b3f1c-864a-478e-8aee-087a61654aba/small.chr22.fa /gnu/tmp/cwl/tmpdoetk_3r/stgd649e430-caa8-491f-8621-6a2d6c67dcb9/small.ERR034597_1.fastq.trim.1P.fastq /gnu/tmp/cwl/tmpdoetk_3r/stg8330a0f5-751e-4685-911e-52a5c93ecded/small.ERR034597_2.fastq.trim.2P.fastq
