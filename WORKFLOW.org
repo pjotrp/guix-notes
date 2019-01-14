@@ -20,34 +20,6 @@ reproducibility with provenance and improved security.
 /Note: this work was mostly executed during the Biohackathon 2018 in
 Matsue, Japan/
 
-* Table of Contents                                                     :TOC:
- - [[#introduction][Introduction]]
-   - [[#common-workflow-language-cwl][Common Workflow Language (CWL)]]
-   - [[#ipfs][IPFS]]
-   - [[#gnu-guix][GNU Guix]]
-   - [[#why-content-addressable][Why content-addressable?]]
- - [[#getting-started][Getting started]]
-   - [[#gnu-guix-installation][GNU Guix installation]]
-   - [[#ipfs-and-cwl-installation][IPFS and CWL installation]]
-   - [[#short-recap][Short recap]]
- - [[#the-workflow][The workflow]]
-   - [[#choosing-a-cwl-workflow][Choosing a CWL workflow]]
-   - [[#add-the-data-sources][Add the data sources]]
-   - [[#run-cwl-script][Run CWL script]]
-   - [[#trimmomatic-adding-a-binary-blob-to-gnu-guix][trimmomatic: adding a binary blob to GNU Guix]]
-   - [[#bwa-adding-bwa-to-the-profile][bwa: adding bwa to the profile]]
- - [[#prove-results-are-deterministic][Prove results are deterministic]]
- - [[#capture-the-provenance-graph][Capture the provenance graph]]
-   - [[#gnu-guix-software-graph][GNU Guix software graph]]
-   - [[#cwl-provenance-graph][CWL provenance graph]]
- - [[#containerised-run-of-workflow][Containerised run of workflow]]
-   - [[#a-gnu-guix-cwl-workflow][A GNU Guix CWL workflow]]
-   - [[#a-full-docker-container][A full Docker container]]
- - [[#future-work][Future work]]
- - [[#discussion][Discussion]]
- - [[#extra-notes][Extra notes]]
-   - [[#create-dependency-graph][Create dependency graph]]
-   - [[#create-a-docker-container][Create a Docker container]]
 
 ** Common Workflow Language (CWL)
 
