@@ -35,6 +35,7 @@ Matsue, Japan/
    - [[#add-the-data-sources][Add the data sources]]
    - [[#run-cwl-script][Run CWL script]]
    - [[#trimmomatic-adding-a-binary-blob-to-gnu-guix][trimmomatic: adding a binary blob to GNU Guix]]
+   - [[#bwa-adding-bwa-to-the-profile][bwa: adding bwa to the profile]]
  - [[#prove-results-are-deterministic][Prove results are deterministic]]
  - [[#capture-the-provenance-graph][Capture the provenance graph]]
    - [[#gnu-guix-software-graph][GNU Guix software graph]]
@@ -119,9 +120,9 @@ data - a key property of any reproducible pipeline. There can be *no*
 ambiguity about file names and what they represent. Files can not
 *change* without the file name changing.
 
-Similarly, every GNU Guix software reference includes a hash over its
-content. The reference to a fastq binary executable, for example,
-looks like
+Similarly, every GNU Guix software reference includes a hash computed
+over its inputs which includes the source code and configuration. The
+reference to a fastq binary executable, for example, looks like
 
 #+BEGIN_SRC bash
 /gnu/store/fijv5bqhf8xmzcys2s70fqvp8xi9vn6m-fastqc-0.11.5/bin/fastqc.
@@ -404,7 +405,8 @@ becomes
 The http fetches can be replaced later with a direct IPFS call which
 will fetch files transparently from the public IPFS somewhere - much
 like bit torrent does - and cache locally. We will need to add that
-support to =cwltools= so we can write something like
+support to =cwltools= (which can possibly be done as a plugin) so we can write
+something like
 
 : path: ipfs://QmR81HRaDDvvEjnhrq5ftMF1KRtqp8MiwGzwZnsC4ch1tE
 
@@ -484,7 +486,7 @@ unzip -t /gnu/store/pkjlw42f5ihbvx2af6macinf290l3197-Trimmomatic-0.38.zip
   we'll copy it into =lib/share/jar=
 + After installation the jar will be available in the profile under that directory path
 
-A definition therefore looks like:
+A (paraphrased) YAML definition therefore looks like:
 
 #+BEGIN_SRC yaml
 - fetch:
@@ -522,6 +524,8 @@ cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-wor
 #+END_SRC
 
 The GUIX_PACKAGE_PATH points into the workflow directory where I created the package.
+
+** bwa: adding bwa to the profile
 
 In the next step the workflow failed because bwa was missing, so added bwa with Guix
 
@@ -633,7 +637,7 @@ difference is not caused by something else? This is why the
 [[https://reproducible-builds.org/][reproducible builds]] project exist of which Guix is a member. See also
 [[http://savannah.gnu.org/forum/forum.php?forum_id=8407][GNU Guix Reproducible builds: a means to an end]].
 
-The CWL runner does not have such an option (yet). I ran it by hand three times.
+The referenc CWL runner does not have such an option (yet). I ran it by hand three times.
 The first time capture the MD5 values with
 
 : find . -type f -print0 | xargs -0 md5sum > ~/md5sum.txt
@@ -732,18 +736,23 @@ hints:
 #+END_SRC
 
 The Docker link is a 'hint' which means the CWL runner will try to
-fetch the image using Docker by default. Without Docker (the
+fetch the image using Docker by default. Without enabling Docker (the
 --no-container switch), local installations of tools get preferential
 treatment. So, apart from downloading a separate Docker image for
 every tool (and every time on a HPC compute node) we also have the
-risk of tools 'bleeding' in from the local environment
+risk of tools 'bleeding' in from the local environment, depending on
+how the CWL runner is behaving/deployed. This is because software
+paths are not rigourously fixated in CWL scripts - it has to be
+handled by then environment. One way to handle this is by using
+a GNU Guix container.
 
 ** A GNU Guix CWL workflow
 
-To ascertain no tools bleed in to our workflow from the underlying
-system AND to make sure we don't miss out on any dependencies we can
-run our workflow inside a GNU Guix container. This is not a Docker
-container - more on that in the next section. Let's create a container.
+To fixate dependencies AND to ascertain no tools bleed in to our
+workflow from the underlying system AND to make sure we don't miss out
+on any dependencies we can run our workflow inside a GNU Guix
+container. This is not a Docker container - more on that in the next
+section. Let's create a container.
 
 The original command was
 
