@@ -1014,7 +1014,6 @@ And the full [dependency graph](http://biogems.info/cwltool-package.pdf) for cwl
 guix graph  --type=references cwltool |dot -Tpdf > cwltool-references.pdf
 ```
 
-
 <a id="org475d172"></a>
 
 ## Create a Docker container
@@ -1022,3 +1021,6 @@ guix graph  --type=references cwltool |dot -Tpdf > cwltool-references.pdf
 ```sh
 guix pack -f docker cwltool trimmomatic-jar bwa fastqc go-ipfs curl
 ```
+
+This creates a tar ball which can be loaded into Docker and run - see also
+my [Guix notes](https://gitlab.com/pjotrp/guix-notes/blob/master/CONTAINERS.org).
