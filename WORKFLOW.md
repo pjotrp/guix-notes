@@ -102,14 +102,27 @@ available through GNU Guix.
 
 ## GNU Guix
 
-[GNU Guix](http://gnu.org/software/guix) is the package manager of the GNU Project. Originally Guix
-forked the build/install daemon from the [Nix project](https://nixos.org/nix/). Guix has morphed into a
-substantial project in its own right with its own unique packaging
-system and related tools and with hundreds of committers and roughly
-9,000 packages including a wide range of bioinformatics packages. GNU
-Guix can be deployed on any existing Linux distribution (I use Debian)
-and provides rigorous and robust controls of dependency graphs.
+[GNU Guix](http://gnu.org/software/guix) is the package manager of the
+GNU Project.  The Guix project originated from the work done on the
+[Nix](https://nixos.org/nix/) package manager. There are some
+misconceptions here.  In a way, Guix is to Nix what LDC is to Clang:
+both use the same low-level mechanisms (build daemon, LLVM), both
+share the same functional paradigm of software deployment, but the
+rest of the implementation and philosophy is different. There is no
+anymosity between the projects and they still share work and
+ideas. Both packagers give full control over the software dependency graph and
+aim for software deployment done right with killer features.
 
+Today, GNU Guix (heading for 1.0 release) is a substantial project
+with its own unique packaging system and related tools and with
+hundreds of committers and roughly 9,000 packages including a wide
+range of bioinformatics packages. GNU Guix can be deployed on any
+existing Linux distribution without interference (I use Debian) and
+provides rigorous and robust control of the dependency graph.
+
+We deploy some massively complicated software deployments using
+development, testing, staging and production environments with and
+without containers. Because of GNU Guix I can sleep at night :).
 
 <a id="orgd727637"></a>
 
