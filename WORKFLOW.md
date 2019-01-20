@@ -578,7 +578,7 @@ env GUIX_PACKAGE_PATH=../hacchy1983-CWL-workflows/ \
 cwltool --no-container Workflows/test-workflow.cwl Jobs/small.ERR034597.test-workflow.yml
 ```
 
-The GUIX<sub>PACKAGE</sub><sub>PATH</sub> points into the workflow directory where I created the package.
+The GUIX\_PACKAGE\_PATH points into the workflow directory where I created the package.
 
 
 <a id="orgcac9712"></a>
@@ -971,9 +971,13 @@ option for checking determinism (run workflows multiple times and
 check results), add support for native IPFS (a Python IPFS
 [implementation](https://github.com/ipfs/py-ipfs-api) exists, alternatively [IPFS fuse](https://github.com/ipfs/go-ipfs/blob/master/docs/fuse.md) could be used) and add
 some support for GNU Guix profiles - one single variable pointing in
-the GUIX<sub>PROFILE</sub> path - so it becomes even easier to create
+the Guix profile path - so it becomes even easier to create
 deterministic software deployments that are built from source,
 transparent and recreatable for eternity (which is a very long time).
+
+One interesting development is that IPFS might be integrated with GNU
+Guix to make it easier to share data, software source tar balls and
+binary software deployment.
 
 Docker has had a good run over the last few years, but with respect to these last two points –
 transparency and recreatability – Docker really falls short. A Docker image is a binary
