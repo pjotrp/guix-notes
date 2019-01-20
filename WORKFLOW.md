@@ -797,17 +797,23 @@ hints:
     dockerPull: 'quay.io/biocontainers/fastqc:0.11.7--pl5.22.0_2'
 ```
 
-The Docker link is a 'hint' which means the CWL runner will try to
-fetch the image using Docker by default. Without enabling Docker (the
-&#x2013;no-container switch), local installations of tools get preferential
-treatment. So, apart from downloading a separate Docker image for
-every tool (and every time on a HPC compute node) we also have the
-risk of tools 'bleeding' in from the local environment, depending on
-how the CWL runner is behaving/deployed. This is because software
-paths are not rigourously fixated in CWL scripts - it has to be
-handled by then environment. One way to handle this is by using
-a GNU Guix container.
+CWL has no policy on software deployment. It is up to the user and the
+CWL implementation to install and find the software. The idea is that
+workflows and pipelines can be shared more easily when 'hard' software
+requirements are not specified. This, arguably, is a feature. For our
+purpose of reproducibility, however, we need something like GNU Guix
+added into the mix.
 
+The CWL reference implementation handles Docker links as a 'hint'
+which means the CWL runner will try to fetch the image using Docker by
+default. Without enabling Docker (the &#x2013;no-container switch),
+local installations of tools get preferential treatment. So, apart
+from downloading a separate Docker image for every tool (and every
+time on a HPC compute node) we also have the risk of tools 'bleeding'
+in from the local environment, depending on how the CWL runner is
+behaving/deployed. This is because software paths are not rigourously
+fixated in CWL scripts - it has to be handled by then environment. One
+way to handle this is by using a GNU Guix container.
 
 <a id="org5fa55eb"></a>
 
