@@ -1025,6 +1025,8 @@ near future. Guix could also benefit from an online repository of channels
 and pipelines similar to [view.commonwl.org](https://view.commonwl.org/workflows/github.com/nci-gdc/gdc-dnaseq-cwl/blob/0c1a40ea1efb1656644ccec0b7abe659539340e7/workflows/bamfastq_align/transform.cwl). Very useful. Kudo's to the
 creators.
 
+Feel free to reach out to me if you want to work on reproducible workflows.
+
 
 <a id="org360747a"></a>
 
@@ -1063,3 +1065,12 @@ guix pack -f docker cwltool trimmomatic-jar bwa fastqc go-ipfs curl
 
 This creates a tar ball which can be loaded into Docker and run - see also
 my [Guix notes](https://gitlab.com/pjotrp/guix-notes/blob/master/CONTAINERS.org).
+
+# Acknowledgements
+
+Quite a number of people read the draft of this BLOG. I particularly
+wish to thank Toshiaki Katayama and the Biohackathon in Japan for
+creating the opportunity to work on this topic; Ludovic Courtès and
+Ricardo Wurmus of the GNU Guix project for comments and suggestions;
+Michael Crusoe of the CWL project for comments and suggestions; and
+Prof. Rob W. Williams for textual edits and overall support.
