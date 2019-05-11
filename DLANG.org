@@ -1,6 +1,6 @@
-* D Language support in GNU Guix
+* Packaging D Language support in GNU Guix
 
-(WIP)
+/Fixing complicated packages with the D compiler as an example/
 
 ** Packaging ldc
 
@@ -13,6 +13,24 @@ The main trick is to have a fast turn around time when debugging
 failing tests.
 
 *** Building ldc compiler and phobos
+
+Note D's ldc2 compiler now uses the gold linker by default. This has
+caused me some headaches because it does not honour LIBRARY_PATH. The
+workaround is to set
+
+: export LD_LIBRARY_PATH=$LIBRARY_PATH
+
+in the build system. This can be done with something like
+
+: (setenv "LD_LIBRARY_PATH" (getenv "LIBRARY_PATH"))
+
+only problem is that the path won't get recognized at runtime. This
+is why I am defaulting to ld for now.
+
+Also it may be wise with gold to default to the
+--no-allow-shlib-undefined switch, so it complains when it can't find
+a shared library at link time.
+
 
 Build the package with -K option.
 
@@ -70,13 +88,29 @@ in all build dependencies)
 #+BEGIN_SRC sh
 ~/.config/guix/current/bin/guix environment -C guix --ad-hoc ldc clang llvm unzip gdb ncurses vim git make cmake which less tzdata binutils
 cd ldc-$ver
+source ./environment-variables
 rm -rf CMakeFiles CMakeCache.txt
 cmake .
 make clean
 make -j 24
 #+END_SRC
 
-to run the tests
+alternatively, you may use the pre-inst-env from a prebuilt guix directory which may be in sync with
+your new packages.
+
+Note with ldc-1.14 I had to touch two files:
+
+#+BEGIN_SRC
+touch /tmp/guix-build-ldc-1.14.0.drv-8/ldc-1.14.0/.git/packed-refs
+touch /tmp/guix-build-ldc-1.14.0.drv-8/ldc-1.14.0/CMakeFiles/git-data/head-ref
+#+END_SRC
+
+which makes sure cmake . passes.
+
+and I had to set LD_LIBRARY_PATH to point to the LLVM lib dir. Somehow
+that was not the same one used by the build system.
+
+To run the tests
 
 : cmake .
 

@@ -1013,6 +1013,8 @@ not get applied. In this case comment out
 
 And rerun the Error log to get a full list of errors.
 
+**** Force a build to stop
+
 You may also want to force the build to stop right after unpacking by
 injecting
 
@@ -1029,6 +1031,18 @@ Now the build will fail with
 
 : ERROR: In procedure #f:
 : note: keeping build directory `/tmp/guix-build-elixir-1.5.1.drv-5'
+
+Another option is to inject (#f)
+
+#+BEGIN_SRC scheme
+(replace 'build
+  (lambda _
+    (invoke "bash" "-c" "set")
+    (#f)
+    (invoke "./build.sh")))
+#+END_SRC
+
+will halt after showing the environment
 
 *** Use git to create a patch
 
@@ -1364,6 +1378,20 @@ If that does not work you can also run a command that fails, such as
 (write "HELLO WORLD")
 (chdir "END HERE")
 #+end_src
+
+*** Show environment settings
+
+Another useful hack is to show the environment
+
+#+BEGIN_SRC scheme
+(replace 'build
+  (lambda _
+    (setenv "LD_LIBRARY_PATH" (getenv "LIBRARY_PATH"))
+      (invoke "bash" "-c" "set")
+      (...)
+      (invoke "./build.sh")))
+#+END_SRC
+
 
 ** Using -K (keep build) to create a patch
 
