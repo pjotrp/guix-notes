@@ -8,6 +8,7 @@
    - [[#from-an-existing-gnu-guix-installation][From an existing GNU Guix installation]]
  - [[#create-build-group-and-users][Create build group and users]]
  - [[#set-the-store-permissions][Set the store permissions]]
+ - [[#mounting-gnu-elsewhere][Mounting /gnu elsewhere]]
  - [[#start-the-gnu-guix-daemon][Start the GNU Guix daemon]]
  - [[#set-the-key][Set the key]]
  - [[#update-the-package-list-guix-pull][Update the package list (guix pull)]]
@@ -175,6 +176,16 @@ This part is normally done automatically by the guix-daemon
 #+begin_src sh   :lang bash
     chgrp guixbuild -R /gnu/store
 #+end_src sh   :lang bash
+
+* Mounting /gnu elsewhere
+
+The directory /gnu/store contains all packages. This is by design so
+that contents are reproducible (all paths a fully coded, there is no
+use for relative paths). Sometimes you want to move /gnu/store
+somewhere else. This is possble using mount --bind. This /etc/fstab
+entry will work
+
+: /export/gnu/store /gnu/store none defaults,bind 0 0
 
 * Start the GNU Guix daemon
 

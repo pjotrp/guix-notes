@@ -11,6 +11,18 @@ involved and slow.
 Mostly thanks to Ricardo Wurmus' work GNU Guix comes to the rescue
 with rolling upgrades of both R and packages.
 
+* Using R
+
+After installing Guix you can install and run R with
+
+: guix package -i r
+: . ~/.guix-profile/etc/profile
+: R
+
+* R Shiny
+
+: guix package -i r r-shiny
+
 * Importing an existing CRAN module
 
 You can even have GNU Guix export CRAN and Bioconductor packages for
