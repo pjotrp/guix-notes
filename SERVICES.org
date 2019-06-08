@@ -1,0 +1,57 @@
+#+TITLE: GNU Guix configuration using services
+
+* Table of Contents                                                     :TOC:
+ - [[#introduction][Introduction]]
+ - [[#configuration-of-sshd][Configuration of sshd]]
+
+* Introduction
+
+GNU Guix allows you to define a complete system (OS + software +
+configuration + services) as a formula. This means you can roll out a server in a
+reproducible way from the ground up. Not only that, you can easily
+keep different generations of server installs around. It is an
+attractive proposition. The documentation of services can be found
+[[https://www.gnu.org/software/guix/manual/en/guix.html#Services][here]].
+
+By default GNU Guix uses [[https://www.gnu.org/software/shepherd/manual/shepherd.html][GNU Shepherd]] instead of Systemd or SysV. In
+this document we'll use both Shepherd and SystemD - at least on
+Debian. You can use one, the other or both (I think). Like SystemD,
+GNU Shepherd is a daemon. In contrast, GNU Shepherd has the
+interesting property that it is Scheme Lisp (see also Scheme Lisp
+everywhere) and does not contain the 'magic' of SystemD. I.e.,
+Shepherd has advanced functionality but does not try to guess what you
+want to do and is therefore *predictable* (see also the section on
+design decisions in the Shepherd manual). The Shepherd may be a better
+proposition for servers over SystemD (or SysV). Production GNU Guix
+servers typically run GNU Shepherd - it is well tested.
+
+* Configuration of sshd
+
+A default service for sshd is defined in [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/services/ssh.scm][/gnu/services/ssh.scm]]. Don't
+be impressed by the code because it handles a lot of options. Main
+thing to realize is that it is part of GNU Guix itself, part of the
+main [[https://www.gnu.org/software/guix/manual/en/guix.html#Services][documentation]] (see openssh-configuration) and that there are no
+secrets: it is all hackable. Going through that document you may appreciate
+how configurable a GNU Guix system is!
+
+Back to [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/services/ssh.scm][/gnu/services/ssh.scm]]: the first part defines data structures
+(records) and the second part generates the configuration files for
+different types of ssh servers.  Just focus on the Openssh definition
+which defines a record-type, an sshd user in openssh-accounts,
+directoris such as /etc/ssh in openssh-activation, and formats
+/etc/ssh/opensshd.conf in openssh-config-file. Finally it adds a
+simple Shepherd service in openssh-shepherd-service.
+
+At this point we have studied the part that builds the service
+configuration.  To invoke it use [[https://www.gnu.org/software/guix/manual/en/guix.html#Invoking-guix-system][guix system]] which can provide a
+working definition in the store and even bootable systems, VMs and
+Docker containers. In the GNU Guix [[https://www.gnu.org/software/guix/manual/en/guix.html#System-Configuration][documentation]] you can find full
+definitions of such a bootable system.
+
+For this exercise we simply want to *generate* an sshd configuration
+that can be run independently. This may be a good way to start using
+Guix configurations that (eventually) evolve in a full system
+definition. GNU Guix does not support this out of the box yet (see
+also this [[https://lists.gnu.org/archive/html/guix-devel/2018-08/msg00085.html][thread]]. Even so, there is little magic in reusing the code
+for these configuration definitions because they are modular. Let's
+try and do that!
