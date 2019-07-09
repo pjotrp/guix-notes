@@ -12,6 +12,7 @@
    - [[#defining-a-variable][Defining a variable]]
    - [[#inside-functions][Inside functions]]
    - [[#more-about-guilescheme][More about Guile/scheme]]
+   - [[#emacs-helpers][Emacs helpers]]
  - [[#guix-the-language][Guix, the language]]
    - [[#expressions][Expressions]]
    - [[#bags][Bags]]
@@ -303,6 +304,18 @@ function calls for the language.
 Running Guile stand-alone is easy using a command line REPL or inside emacs.
 That allows you to play with language features, as well as call
 GNU Guix functionality directly.
+
+** Emacs helpers
+
+Emacs has a range of packages to deal with Lisp syntax. My
+favorites are:
+
+- [[https://www.emacswiki.org/emacs/RainbowDelimiters][Rainbow delimiters]] (color brackets)
+- Guile mode
+- Paredit (auto bracket completion)
+- Geiser (REPL)
+
+More tips [[https://www.gnu.org/software/guile/manual/html_node/Using-Guile-in-Emacs.html][here]].
 
 * Guix, the language
 
