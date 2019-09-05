@@ -567,20 +567,20 @@ Make sure you have a recent version.
 And create the build environment using a recent guix with
 
 #+begin_src sh   :lang bash
-guix environment -C guix --ad-hoc bash vim
+guix environment -C guix --ad-hoc bash vim guile-json
 #+end_src
 
 The -C makes it a container. If you have run a guix pull you can do
 
 #+begin_src sh   :lang bash
-~/.config/guix/current/bin/guix environment -C guix --ad-hoc bash vim
+~/.config/guix/current/bin/guix environment -C guix --ad-hoc bash vim guile-json
 #+end_src
 
 Tip: once you have built guix successfully you can also use the
 ./pre-inst-env prefix:
 
 #+begin_src sh   :lang bash
-./pre-inst-env guix environment -C guix --ad-hoc bash vim
+./pre-inst-env guix environment -C guix --ad-hoc bash vim guile-json
 #+end_src sh   :lang bash
 
 i.e., alternatively you can use any guix on your system and even
