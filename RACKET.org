@@ -1,0 +1,83 @@
+* Racket Scheme
+
+These days I write more and more code in scheme. Guix support for Racket
+scheme and Guile scheme is rather good (unsurprisingly perhaps). For Racket
+simply do
+
+: guix package -i racket
+
+I usually create a special profile with
+
+: guix package -i racket -p ~/opt/racket
+
+and load the environment with
+
+: source ~/opt/racket/profile
+
+Works a treat. All tools should work.
+
+** Link against (C) libraries
+
+One thing that requires an extra step is compilation of external C
+libs. An example could read
+
+#+BEGIN_SRC C
+#include "escheme.h"
+
+Scheme_Object *scheme_initialize(Scheme_Env *env) {
+  Scheme_Env *mod_env;
+  mod_env = scheme_primitive_module(scheme_intern_symbol("hi"),
+                                    env);
+  scheme_add_global("greeting",
+                    scheme_make_utf8_string("hello"),
+                    mod_env);
+  scheme_finish_primitive_module(mod_env);
+  return scheme_void;
+}
+
+Scheme_Object *scheme_reload(Scheme_Env *env) {
+  return scheme_initialize(env); /* Nothing special for reload */
+}
+
+Scheme_Object *scheme_module_name() {
+  return scheme_intern_symbol("hi");
+}
+#+END_SRC
+
+This is because crti.o is missing, e.g. following the docs on [[https://docs.racket-lang.org/inside/Writing_Racket_Extensions.html][3m extensions]]
+brings up the error
+
+#+BEGIN_SRC
+raco ctool --3m --ld hw.so hw_3m.o
+  ld: cannot find crti.o: No such file or directory
+#+END_SRC
+
+crti.o is part of the glibc package which needs to be added to the profile. One
+quick hack is to find the glibc in racket and add that to the path
+
+#+BEGIN_SRC
+ldd ~/opt/racket/bin/racket
+        /gnu/store/h90vnqw0nwd0hhm1l5dgxsdrigddfmq4-glibc-2.28/lib/ld-linux-x86-64.so.2
+export LIBRARY_PATH=/gnu/store/h90vnqw0nwd0hhm1l5dgxsdrigddfmq4-glibc-2.28/lib
+raco ctool --xform hw.c
+raco ctool --3m --cc hw.3m.c
+raco ctool --3m --ld hw.so hw_3m.o
+#+END_SRC
+
+now builds. The module can be loaded with
+
+: > (load-extension "hw.so")
+: "hi"
+
+Note you may have to update the module search path first btw with
+something like
+
+: (current-directory (build-path "/home/user/racket"))
+
+note that DrRacket (for some reason) may start in $HOME. To check
+print the path with
+
+: (current-directory)
+
+To create a proper module read the [[https://docs.racket-lang.org/inside/Writing_Racket_Extensions.html][docs]]. You can also use the [[https://docs.racket-lang.org/foreign/intro.html][FFI]]
+which allows you to bind C functions natively without much work.
