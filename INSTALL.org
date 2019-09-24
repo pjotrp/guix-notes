@@ -213,13 +213,14 @@ To enable binary installs you need to authorize it with a key which can
 be found with guix
 
 #+begin_src sh   :lang bash
-  guix archive --authorize < ~/.guix-profile/share/guix/hydra.gnu.org.pub
+  guix archive --authorize < ~/.config/guix/current/share/guix/ci.guix.gnu.org.pub
 #+end_src sh   :lang bash
 
-Note that you can also call GNU Guix from its direct path, e.g.
+Make sure to use the right key file.  Note also that you can also call GNU
+Guix from its direct path, e.g.
 
 #+begin_src sh   :lang bash
-  /gnu/store/8lays(...)-guix-0.8.47739f5/bin/guix archive --authorize < /gnu/store/8lay(...)-guix-0.8.47739f5/share/guix/hydra.gnu.org.pub
+  /gnu/store/8lays(...)-guix-0.8.47739f5/bin/guix archive --authorize < /gnu/store/8lay(...)-guix-0.8.47739f5/share/guix/keyfile
 #+end_src sh   :lang bash
 
 * Update the package list (guix pull)
