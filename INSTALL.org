@@ -49,7 +49,7 @@
    - [[#error-in-procedure-scm-error-no-code-for-module-gcrypt-hash][ERROR: In procedure scm-error: no code for module (gcrypt hash)]]
    - [[#packagesscm-error][packages.scm error]]
    - [[#error-while-loading-shared-libraries-libgslso23-cannot-open-shared-object-file-no-such-file-or-directory][error while loading shared libraries: libgsl.so.23: cannot open shared object file: No such file or directory]]
-   - [[#updating-guix-hell][updating Guix hell]]
+   - [[#updating-guix---when-all-goes-wrong][updating Guix - when all goes wrong]]
 
 * Introduction
 
@@ -1042,10 +1042,15 @@ good thing to try anyway.
 ** error while loading shared libraries: libgsl.so.23: cannot open shared object file: No such file or directory
 
 You are probably not linking with ld-wrapper but are using a native /bin/ld
-** updating Guix hell
+** updating Guix - when all goes wrong
 
-When you get stuck with Guix it is possible to unpack the binary installation
-tarball and copy the files in gnu/store into your own store. Now you can
-run that guix from there
+When you get stuck with Guix it may be possible to unpack the binary
+installation tarball from the main website and copy the files in
+gnu/store into your own store. Now you can run that guix from there
 
 : /gnu/store/hash-guix-version/bin/guix package -i guix
+
+The resident database may or may not work (the database format does
+not change often). If the database fails, you can overwrite the
+database files in /var/guix, but note that when you run a garbage
+collect most files are not tracked and will be deleted.
