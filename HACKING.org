@@ -12,6 +12,7 @@
    - [[#defining-a-variable][Defining a variable]]
    - [[#inside-functions][Inside functions]]
    - [[#more-about-guilescheme][More about Guile/scheme]]
+   - [[#emacs-helpers][Emacs helpers]]
  - [[#guix-the-language][Guix, the language]]
    - [[#expressions][Expressions]]
    - [[#bags][Bags]]
@@ -25,6 +26,7 @@
    - [[#dependencies][Dependencies]]
  - [[#building-the-package][Building the package]]
  - [[#debugging-the-package][Debugging the package]]
+   - [[#log-files][Log files]]
    - [[#environment][Environment]]
    - [[#inside-guile-repl][Inside Guile (REPL)]]
    - [[#using-the-debugger][Using the debugger]]
@@ -33,6 +35,7 @@
    - [[#in-progress-using-guile-in-emacs-geiser][IN PROGRESS Using guile in emacs (geiser)]]
  - [[#fixing-problems][Fixing problems]]
    - [[#using-gdb-the-debugger-to-find-issues][Using gdb (the debugger) to find issues]]
+   - [[#creating-patches-for-gnu-guix][Creating patches for GNU Guix]]
  - [[#installing-the-package][Installing the package]]
  - [[#using-the-search-path][Using the search path]]
  - [[#making-a-patch-and-submit-to-the-guix-project][Making a patch and submit to the Guix project]]
@@ -43,6 +46,7 @@
  - [[#workflow-for-packaging][Workflow for packaging]]
  - [[#hacking-tips][Hacking tips]]
    - [[#the-guile-write-function][The guile write function]]
+   - [[#using--k-keep-build-to-create-a-patch][Using -K (keep build) to create a patch]]
  - [[#hints][Hints]]
    - [[#using-emacs][Using emacs]]
    - [[#filing-a-bug][Filing a bug]]
@@ -301,6 +305,18 @@ Running Guile stand-alone is easy using a command line REPL or inside emacs.
 That allows you to play with language features, as well as call
 GNU Guix functionality directly.
 
+** Emacs helpers
+
+Emacs has a range of packages to deal with Lisp syntax. My
+favorites are:
+
+- [[https://www.emacswiki.org/emacs/RainbowDelimiters][Rainbow delimiters]] (color brackets)
+- Guile mode
+- Paredit (auto bracket completion)
+- Geiser (REPL)
+
+More tips [[https://www.gnu.org/software/guile/manual/html_node/Using-Guile-in-Emacs.html][here]].
+
 * Guix, the language
 
 GNU Guix is not a language per se. But as they say, LISP is used to
@@ -377,9 +393,15 @@ The version is located in the package definition. E.g.
 
 ** Updating the HASH value
 
-#+begin_src scheme
+#+begin_src sh
   guix download http://cache.ruby-lang.org/pub/ruby/2.1/ruby-2.1.3.tar.gz
 #+end_src
+
+if you have downloaded a package or checked out a git repo you can also do
+
+#+begin_src sh
+~/.config/guix/current/bin/guix hash /gnu/store/ddg95a3q30qiiqz4gdkmmldj46s9bfmp-gemma-gn2-0.98-6b1e007-checkout -r
+#+end_src sh
 
 ** Use import to convert other packages from GNU, pypi, rubygems and Nix
 
@@ -452,6 +474,38 @@ the destination
 #+end_src
 
 * Debugging the package
+** Log files
+
+You can find the log files generated during the build process with
+
+: guix build --log-file something
+
+Ricardo wrote: does this also work for failed builds - without
+rebuilding it again?  It does seem to work.  To test this I added
+(error "foo") to a build phase in the “diamond” package and ran
+
+:   guix package -i diamond
+
+This ends with
+
+:   Build failed:  /gnu/store/wk9qbhmdzs62mp40casrndcgm3p50m3b-diamond-0.9.22.drv
+:   guix package: error: build failed: build of `/gnu/store/wk9qbhmdzs62mp40casrndcgm3p50m3b-diamond-0.9.22.drv' failed
+
+So I ran
+
+:   guix build --log-file /gnu/store/wk9qbhmdzs62mp40casrndcgm3p50m3b-diamond-0.9.22.drv
+
+which gave me
+
+:   /var/log/guix/drvs/wk/9qbhmdzs62mp40casrndcgm3p50m3b-diamond-0.9.22.drv.bz2
+
+which contains the build log for this failed build, including the "foo"
+error message.
+
+I would like this error log file location to be shown unprompted, but
+I think we would need to change build.cc, so that BuildError prints it
+in addition to the error message.
+
 ** Environment
 
 Before debugging it is important to have a clean environment.
@@ -947,6 +1001,110 @@ Program received signal SIGSEGV, Segmentation fault.
 
 You can spot the problem is at line number 567.
 
+** Creating patches for GNU Guix
+
+Sometimes you need to modify a source package to compile it on
+Guix. Here I show my way of creating a patch. This patch with the
+error log you may want to send upstream to the authors/maintainers,
+otherwise it will need fixing with every update/release.
+
+*** Error log
+
+First step is to build the package as is with Guix and capture the output so
+it can be shared. Building from the source tree
+
+: ./pre-inst-env guix package -i elixir --no-grafts -K &> error.out
+
+You may remove the boiler plate in that file.
+
+*** Start from a pristine source tree
+
+To make sure no patches were applied modify the package so the patch does
+not get applied. In this case comment out
+
+: (patches (search-patches "elixir-disable-failing-tests.patch"))))
+
+And rerun the Error log to get a full list of errors.
+
+**** Force a build to stop
+
+You may also want to force the build to stop right after unpacking by
+injecting
+
+#+begin_src scheme
+    (arguments
+     `(
+       #:phases
+        (modify-phases %standard-phases
+         (add-before 'build 'break (lambda () (#f)))
+         ...
+#+end_src
+
+Now the build will fail with
+
+: ERROR: In procedure #f:
+: note: keeping build directory `/tmp/guix-build-elixir-1.5.1.drv-5'
+
+Another option is to inject (#f)
+
+#+BEGIN_SRC scheme
+(replace 'build
+  (lambda _
+    (invoke "bash" "-c" "set")
+    (#f)
+    (invoke "./build.sh")))
+#+END_SRC
+
+will halt after showing the environment
+
+*** Use git to create a patch
+
+Initialize git using a first terminal
+
+: cd /tmp/guix-build-elixir-1.5.1.drv-5
+: cd elixir*
+: git init
+
+Add the files you are modifying
+
+: git add ./lib/elixir/test/elixir/kernel/dialyzer_test.exs
+: git add ./lib/elixir/test/elixir/kernel/cli_test.exs
+: git add ./lib/elixir/test/elixir/system_test.exs
+: git commit -a -m start
+
+Optionally apply the previous patches by hand - we do this now so
+the become visible in the new patch.
+
+: patch -p1 < /tmp/elixir-disable-failing-tests.patch
+
+Hopefully it mostly takes it. Now fix the problems that occur in the
+source tree and create a new patch using git
+
+: git diff > /tmp/elixir-disable-failing-tests-5.patch
+
+Now plug this patch into the source tree again, enable patch
+application, and retry above steps.
+
+Note: patching can be done incrementally and patches can be merged
+into one file (by hand). When you get better at this you can probably
+save on a few build cycles.
+
+Note: *always* send the errors and patch(es) upstream. Even if they do
+nothing about it, at least you have recorded the problems for
+posterity. Ideally, tag the upstream issue to your GNU Guix patch.
+
+*** Errors in GNU Guix alone
+
+Things get a bit complicated when a build passes in the Keep
+directory, but fails in GNU Guix. This usually has to do with files
+being copied into disallowed directories or network access. Just be
+smart about reading the code and patching it. Worst case you'll need
+to build inside a container/VM to find and fix the problems.
+
+: ./pre-inst-env guix environment erlang -C --ad-hoc erlang vim make git glibc-utf8-locales --no-grafts --pure --share=/tmp/guix-build-elixir-1.5.1.drv-12 --network
+: export LC_ALL=en_US.UTF-8
+: cd /tmp/guix-build-elixir-1.5.1.drv-12/elixir-1.5.1/
+
 * Installing the package
 
 Once the build works you can use standard guix to install the package
@@ -991,6 +1149,8 @@ And nowadays one can also use --search-paths=suffix or
 * Making a patch and submit to the Guix project
 ** Using the debbugs interface
 
+debbugs help can be found [[https://www.debian.org/Bugs/Developer][here]].
+
 Bugs can be submitted by E-mail to bug-guix@gnu.org after checking
 https://debbugs.gnu.org/cgi/pkgreport.cgi?package=guix. Use the
 parameters as described in [[https://www.debian.org/Bugs/Reporting][bug reporting]].
@@ -1000,12 +1160,13 @@ can be seen at https://debbugs.gnu.org/cgi/pkgreport.cgi?package=guix-patches or
 https://bugs.gnu.org/guix-patches.  A mailing list is attached
 you can [[https://lists.gnu.org/mailman/listinfo/guix-patches][subscribe]] to.
 
-In emacs (guix package -i emacs-debbugs) the same list can be browsed
-with
+In emacs (using guix package -i emacs-debbugs) the same list can be
+browsed with
 
 :   M-x debbugs-gnu-search <RET> guix-patches
 
- or
+or
+
 :   C-u M-x debbugs-gnu <RET> <RET> guix-patches <RET> n y
 
 Possibly you need to add this to your .emacs configuration
@@ -1016,6 +1177,9 @@ Possibly you need to add this to your .emacs configuration
 
 In debbugs mode hit '?' for key-bindings.  Use the 'C' key from the
 emacs interface to tag bugs.
+
+To close a bug mail reply and modify the destination address to
+issuenumber-done@debbugs.
 
 ** The patch system
 
@@ -1097,7 +1261,9 @@ Multiple patches can be passed in with something like
 : git send-email --to=number@debbugs.gnu.org *.patch
 
 Probably a good idea to try and send the mail to yourself first.
-Don't send the same E-mail twice ;).
+Don't send the same E-mail twice ;). One example I used
+
+: git send-email --from "Pjotr Prins <pjotr.guix@thebird.nl>" --to 322??@debbugs.gnu.org ~/tmp/0001-gnu-ldc-Update-to-1.10.0.patch --suppress-cc=all --subject="[PATCH] Updating ldc to 1.10.0"
 
 To change credentials for the patch use [[https://help.github.com/articles/setting-your-email-in-git/][git config]]. Note that the
 maintainers will run something like
@@ -1219,6 +1385,35 @@ To inspect variables I may inject something like
 The last command will compile and break at runtime. Together with the -K option it helps
 trouble shooting.
 
+If that does not work you can also run a command that fails, such as
+
+#+begin_src scheme
+(write "HELLO WORLD")
+(chdir "END HERE")
+#+end_src
+
+*** Show environment settings
+
+Another useful hack is to show the environment
+
+#+BEGIN_SRC scheme
+(replace 'build
+  (lambda _
+    (setenv "LD_LIBRARY_PATH" (getenv "LIBRARY_PATH"))
+      (invoke "bash" "-c" "set")
+      (...)
+      (invoke "./build.sh")))
+#+END_SRC
+
+
+** Using -K (keep build) to create a patch
+
+Using -K you can keep the build dir after failure (induced in above
+paragraph).  You may need to patch the source code to make it to
+work. What I do is use git.  Go into the kept directory and run 'git
+init' and add files you change. That way you can generate a patch file
+that can be added to the guix source tree.
+
 * Hints
 
 Read the HACKING documentation in the Guix source tree.
@@ -1269,7 +1464,9 @@ In ice-9/eval.scm:
 
 When you get the dreaded `server certificate verification
 failed. CAfile: none CRLfile: none' you may want to fix the path to
-[[http://stackoverflow.com/questions/3777075/ssl-certificate-rejected-trying-to-access-github-over-https-behind-firewall][certificates]].
+[[http://stackoverflow.com/questions/3777075/ssl-certificate-rejected-trying-to-access-github-over-https-behind-firewall][certificates]]. Example:
+
+: fatal: unable to access 'https://git.savannah.gnu.org/git/guix.git/': server certificate verification failed. CAfile: none CRLfile: none
 
 If you already have CA certificates, you can point git to them using
 the =GIT_SSL_CAINFO= variable. In =.bashrc=:

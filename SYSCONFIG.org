@@ -3,7 +3,7 @@
 * Table of Contents                                                       :TOC:
  - [[#introduction][Introduction]]
  - [[#gnu-guix-system-configuration][GNU Guix system configuration]]
- - [[#the-sudo-package][The sudo package]]
+ - [[#the-sudo-package-an-example][The sudo package (an example)]]
  - [[#how-does-guix-configure-sudo][How does Guix configure sudo?]]
  - [[#system-configuration][System configuration]]
    - [[#example-1-tell-guix-package-to-use-config-file-from-etc][Example 1: Tell Guix package to use config file from /etc]]
@@ -21,7 +21,7 @@ computer science, a nondeterministic algorithm is an algorithm that,
 even for the same input, can exhibit different behaviors on different
 runs, as opposed to a deterministic algorithm).
 
-In this document we explore sudo configuration as it can be handled 
+In this document we explore sudo configuration as it can be handled
 by Guix. sudo is of particular interest since it requires setuid and
 is fussy about its configuration file /etc/sudoers.
 
@@ -70,7 +70,7 @@ exactly as declared.
 
 How does it work?
 
-* The sudo package
+* The sudo package (an example)
 
 The sudo package can be installed with
 
@@ -147,7 +147,7 @@ example code (again) looks like
 
 So, GuixSD knows how to set up sudo! Note that Guix, the package
 manager, is not the same as GuixSD, the system distribution, though
-the come currently in the same source code repository. 
+the come currently in the same source code repository.
 
 Guix packages, such as that for sudo and ssh are building blocks for
 GuixSD, but can also be deployed independently.  Mentioned GuixSD
@@ -246,7 +246,7 @@ and then run:
 
 : guix package --install-from-file=that-file.scm
 
-Alternatively create 
+Alternatively create
 configuration modules that make use of the GUIX_PACKAGE_PATH. One such
 example lives [[https://github.com/genenetwork/guix-bioinformatics][here]].
 
@@ -289,7 +289,7 @@ Docker) are not enough to avoid non-determinism - though they can be a
 part of the solution.
 
 GNU Guix can also be configured to check its settings on reboot or when
-running 
+running
 
 : guix system reconfigure
 

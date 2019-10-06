@@ -1,0 +1,14 @@
+#+TITLE: Deployment (rolling provisioning and orchestration)
+
+* Table of Contents                                                     :TOC:
+ - [[#introduction][Introduction]]
+ - [[#shepherd][Shepherd]]
+
+* Introduction
+
+Rolling deployment and orchestration is a holy grail in devop-land. In
+this document we pursue deployment with Guix, configuration with Guix
+and orchestration with Guix (WIP). This will be done with bare metal,
+VMs AND containers.
+
+* Shepherd

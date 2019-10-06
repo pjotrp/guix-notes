@@ -1,0 +1,148 @@
+* Python deployment is a solved problem
+
+Time I wrote about using Python deployment in [[https://en.wikipedia.org/wiki/Deployment_environment][scenarios]] of
+development, testing, staging and production, something we do on a
+grand scale. In 2018 Python is the [[https://www.tiobe.com/tiobe-index/][4th]] largest programming language in
+the world and may soon reach the top 3. Dealing with Python
+deployment, however, is less than straightforward. If you got bitten
+by Python dependencies in non-trivial scenarios, or if you find that
+Docker deployment is terribly slow, or if you need to reproduce old
+installations faithfully, or if you need to support multiple languages
+and compilers or versions thereof: you may want to continue reading
+because GNU Guix solves it all elegantly.
+
+In this writeup I focus on isolation of components which is the basis
+of a sane environment.
+
+** Let's install some software for development
+
+We are going to install software in Guix using python, python-numpy and python-sqlalchemy
+
+: guix package -p ~/opt/python-dev -i python python-numpy python-sqlalchemy
+
+here we use a secial directory ~/opt/python-dev that contains symlinks
+to all Guix references. This is a convenience so we don't have to deal
+with these funny looking HASH values ever (see below).
+
+In a shell you can pull in a profile by running
+
+: source ~/opt/python-dev/etc/profile
+
+Now python3 should be in the PATH and modules are available
+
+#+BEGIN_SRC python
+python
+
+import sqlalchemy
+import numpy
+
+--- do something
+
+#+END_SRC
+
+It just works. Now if you can create a second profile
+
+: guix package -p ~/opt/python-dev -i python2 python2-numpy python2-sqlalchemy
+
+Load that profile and you are set to run Python2. No interference with
+the previous Python3 profile.
+
+You can also use pip or pip3  to install software in your home directory:
+
+: pip3 install xxx
+
+Similarly you can use virtualenv and conda to install Python software
+(and more). Guix does not stop you from doing that, though there is a
+chance of deployments going pear shape because these tools do not give
+you full control over the dependency graph and therefore are not
+truely reproducible.
+
+The Guix way is to install software with Guix and manage all versions
+through profiles.
+
+** Guix environment
+
+** Multiple Python versions
+
+First of all GNU Guix supports multiple Python interpreters out of the box:
+
+'guix package -A python' lists 1,400 Python related packages including
+the interpreters
+
+#+BEGIN_SRC
+python  2.7.14  out,tk  gnu/packages/python.scm:143:2
+python  3.6.3   out,tk  gnu/packages/python.scm:343:2
+#+END_SRC
+
+This number reflects a module for each interpreter, so 'guix package -A numpy' lists
+
+#+BEGIN_SRC
+python-numpy    1.14.0  out     gnu/packages/python.scm:2783:2
+python2-numpy   1.8.2   out     gnu/packages/python.scm:2865:2
+python2-numpy   1.14.0  out     gnu/packages/python.scm:2783:2
+#+END_SRC
+
+interestingly there is an older version for python2-numpy in there
+because some other package (nmoldyn) requires it. This is already a
+hint of how versions can be mixed in. To see the nmoldyn dependencies
+you can run
+
+: guix graph nmoldyn|grep label
+
+and see that it has over 400 dependencies! You can draw the graph as an SVG using
+
+: ???
+
+Now we want to see the (computed) store paths with
+
+: guix graph -t bag nmoldyn
+
+which renders over 9,000 package links that this package depends on,
+including
+
+: /gnu/store/m3qrcmlrkx6ms2b5f4afidd7h2qrv994-python2-numpy-1.8.2.drv
+
+You can also check that there is a dependency on
+python2-cython.
+
+: /gnu/store/9dqb0rfj0ammn321l9bai7bp6pq12xgy-python2-cython-0.27.drv
+
+I mean, this is a really complex deployment! But if you check this way
+you can see that other packages contain many many dependencies
+too. Both python-scipy and python-matplotlib also have close to 10,000
+nodes in the dependency graph. Note that all dependencies are uniquely
+identified and tractable.
+
+In other words: GNU Guix gives you full control over the dependency graph.
+
+** These funny HASH values
+
+So, what is this funny hash value you see in the path. When I do a
+'ls /gnu/store/*python-3*/bin/python3' on my laptop I get something like:
+
+#+BEGIN_SRC
+/gnu/store/isc3rwn2picqha5m4yiqj4rj51la50pm-python-3.4.3/bin/python3
+/gnu/store/3rpnwnzfyskkmp6yqdxfxz20gm8d62ki-python-3.5.2/bin/python3
+/gnu/store/alk9r3rir93pjmv8im20f8xrvv90219z-python-3.5.2/bin/python3
+/gnu/store/3aw9x28la9nh8fzkm665d7fywxzbl15j-python-3.5.3/bin/python3
+/gnu/store/3lkypf5wnsnvkaidhw0pv7k3yjfh1r9g-python-3.6.3/bin/python3
+/gnu/store/kw5v2fvsnvdfaihrrq73fddv0fwbj7fd-python-3.6.5/bin/python3
+/gnu/store/gx7gjwr05gzbh7f2kwbwhbxrh27hvgk8-python-3.6.5/bin/python3
+#+BEGIN_SRC
+
+which implies I have multiple versions of python3 on my system and
+they do not interfere with each other. The HASH value reflects the
+unique source package that was used to compile this version (the
+source changes, the HASH changes). Not only that if dependencies
+change the HASH changes (so the last two versions may depend on
+different versions of libraries, for example) and when the build
+changes the HASH changes too (e.g., with and without SSL support, or
+maybe an optimization switch).
+
+If I install a module that depends on python-3.6.5 it will hard
+reference, for example,
+
+: /gnu/store/gx7gjwr05gzbh7f2kwbwhbxrh27hvgk8-python-3.6.5/bin/python3.
+
+This way the exact Python gets called with the exact modules that you
+specified when creating the dependency graph.

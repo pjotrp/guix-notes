@@ -1,0 +1,242 @@
+* Packaging D Language support in GNU Guix
+
+/Fixing complicated packages with the D compiler as an example/
+
+** Packaging ldc
+
+First off, packaging a compiler is a tedious job. Mostly because it
+takes a long time to build and test! Trick is to do something else at
+the same time ;). The actual steps are not that lengthy once you have
+the build under control.
+
+The main trick is to have a fast turn around time when debugging
+failing tests.
+
+*** Building ldc compiler and phobos
+
+Note D's ldc2 compiler now uses the gold linker by default. This has
+caused me some headaches because it does not honour LIBRARY_PATH. The
+workaround is to set
+
+: export LD_LIBRARY_PATH=$LIBRARY_PATH
+
+in the build system. This can be done with something like
+
+: (setenv "LD_LIBRARY_PATH" (getenv "LIBRARY_PATH"))
+
+only problem is that the path won't get recognized at runtime. This
+is why I am defaulting to ld for now.
+
+Also it may be wise with gold to default to the
+--no-allow-shlib-undefined switch, so it complains when it can't find
+a shared library at link time.
+
+
+Build the package with -K option.
+
+#+BEGIN_SRC sh
+  ./pre-inst-env guix build --no-grafts --no-substitutes ldc -K
+#+END_SRC sh
+
+Note you can see the output of the build with
+
+: cd /tmp/guix-build-ldc-$ver.drv-2
+: cat build/Testing/Temporary/LastTest.log
+
+To have a quick scan
+
+: egrep -i fail\|error Testing/Temporary/LastTest.log
+
+which for example rendered
+
+: FAIL release64 std.datetime.timezone
+: core.exception.AssertError@std/datetime/timezone.d(566):
+: assertNotThrown failed: TimeException was thrown: File /Africa/Abidjan does not exist.
+: Test Failed.
+
+
+After a build fail, change into the created dir and git init, e.g.
+
+#+BEGIN_SRC sh
+cd /tmp/guix-build-ldc-$ver.drv-2/ldc-$ver
+git init
+git add .
+git commit -a -m init
+#END_SRC
+
+So when you fix some code you can generate a patch/diff with git.
+
+: git diff
+
+set the environment in a pure fashion
+
+#+BEGIN_SRC sh
+env -i /bin/bash --login --noprofile --norc
+cd /tmp/guix-build-ldc-$ver.drv-2/
+. environment-variables
+cd ldc-$ver
+rm -rf CMakeFiles CMakeCache.txt
+cmake .
+make clean
+make -j 24
+make test -j 24
+#+END_SRC sh
+
+alternatively you may want to use a build container (no network by default and note you need to pull
+in all build dependencies)
+
+#+BEGIN_SRC sh
+~/.config/guix/current/bin/guix environment -C guix --ad-hoc ldc clang llvm unzip gdb ncurses vim git make cmake which less tzdata binutils
+cd ldc-$ver
+source ./environment-variables
+rm -rf CMakeFiles CMakeCache.txt
+cmake .
+make clean
+make -j 24
+#+END_SRC
+
+alternatively, you may use the pre-inst-env from a prebuilt guix directory which may be in sync with
+your new packages.
+
+Note with ldc-1.14 I had to touch two files:
+
+#+BEGIN_SRC
+touch /tmp/guix-build-ldc-1.14.0.drv-8/ldc-1.14.0/.git/packed-refs
+touch /tmp/guix-build-ldc-1.14.0.drv-8/ldc-1.14.0/CMakeFiles/git-data/head-ref
+#+END_SRC
+
+which makes sure cmake . passes.
+
+and I had to set LD_LIBRARY_PATH to point to the LLVM lib dir. Somehow
+that was not the same one used by the build system.
+
+To run the tests
+
+: cmake .
+
+to run one
+
+: ctest -R dmd-testsuite-debug
+
+to make one test set (note this is not in the build directory, but in the ldc source)
+
+: make -j 24 phobos2-test-runner-debug
+
+To run one test
+
+: ./runtime/phobos2-test-runner-debug std.datetime.timezone
+
+To run it in gdb
+
+: gdb --args ./runtime/phobos2-test-runner-debug std.datetime.timezone
+
+once in there you can set a bp with, for example
+
+: (gdb) l /tmp/guix-build-ldc-1.11.0.drv-0/ldc-1.11.0/runtime/phobos/std/datetime/timezone.d:2154
+: (gdb) b 2152
+: Breakpoint 1 at 0x2747a08: file timezone.d, line 2152.
+: (gdb) r
+: (gdb) p name
+: $1 = "America/Los_Angeles"
+: (gdb) p tzDatabaseDir
+: $2 = "/usr/share/zoneinfo/"
+
+and run the tests fully without networking (if you are not in guix environment)
+
+: /tmp/guix-build-ldc-$ver.drv-2/ldc-$ver# /usr/bin/unshare -n runtime/phobos2-test-runner-debug
+
+note the originals are still in
+
+: ../build/runtime/phobos2-test-runner-debug build-druntime-test-runner-debug
+
+If your environment is correct you should see
+
+: set|grep HOME
+: HOME=/homeless-shelter
+
+to disable network access run as root
+
+: /usr/bin/unshare -n ../build/runtime/phobos2-test-runner-debug
+
+Which throws an error
+
+: shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+: /gnu/store/kpxi8h3669afr9r1bgvaf9ij3y4wdyyn-bash-minimal-4.4.12/bin/sh: /tmp/guix-build-ldc-$ver.drv-0/std.process temporary file ebe1260e-300b-460c-adf1-880a8459b3dd: No such file or directory
+: ****** FAIL release64 std.process
+: core.exception.AssertError@std/process.d(1196): assertThrown failed: No ProcessException was thrown.
+
+edit the file (disable the test), rebuild and test. A git diff for this one looks like
+
+#+BEGIN_SRC diff
+  diff --git a/runtime/phobos/std/process.d b/runtime/phobos/std/process.d
+  index df83296..d921cdb 100644
+  --- a/runtime/phobos/std/process.d
+  +++ b/runtime/phobos/std/process.d
+  @@ -1171,7 +1171,7 @@ version (Posix) @system unittest
+  -@system unittest // Specifying a bad working directory.
+  +@system version(skipunittest) unittest // Specifying a bad working directory.
+#+END_SRC
+
+To run tests with a shared library:
+
+: cd /tmp/guix-build-ldc-$ver.drv-2/build/runtime
+: env LD_LIBRARY_PATH=../lib/ /usr/bin/unshare -n ./druntime-test-runner-shared
+
+In the final step
+
+: ./pre-inst-env guix environment guix --pure -- ./pre-inst-env guix build ldc@$ver -K
+
+or a more complete
+
+: rm -rf /tmp/guix-build-ldc-*.drv-* ; time ./pre-inst-env guix environment guix --pure -- ./pre-inst-env guix build ldc --no-substitutes -K
+
+Note you may want to remove the keep dir every time you rerun. In my
+version the environment contained a path reference to
+/tmp/guix-build-ldc-$ver.drv-0 even though I was in a different drv-2 tree.
+
+The lit tests can be run individually with
+
+: cd tests
+: ./runlit.py -v codegen/align.d
+
+or completely with
+
+: ./runlit.py -v .
+
+To speed up the Guix build + testing you can inject something like
+
+#+BEGIN_SRC scheme
+           (replace 'check
+                    (lambda* (#:key inputs outputs #:allow-other-keys)
+                      (setenv "SHELL" (which "sh"))
+                      (setenv "CC" (string-append (assoc-ref inputs "gcc") "/bin/gcc"))
+                      (with-directory-excursion "tests"
+                                                (zero? (system* "make"))
+                                                (zero? (system* "./runlit.py" "-v" ".")))
+                      (zero? (system* "make" "phobos2-test-runner-debug" "-j" (number->string (parallel-job-count))))
+                      (system* "../build/runtime/phobos2-test-runner-debug")
+                      ))
+           (add-after 'check 'break (lambda () (#f)))
+#+END_SRC
+
+the actual patch looks like
+
+#+BEGIN_SRC
+                       ;; some tests call into gdb binary which needs SHELL and CC set
+                       (setenv "SHELL" (which "sh"))
+                       (setenv "CC" (string-append (assoc-ref inputs "gcc") "/bin/gcc"))
+-                      (invoke "make" "test" "-j" (number->string (parallel-job-count))))))))
++                      (with-directory-excursion "tests"
++                                                (zero? (system* "make"))
++                                                (zero? (system* "./runlit.py" "-v" ".")))
++                      (zero? (system* "make" "phobos2-test-runner-debug" "-j" (number->string (parallel-job-count))))
++                      (system* "../build/runtime/phobos2-test-runner-debug")
++                    )
++                    ))))
+       (native-inputs
+#+END_SRC
+
+Check also these hints
+
+https://wiki.dlang.org/Building_and_hacking_LDC_on_Windows_using_MSVC
+https://wiki.dlang.org/LDC_Lit-based_testsuite

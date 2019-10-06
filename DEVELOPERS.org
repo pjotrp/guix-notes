@@ -97,10 +97,13 @@ When you hit an error like
 
 : /home/pjotr/.guix-profile/bin/ld: cannot find crt1.o: No such file or directory
 
-it means the Guix installed linker can not find its files. If are
-creating Guix linked binaries you should set LIBRARY_PATH to the Guix
-profile/lib. If are creating locally linked binaries, use the local
-linker! Don't use the Guix ld.
+it means the installed linker can not find its files.
+
+If are creating Guix linked binaries you should set LIBRARY_PATH to
+the Guix profile/lib.
+
+If are creating locally linked binaries, use the local linker! Don't
+use the Guix ld.
 
 ld is part of the Guix binutils package.
 

@@ -1,0 +1,135 @@
+#+TITLE: Rescuing GNU Guix pull using an archive
+
+* Table of Contents                                                     :TOC:
+ - [[#rescuing-gnu-guix-build][Rescuing GNU Guix build]]
+ - [[#create-an-archive-in-the-vm][Create an archive in the VM]]
+   - [[#create-a-vm][Create a VM]]
+   - [[#download-the-binary-tar-ball-in-the-vm][Download the binary tar ball in the VM]]
+   - [[#install-gnu-guix][Install GNU Guix]]
+   - [[#create-an-archive][Create an archive]]
+ - [[#install-archvive][Install archvive]]
+ - [[#restart-daemon][Restart daemon]]
+ - [[#install-guix][Install guix]]
+
+* Rescuing GNU Guix build
+
+Sometimes, especially when you run GNU Guix on a system for a longer
+time, the installed tools can not be updated easily with guix pull. It
+happens (rarely) when GNU Guix makes a not so incremental
+improvement. That is where GUIX-RESCUE kicks in!
+
+You can always rescue Guix by installing a recent Guix binary
+tar-ball(!). This is possible because all guix software is isolated in
+the /gnu/store under HASH values such as:
+
+: /gnu/store/gkv8zl774h2qpa89mrf6d74fry3rsnpa-guix-0.13.0-3.b547349
+
+It is important *not* to follow the standard instructions on your
+running system because you do not want to overwrite the existing Guix
+database in /var/guix. So...
+
+What I do is keep a VM image to install the ready-made Guix binary
+tarball. In this VM it does not matter that the database gets
+overwritten (it should be possible to do the same using a container,
+chroot and even proot). Next I use Guix pack to create an archive
+which can be imported into the running Guix system. Voila - updated
+Guix itself!
+
+We use the Guix archive command to create new version of Guix that can be
+merged into an existing system. For this we use the binary installer
+in a VM (hopefully this can be made easier in the future). I use
+Debian as the base install, but arguably this can be achieved by
+creating a GuixSD VM too.
+
+* Create an archive in the VM
+
+/Note: this section you only have to do once, also for future rescues/
+
+** Create a VM
+
+:  guix package -i qemu
+
+:  apt-get install kvm
+
+Run the module (it may need a bios setting changed)
+
+:  modprobe kvm-intel
+
+and
+
+:  qemu-img create hda.img -f qed 4G
+:  qemu-system-x86_64 -m 1024  -cdrom debian-9.4.0-amd64-netinst.iso  hda.img
+
+and just select defaults.
+
+After boot into the image and login with ssh
+
+:  kvm -m 1024 hda.img  -curses -no-reboot -serial pty -redir tcp:22000::22
+:  ssh -p 22000 wrk@localhost
+
+** Download the binary tar ball in the VM
+
+Find the latest and greatest on
+https://www.gnu.org/software/guix/download/ and download the binary
+tar ball for your architecture. E.g.
+
+: wget https://alpha.gnu.org/gnu/guix/guix-binary-$(ver).x86_64-linux.tar.xz
+
+** Install GNU Guix
+
+Inside the VM follow the [[https://www.gnu.org/software/guix/manual/html_node/Binary-Installation.html][GNU Guix binary install]] instructions and for
+running the daemon using [[https://www.gnu.org/software/guix/manual/en/html_node/Build-Environment-Setup.html#Build-Environment-Setup][guixbuild users]]. This should just take a few
+minutes.
+
+** Create an archive
+
+After setting the keys in /etc/guix/acl. For reasons of convenience I
+use the same keys on multiple hosts. Then
+
+: /gnu/store/lqkyzawj6z3fswbj87nzyg97xkhpiwys-guix-0.15.0/bin/guix archive --export -r guix > guix.nar
+
+* Install archvive
+
+This is the archive. Copy it from the VM to the host you need to rescue and run
+
+: guix archive --import < guix.nar
+
+If you get
+
+: guix archive: error: build failed: program `guix-authenticate' failed with exit code 1
+
+make sure the key is in /etc/guix/acl on the host. It looks like:
+
+#+BEGIN_SRC scheme
+(acl
+ (entry
+  (public-key
+   (ecc
+    (curve Ed25519)
+    (q #8D156F295D24B0D9A86FA5741A840FF2D24F60F7B6C4134814AD55625971B394#)
+    )
+   )
+  (tag
+   (guix import)
+   )
+  )
+ ...
+#+END_SRC
+
+* Restart daemon
+
+: /gnu/store/4lk7j5693ikj7yiw2qpsbva5vkicxmp4-guix-0.14.0-13.7af5c2a/bin/guix-daemon --build-users-group=guixbuild
+
+* Install guix
+
+Now install guix itself again
+
+: /gnu/store/4lk7j5693ikj7yiw2qpsbva5vkicxmp4-guix-0.14.0-13.7af5c2a/bin/guix package -i guix
+
+and we should be able to run guix pull.
+
+: guix --version
+:   guix (GNU Guix) 0.14.0-13.7af5c2a
+: guix pull
+
+and we are up-to-date again.

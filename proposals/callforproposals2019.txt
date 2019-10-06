@@ -1,0 +1,65 @@
+* Minimalistic Languages Devroom call for talks @FOSDEM 2019
+
+(posted at https://libreplanet.org/wiki/FOSDEM2019-devroom-minimalism)
+
+We are excited to announce a devroom on minimalistic languages (with
+big ideas) at FOSDEM on Saturday February 2nd 2019!
+
+FOSDEM is one of the most important free software conferences and is
+hosted annually at Université libre de Bruxelles in Brussels,
+Belgium. FOSDEM is fantastic, check last year's schedule for Saturday
+(https://archive.fosdem.org/2018/schedule/day/saturday/)
+
+Minimalism matters. Minimalism allows for smaller systems that take
+less resources and consume less energy. More importantly, free and
+open source minimalism allows for secure systems that are easy to
+understand. Finally, we believe that minimalism is educational and
+brings back the fun of the early days of computing where people learn
+to understand systems from the ground up. Speakers will be asked to
+accentuate the educational side of their projects.
+
+We have a room Saturday 2 February 2019. We want to invite you to
+submit a talk on the use of minimalistic languages that fits that
+description. We are especially happy to receive talk submissions from
+members of any underrepresented groups.
+
+If you have something you’d like to share with your fellow developers,
+please head to pentabarf at
+
+  - https://penta.fosdem.org/submission/FOSDEM19
+
+The deadline for submission is November 25th. If you have a FOSDEM
+pentabarf account from a previous year, please use that
+account. Otherwise add one on
+https://penta.fosdem.org/user/new_account. Reach out to
+pjotr.public456@thebird.nl if you run into any trouble.
+
+When submitting your talk make doubly sure to select "Minimalistic
+Languages devroom" as track (if you don't we won't find it), and
+include the following information:
+
+  * The title and subtitle of your talk
+  * A short abstract of one paragraph
+  * A longer description if you wish to do so
+  * Links to related websites/blogs etc
+
+Let's make this a fun day!
+
+** Organisers
+
+Pjotr Prins, Manolis Ragkousis, Hisham Muhammad, Ricardo Wurmus,
+Ludovic Courtès, Jan Nieuwenhuizen, Alex Sassmannshausen and Amirouche Boubekki
+
+** Code of conduct
+
+  - https://fosdem.org/2019/practical/conduct/
+
+** Original proposal
+
+  - https://libreplanet.org/wiki/FOSDEM2019-devroom-proposal
+
+** Important dates:
+
+  - Nov 25th 2018:  submission deadline for talk proposals
+  - Dec 17th 2018:  announcement of the final schedule
+  - Feb  2nd 2019:  FOSDEM!

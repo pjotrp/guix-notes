@@ -1,0 +1,33 @@
+* Creating a Python package definition
+
+Fortunately the Guix pypi import function made it easy by generating
+package definitions such as for the Python 'prov' package:
+
+: guix import pypi prov
+
+renders a cut-and-paste JSON style package definition
+
+#+BEGIN_SRC scheme
+(package
+  (name "python-prov")
+  (version "1.5.3")
+  (source
+    (origin
+      (method url-fetch)
+      (uri (pypi-uri "prov" version))
+      (sha256
+        (base32
+          "1a9h406laclxalmdny37m0yyw7y17n359akclbahimdggq853jd0"))))
+  (build-system python-build-system)
+  (home-page "https://github.com/trungdong/prov")
+  (synopsis
+    "A library for W3C Provenance Data Model supporting PROV-JSON, PROV-XML and PROV-O (RDF)")
+  (description
+    "A library for W3C Provenance Data Model supporting PROV-JSON, PROV-XML and PROV-O (RDF)")
+  (license license:expat))
+#+END_SRC
+
+The difference with JSON is that this is executable Scheme code.  This
+is all you need to add a Python package to GNU Guix. Note that it
+fetches the latest version and even the software license!  Note also
+how high-level the definition is. Not even a download URL to specify.

@@ -97,3 +97,258 @@ Guix has its own containers using native Linux support, but you can
 also run Guix in Docker and distribute software that way. One
 interesting thing you can do is run guix 'pack' which creates a docker
 image of a package with all its dependencies, see this [[https://www.gnu.org/software/guix/news/creating-bundles-with-guix-pack.html][description]].
+
+** Providing a usable Docker container
+
+*** Install the package in the main /gnu/store
+
+For a paper we made a compilation of bioinformatics software and put
+it all in one GNU Guix [[https://gitlab.com/genenetwork/guix-bioinformatics/blob/master/gn/packages/book_evolutionary_genomics.scm#L113][package]] named book-evolutionary-genomics.  I
+can install it using a local GUIX checkout commit
+cc14a90fd3ce34a371175de610f9befcb2dad52b
+
+#+begin_src shell
+env GUIX_PACKAGE_PATH=../guix-bioinformatics \
+  ./pre-inst-env guix package -p ~/opt/book-evolutionary-genomics \
+  --no-grafts -i book-evolutionary-genomics \
+  --substitute-urls="http://guix.genenetwork.org https://berlin.guixsd.org https://mirror.hydra.gnu.org"
+#+end_src
+
+resulting in a totally reproducible package.
+
+*** Try things in a Guix container
+
+Now we want to isolate them into a container.  To run these tools
+inside a Guix container you can do like the earlier
+
+#+begin_src shell
+env GUIX_PACKAGE_PATH=../guix-bioinformatics/ \
+  ./pre-inst-env guix environment --no-grafts --ad-hoc \
+  --substitute-urls="http://guix.genenetwork.org https://berlin.guixsd.org https://mirror.hydra.gnu.org" \
+  coreutils book-evolutionary-genomics vim screen \
+  --container bash -- bash
+#+end_src
+
+starts up a bash shell in a clean container. For the book we have created
+some scripts in the profile which can be found with the GUIX_ENVIRONMENT setting:
+
+: cd $GUIX_ENVIRONMENT/share/book-evolutionary-genomics
+
+The bin directory is on the PATH already, but for some scripts you may
+want to create /usr/bin pointing to $GUIX_ENVIRONMENT/bin
+
+: mkdir /usr
+: ln -s $GUIX_ENVIRONMENT/bin /usr/bin
+
+Note that /gnu/store is immutable and can therefore be shared with the
+main system. This makes GNU Guix containers really small and fast.
+
+*** Docker
+
+With GNU Guix you can create a Docker image without actually installing Docker(!)
+
+#+begin_src shell
+env GUIX_PACKAGE_PATH=../guix-bioinformatics/ \
+  ./pre-inst-env guix pack -f docker --no-grafts \
+  -S /usr/bin=/bin -S /etc/profile=/etc/profile \
+  -S /book-evolutionary-genomics=/share/book-evolutionary-genomics \
+  coreutils book-evolutionary-genomics bash vim
+#+end_src
+
+note we now have the -S switch which can make the /usr/bin symlink
+into the profile.
+
+This produced a file which we can be loaded into Docker
+
+: docker load --input /gnu/store/0p1ianjqqzbk1rr9rycaqcjdr2s13mcj-docker-pack.tar.gz
+: docker images
+:   REPOSITORY          TAG                                IMAGE ID            CREATED             SIZE
+:   profile             425c1ignnjixxzwdwdr5anywnq9mg50m   121f9cca6c55        47 years ago        1.43 GB
+
+
+Now you should see the image id and you can run
+
+: docker run 121f9cca6c55 /usr/bin/ruby --version
+
+Find the profile
+
+: docker run 121f9cca6c55 /usr/bin/ls /usr/bin -l
+
+Read the profile settings
+
+: docker run 121f9cca6c55 cat /gnu/store/425c1ignnjixxzwdwdr5anywnq9mg50m-profile/etc/profile
+
+But there is an easier way because we created the symlink earlier
+
+: docker run 121f9cca6c55 cat /etc/profile
+
+Run bioruby
+
+: docker run 121f9cca6c55 bash -c "env GEM_PATH=/gnu/store/425c1ignnjixxzwdwdr5anywnq9mg50m-profile//lib/ruby/gems/2.4.0 /gnu/store/425c1ignnjixxzwdwdr5anywnq9mg50m-profile/share/book-evolutionary-genomics/src/bioruby/DNAtranslate.rb
+
+with input file
+
+: time docker run 121f9cca6c55 bash -c "env GEM_PATH=/gnu/store/425c1ignnjixxzwdwdr5anywnq9mg50m-profile//lib/ruby/gems/2.4.0 /gnu/store/425c1ignnjixxzwdwdr5anywnq9mg50m-profile/share/book-evolutionary-genomics/src/bioruby/DNAtranslate.rb /gnu/store/425c1ignnjixxzwdwdr5anywnq9mg50m-profile/share/book-evolutionary-genomics/test/data/test-dna.fa"
+
+or the easy way since we created the links
+
+: time docker run 121f9cca6c55 \
+:   bash -c "source /etc/profile ; cd /book-evolutionary-genomics ; src/bioruby/DNAtranslate.rb test/data/test-dna.fa"
+
+** Building Docker Image of Conda with Guix
+
+*** Build the conda Archive
+
+To build the pack from guix, the following command was run:
+
+#+begin_src sh
+./pre-inst-env guix pack -S /opt/gnu/bin=/bin conda
+#+end_src sh
+
+This builds an archive with `conda`. The package will be named something like
+`/gnu/store/y2gylr1nz7qrj0p1xwfcg4n8pm0p4wgl-tarball-pack.tar.gz`
+
+The `./pre-inst-env` portion can be dropped if you have a newer version of guix
+that comes with conda in its list of packages. You can find out by running the
+following command:
+
+#+begin_src sh
+guix package --search=conda
+#+end_src sh
+
+and looking through the list to see if there is a package named conda.
+
+*** Bootstrapping the Images
+
+From this step, there was need to bootstrap new images, based on a base image.
+The base image chosen was the ubuntu image. You can get it with:
+
+#+begin_src sh
+docker pull ubuntu
+#+end_src sh
+
+The steps that follow will be somewhat similar, with each image building upon
+the image before it.
+
+The files created here can be found
+[[https://github.com/fredmanglis/guix-conda-docker/][in this repository]].
+
+The first image to be built only contains conda, and it was initialised with a
+new environment called `default-env`. This was done by writing a Docker file with
+the following content:
+
+#+begin_src dockerfile
+FROM ubuntu:latest
+COPY /gnu/store/y2gylr1nz7qrj0p1xwfcg4n8pm0p4wgl-tarball-pack.tar.gz /tmp/conda-pack.tar.gz
+RUN tar -xzf /tmp/conda-pack.tar.gz && rm -f /tmp/conda-pack.tar.gz
+RUN /opt/gnu/bin/conda create --name default-env
+#+end_src dockerfile
+
+This file was saved as `Dockerfile.conda` and then the image was built by
+running
+
+#+begin_src sh
+docker build -t fredmanglis/guix-conda-plain:latest -f Dockerfile.conda .
+#+end_src sh
+
+Be careful not to miss the dot at the end of the command. This command creates a
+new image, from the base image fredmanglis/guix-conda-base-img:latest and tags
+the new image with the name fredmanglis/guix-conda-plain:latest
+
+This new image is then used to bootstrap the next, by first creating a file
+`Dockerfile.bioconda` and entering the following content into it:
+
+#+begin_src dockerfile
+FROM fredmanglis/guix-conda-plain:latest
+
+RUN conda config --add channels r
+RUN conda config --add channels defaults
+RUN conda config --add channels conda-forge
+RUN conda config --add channels bioconda
+#+end_src dockerfile
+
+This file instructs docker to bootstrap the new image from the image named
+fredmanglis/guix-conda-plain:latest and then run the commands to add the
+channels required to access the bioconda packages.
+
+The new image, with bioconda initialised, is then created by running
+
+#+begin_src sh
+docker build -t fredmanglis/guix-bioconda:latest -f Dockerfile.bioconda .
+#+end_src sh
+
+Be careful not to miss the dot at the end of the command.
+
+The next image to build contains the sambamba package from the bioconda channel.
+We start by defining the image in a file, `Dockerfile.sambamba` which contains:
+
+#+begin_src dockerfile
+FROM fredmanglis/guix-bioconda:latest
+RUN /opt/gnu/bin/conda install --yes --name default-env sambamba
+#+end_src dockerfile
+
+As can be seen, the package is installed in the environment `default-env`
+defined while bootstrapping the image with conda only. This new image is
+built with the command:
+
+#+begin_src sh
+docker build -t fredmanglis/guix-sambamba:latest -f Dockerfile.sambamba .
+#+end_src sh
+
+Do not miss the dot at the end of the command.
+
+*** Publishing the Images
+
+The images built in the processes above are all available at
+https://hub.docker.com/r/fredmanglis/
+
+To publish them, docker's push command was used, as follows:
+
+#+begin_src sh
+docker push fredmanglis/guix-conda-plain:latest && \
+docker push fredmanglis/guix-bioconda:latest  && \
+docker push fredmanglis/guix-sambamba:latest
+#+end_src sh
+
+These are really, three separate commands, in a sequence that only runs the later
+commands if the ones before them ran successfully. This ensures that the derived
+images are only uploaded after the images they are based on have been
+successfully uploaded.
+
+*** Get the Images
+
+To get any of the images, use a command of the form:
+
+#+begin_src sh
+docker pull fredmanglis/<img-name>:<img-tag>
+#+end_src sh
+
+replacing <img-name> and <img-tag> with the actual image name and tag. For
+example, to get the image with bioconda already set up, do:
+
+#+begin_src sh
+docker pull fredmanglis/guix-bioconda:latest
+#+end_src sh
+
+*** Run Installed Applications
+
+To run the applications installed, we need to set up the path correctly. To do
+this, we make use of docker's --env-file option, in something similar to the
+following:
+
+#+begin_src bash
+docker run --env-file=<file-with-env-vars> img-to-run:img-tag <command-to-run>
+#+end_src bash
+
+The <file-with-env-vars> can be found [[https://github.com/fredmanglis/guix-conda-docker/][here]].
+
+Now you can proceed to run a command, for example:
+
+#+begin_src sh
+docker run --env-file=environment_variables --volume /tmp/sample:/data \
+fredmanglis/guix-sambamba bash -c "sambamba view /data/test.bam"
+#+end_src sh
+
+the `--volume` option enables one to mount a specific directory to the docker
+container that is created, so that the data is available to the running
+commands.

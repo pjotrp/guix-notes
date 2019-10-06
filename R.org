@@ -11,6 +11,18 @@ involved and slow.
 Mostly thanks to Ricardo Wurmus' work GNU Guix comes to the rescue
 with rolling upgrades of both R and packages.
 
+* Using R
+
+After installing Guix you can install and run R with
+
+: guix package -i r
+: . ~/.guix-profile/etc/profile
+: R
+
+* R Shiny
+
+: guix package -i r r-shiny
+
 * Importing an existing CRAN module
 
 You can even have GNU Guix export CRAN and Bioconductor packages for
@@ -302,6 +314,49 @@ and
 : library(lmmlite)
 
 Success!
+
+* RQDA
+
+RQDA is an R package for computer assisted qualitative data analysis
+or CAQDAS. It has two complications because it is in 'maintenance'
+mode. First it depends on an older GTK for graphics and next it
+possibly depends on an older SQLite package. Also there are no recent
+releases, so we need the latest git checkout. GNU Guix is perfect for
+handling this. Rather than going down the rabbit hole and trying to
+update rqda itself with the risk of giving users an untested system,
+we can just use the old stuff.
+
+: ./pre-inst-env guix import cran RQD
+
+#+BEGIN_SRC scheme
+(package
+  (name "r-rqda")
+  (version "0.3-1")
+  (source
+    (origin
+      (method url-fetch)
+      (uri (cran-uri "RQDA" version))
+      (sha256
+        (base32
+          "1kqax4m4n5h52gi0jaq5cvdh1dgl0bvn420dbws9h5vrabbw1c1w"))))
+  (properties `((upstream-name . "RQDA")))
+  (build-system r-build-system)
+  (propagated-inputs
+    `(("r-dbi" ,r-dbi)
+      ("r-gwidgets" ,r-gwidgets)
+      ("r-gwidgetsrgtk2" ,r-gwidgetsrgtk2)
+      ("r-igraph" ,r-igraph)
+      ("r-rgtk2" ,r-rgtk2)
+      ("r-rsqlite" ,r-rsqlite)))
+  (home-page "http://rqda.r-forge.r-project.org")
+  (synopsis "Qualitative Data Analysis")
+  (description
+    "Software for qualitative text analysis (Kuckartz, 2014, <doi:10.4135/9781446288719>).  Current version only supports plain text, but it can import PDF highlights if package 'rjpod' (<https://r-forge.r-project.org/projects/rqda/>) is installed.")
+  (license bsd-3))
+#+END_SRC
+
+added that package and other missing packages with a hard coded dependency for qtk+-2.
+
 
 * Dealing with certificates and shared libraries
 
