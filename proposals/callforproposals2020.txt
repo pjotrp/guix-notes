@@ -1,0 +1,78 @@
+* Minimalistic, Experimental and Emerging Languages Devroom
+  call for talks @FOSDEM 2020
+
+(posted at https://libreplanet.org/wiki/FOSDEM2020-devroom-minimalism)
+
+We are excited to announce a devroom on minimalistic, experimental
+and/or emerging languages (with big ideas) at FOSDEM on Sunday
+February 2nd 2020!
+
+FOSDEM is one of the most important free software conferences and is
+hosted annually at Université libre de Bruxelles in Brussels,
+Belgium. FOSDEM is fantastic, check last year's schedule for Saturday
+(https://archive.fosdem.org/2018/schedule/day/saturday/)
+
+We accept talks from languages that have interesting ideas or
+prospects, but are not considered main stream (yet). If you are
+working on an experimental or emerging language feel free to
+submit a talk proposal.
+
+Minimalism is also a topic for this devroom. Minimalism
+matters. Minimalism allows for smaller systems that take less
+resources and consume less energy. More importantly, free and open
+source minimalism allows for secure systems that are easy to
+understand. Finally, we believe that minimalism is educational and
+brings back the fun of the early days of computing where people learn
+to understand systems from the ground up. Speakers will be asked to
+accentuate the educational side of their projects.
+
+We have a room Sunday 2 February 2020. We want to invite you to submit
+a talk on the use of minimalistic, experimental and/or emerging
+languages that fits that description. We are especially happy to
+receive talk submissions from members of any underrepresented groups.
+
+If you have something you’d like to share with your fellow developers,
+please E-mail us! Talks considered for the devroom will have to
+be entered in
+
+  - https://penta.fosdem.org/submission/FOSDEM20
+
+The deadline for submission is November 26th. If you have a FOSDEM
+pentabarf account from a previous year, please use that
+account. Otherwise add one on
+https://penta.fosdem.org/user/new_account. Reach out to
+pjotr.public456@thebird.nl if you run into any trouble.
+
+When submitting your talk make doubly sure to select "Minimalistic
+Languages devroom" as track (if you don't we won't find it), and
+include the following information:
+
+  * The title and subtitle of your talk
+  * A short abstract of one paragraph
+  * A longer description if you wish to do so
+  * Links to related websites/blogs etc
+
+To see what a final talk looks like see
+
+  https://archive.fosdem.org/2019/schedule/event/gnumes/
+
+Let's make this a fun day!
+
+** Organisers
+
+Manolis Ragkousis, Peter Munch-Ellingsen, Steph Hobbs, Ludovic
+Courtès, Jan Nieuwenhuizen & Pjotr Prins (pjotr.public456@thebird.nl)
+
+** Code of conduct
+
+  - https://fosdem.org/2020/practical/conduct/
+
+** Original proposal
+
+  - https://libreplanet.org/wiki/FOSDEM2020-devroom-proposal
+
+** Important dates:
+
+  - Nov 26th 2019:  submission deadline for talk proposals
+  - Dec 15th 2019:  announcement of the final schedule
+  - Feb  2nd 2020:  FOSDEM!
