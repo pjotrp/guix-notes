@@ -52,8 +52,9 @@ raco ctool --3m --ld hw.so hw_3m.o
   ld: cannot find crti.o: No such file or directory
 #+END_SRC
 
-crti.o is part of the glibc package which needs to be added to the profile. One
-quick hack is to find the glibc in racket and add that to the path
+crti.o is part of the glibc package which needs to be added to the
+profile (see also [[R.org]]). One quick hack is to find the glibc in
+racket and add that to the path
 
 #+BEGIN_SRC
 ldd ~/opt/racket/bin/racket
