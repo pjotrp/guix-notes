@@ -400,6 +400,44 @@ and make sure you check it with
 
 : Sys.getenv(c("R_HOME","LD_LIBRARY_PATH","CFLAGS","CPPFLAGS"))
 
+
+* Installing packages in R
+
+You may need to set some locals:
+
+** limits.h
+
+If you get an R error on installing a package that looks like
+/fatal error: linux/limits.h: No such file or directory/
+install
+
+: guix package -i linux-libre-headers -p ~/opt/julia
+
+And in R set the path to point to the linux directory
+
+: Sys.setenv(C_INCLUDE_PATH="/home/wrk/opt/julia/include")
+
+Or outside R
+
+#+BEGIN_SRC sh
+export C_INCLUDE_PATH=~/.guix-profile/include
+export CPLUS_INCLUDE_PATH=~/.guix-profile/include
+#+END_SRC
+
+** crti.o no such file
+
+Getting these errors
+
+: /home/wrk/.guix-profile/bin/ld: error: cannot open crti.o: No such file or directory
+: /home/wrk/.guix-profile/bin/ld: error: cannot open crtn.o: No such file or directory
+
+setting LIBRARY_PATH should fix that
+
+#+BEGIN_SRC sh
+export LIBRARY_PATH=~/.guix-profile/lib
+#+END_SRC
+
+
 * Conclusion
 
 Going through this process you can see how many dependencies there
