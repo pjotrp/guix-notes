@@ -6,6 +6,7 @@
  - [[#guix-deploy][Guix deploy]]
  - [[#guix-partial-deploy][Guix partial deploy]]
  - [[#shepherd][Shepherd]]
+ - [[#classes][Classes]]
 
 * Introduction
 
@@ -121,15 +122,33 @@ installed by Guix.
 
 Funny thing, the infrastructure is pretty much there!
 
-
 * Shepherd
 
 Rather than using systemd it may be an option to use GNU Shepherd
-which comes with Guix. I have not checked, but I suppose it is
-possible to fire up the shepherd next to (or even by) systemd since
-these are independent control daemons. Having both running is an
-option to slowly migrate existing services to our new partial deploy
-system.
+which comes with Guix. It is possible to fire up the shepherd next to
+(or even by) systemd since these are independent control daemons
+(shepherd can even run without root privilege). Having both running is
+an option to slowly migrate existing services to our new partial
+deploy system. Shepherd can start and stop services, resolving
+dependencies, and even be a watchdog.
 
 With Shepherd running we can even consider supporting system services
 in containers as described [[https://guix.gnu.org/blog/2017/running-system-services-in-containers/][here]].
+
+* Classes
+
+One thing I might also like to have is a concept of classes such as
+Cfengine and Cfruby incorporated. A typical class can be a
+~mailserver~ or a ~webserver~.  There can also be ~ssh~ and ~firewall~
+classes. To make a machine we could state
+
+: myserver: mailserver ssh firewall
+
+which would configure the machine. Compound classes may exist so
+
+: mailclient: postfix mutt
+: mylaptop: mailclient
+
+where mylaptop expands to class 'mailclient postfix mutt'. Essentially
+classes are a simple list of symbols that expand and describe the
+machine.
