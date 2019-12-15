@@ -1013,7 +1013,6 @@ to install a latest guix
 : ./pre-inst-env guix package -i guix
 
 so you can recover from that later.
-
 ** ERROR: In procedure scm-error: no code for module (gcrypt hash)
 
 Guix is built with Guile and Guile has trouble finding the gcrypt package. Fix it by

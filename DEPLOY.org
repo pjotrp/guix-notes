@@ -2,6 +2,9 @@
 
 * Table of Contents                                                     :TOC:
  - [[#introduction][Introduction]]
+ - [[#guix-system-definition][Guix system definition]]
+ - [[#guix-deploy][Guix deploy]]
+ - [[#guix-partial-deploy][Guix partial deploy]]
  - [[#shepherd][Shepherd]]
 
 * Introduction
@@ -9,6 +12,115 @@
 Rolling deployment and orchestration is a holy grail in devop-land. In
 this document we pursue deployment with Guix, configuration with Guix
 and orchestration with Guix (WIP). This will be done with bare metal,
-VMs AND containers.
+VMs AND containers. I manage enough machines to want to automate
+installation and updates and soon it may be necessary to build a
+compute cluster again. So, it is time to get ready.
+
+In the past I have attempted multiple ways to define systems. Around
+2000 I got exposed to Cfengine which aims to bring system deployment
+under control. Similarly I tried Puppet, Chef and others. Finally I
+rolled my own Cfengine clone named [[https://www.ibm.com/developerworks/aix/library/au-rubysysadmin/index.html][CfRuby]] and the even have a rewrite
+in [[https://github.com/pjotrp/deploy][deploy]] which I am using today on our machines. All these systems
+suffer because they have 'state' in two places (=/etc= can be
+considered its own state) and these tools overwrite targets
+destructively. With Guix we can do better than that.
+
+* Guix system definition
+
+GNU Guix has a method for defining systems (see [[https://guix.gnu.org/manual/en/html_node/operating_002dsystem-Reference.html][operating-system]]). The
+idea is that deployment is integrated at the system definition stage.
+
+* Guix deploy
+
+Guix deploy was recently introduced (2019) by Jakob L. Kreuze. The
+short of it is that a GNU Guix system that has openssh can be updated
+using remote ssh commands. Interestingly it shares the infrastructure
+Guix already provided for defining systems (see [[https://guix.gnu.org/manual/en/html_node/operating_002dsystem-Reference.html][operating-system]]). An
+example of 'guix deploy' by the author can be found [[https://guix.gnu.org/blog/2019/towards-guix-for-devops/][here]]/
+
+If you read the code for [[http://git.savannah.gnu.org/cgit/guix.git/tree/gnu/system.scm][gnu/system.scm]] in the Guix source tree you
+can see a system update leads to the creation of a new generation of
+/etc directory with files contained (just search for 'sudo' to see how
+it is done).
+
+#+BEGIN_SRC scheme
+(define %sudoers-specification
+  ;; Default /etc/sudoers contents: 'root' and all members of the 'wheel'
+  ;; group can do anything.  See
+  ;; <http://www.sudo.ws/sudo/man/1.8.10/sudoers.man.html>.
+  (plain-file "sudoers" "\
+root ALL=(ALL) ALL
+%wheel ALL=(ALL) ALL\n"))
+#+END_SRC
+
+where plain-file writes into the current 'build'
+directory. Parametrizing plain-file also works (of course).
+
+#+BEGIN_SRC scheme
+(define (local-host-aliases host-name)
+  "Return aliases for HOST-NAME, to be used in /etc/hosts."
+  (string-append "127.0.0.1 localhost " host-name "\n"
+                 "::1       localhost " host-name "\n"))
+#+END_SRC
+
+In fact, Guix is a champion of abstraction and comes with a load of
+methods to manage system files.
+
+Also note that Guix transactional goodness shows up here! Not only do
+you track changes through git, you can actually roll back to a
+previous version of /etc. This is very different from the way
+Cfengine, Puppet and others work. With those tools, to guarantee
+consistency, you always have to rebuild the full thing from
+scratch. With GNU Guix to roll back is only the switch of a symlink.
+
+A similar system can be used to orchestrate containers as explained
+[[https://guix.gnu.org/blog/2017/running-system-services-in-containers/][here]].
+
+Now this is all very nice if you are running a 100% Guix
+distribution. In my case *all* my machines run Debian with Guix on top
+(though I have pure Guix containers). GNU Guix as a distribution
+certainly has its attractions, but the reality is that I share
+machines with others and they are not quite ready to do a 100%
+shift. The cool thing about Guix is that you *can* shift gradually
+because Guix packages run on any Linux distribution, whether it is Red
+Hat, SuSE or Debian/Ubuntu/Mint. Guix rocks in that way and OpenSuSE
+even has built-in Guix package support nowadays.
+
+* Guix partial deploy
+
+Rather than control the whole =/etc=, what we want is *partial* system
+configuration at the package level. Say you want to configure an nginx
+web server, you can define a new package that depends on nginx that
+contains the configuration files. On myserver the new package
+nginx-myserver simply creates the contents of an =/etc/nginx=
+directory inside the store relevant to the package.
+
+The only tricky aspect is to tell nginx where to find its
+configuration and (possibly) add that to systemd. Guix does not write
+files outside the store in =/gnu/store=. Nevertheless it can create
+profiles which are paths that symlink into the store. These profiles
+can be anywhere - even =/etc= as the operating-system proves. So Guix
+can symlink =/etc/nginx=.
+
+Similarly Guix can symlink =/etc/systemd/system= for a systemd
+configuration (even if systemd was installed with Debian!) and we can
+give full control to Guix for packages that conform to these rules.
+
+Next we want to parametrize so we can target multiple servers in a
+simple way. This should work fine in standard Guix packages
+too. Furthermore Guix manifests can be used to define bundles and Guix
+channels can be used to embed these packages so they can be installed
+by Guix.
+
 
 * Shepherd
+
+Rather than using systemd it may be an option to use GNU Shepherd
+which comes with Guix. I have not checked, but I suppose it is
+possible to fire up the shepherd next to (or even by) systemd since
+these are independent control daemons. Having both running is an
+option to slowly migrate existing services to our new partial deploy
+system.
+
+With Shepherd running we can even consider supporting system services
+in containers as described [[https://guix.gnu.org/blog/2017/running-system-services-in-containers/][here]].
