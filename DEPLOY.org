@@ -92,25 +92,34 @@ Rather than control the whole =/etc=, what we want is *partial* system
 configuration at the package level. Say you want to configure an nginx
 web server, you can define a new package that depends on nginx that
 contains the configuration files. On myserver the new package
-nginx-myserver simply creates the contents of an =/etc/nginx=
-directory inside the store relevant to the package.
+nginx-myserver simply creates the contents of an =/etc/nginx= directory
+inside the store relevant to the package.
 
 The only tricky aspect is to tell nginx where to find its
 configuration and (possibly) add that to systemd. Guix does not write
 files outside the store in =/gnu/store=. Nevertheless it can create
 profiles which are paths that symlink into the store. These profiles
-can be anywhere - even =/etc= as the operating-system proves. So Guix
-can symlink =/etc/nginx=.
+can be anywhere - even =/etc= as the working of operating-system
+proves. So Guix can symlink =/etc/nginx=. And we can setup
+
+#+BEGIN_SRC sh
+guix package -i nginx-myserver -p /etc/nginx
+#+END_SRC
 
 Similarly Guix can symlink =/etc/systemd/system= for a systemd
-configuration (even if systemd was installed with Debian!) and we can
-give full control to Guix for packages that conform to these rules.
+configuration (even if systemd was installed by Debian though you will
+have to check carefully what is installed!). We can give full
+control to Guix for packages that conform to these rules.
 
 Next we want to parametrize so we can target multiple servers in a
-simple way. This should work fine in standard Guix packages
-too. Furthermore Guix manifests can be used to define bundles and Guix
-channels can be used to embed these packages so they can be installed
-by Guix.
+simple way. This should work fine in standard Guix packages too by
+using named packages for each server and using package inheritance
+where applicable. Guix parametrized packages may help too though it is
+currently a [[https://lists.gnu.org/archive/html/guix-devel/2019-05/msg00285.html][proposal]]. Guix manifests can be used to define bundles and
+Guix channels can be used to embed these packages so they can be
+installed by Guix.
+
+Funny thing, the infrastructure is pretty much there!
 
 
 * Shepherd
