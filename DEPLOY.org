@@ -5,8 +5,9 @@
  - [[#guix-system-definition][Guix system definition]]
  - [[#guix-deploy][Guix deploy]]
  - [[#guix-partial-deploy][Guix partial deploy]]
- - [[#shepherd][Shepherd]]
+ - [[#gnu-shepherd][GNU Shepherd]]
  - [[#classes][Classes]]
+ - [[#conclusion][Conclusion]]
 
 * Introduction
 
@@ -19,11 +20,11 @@ compute cluster again. So, it is time to get ready.
 
 In the past I have attempted multiple ways to define systems. Around
 2000 I got exposed to Cfengine which aims to bring system deployment
-under control. Similarly I tried Puppet, Chef and others. Finally I
-rolled my own Cfengine clone named [[https://www.ibm.com/developerworks/aix/library/au-rubysysadmin/index.html][CfRuby]] and the even have a rewrite
-in [[https://github.com/pjotrp/deploy][deploy]] which I am using today on our machines. All these systems
-suffer because they have 'state' in two places (=/etc= can be
-considered its own state) and these tools overwrite targets
+under control. Later I tried Puppet, Chef and others. Finally I rolled
+my own Cfengine clone named [[https://www.ibm.com/developerworks/aix/library/au-rubysysadmin/index.html][CfRuby]] and the even have a rewrite in a
+simpler tool called [[https://github.com/pjotrp/deploy][deploy]] which I am using today on our machines. All
+these systems suffer because they have 'state' in two places (=/etc=
+can be considered its own state) and these tools overwrite targets
 destructively. With Guix we can do better than that.
 
 * Guix system definition
@@ -55,7 +56,7 @@ root ALL=(ALL) ALL
 #+END_SRC
 
 where plain-file writes into the current 'build'
-directory. Parametrizing plain-file also works (of course).
+directory. Parametrizing plain-file also works (of course)
 
 #+BEGIN_SRC scheme
 (define (local-host-aliases host-name)
@@ -72,16 +73,17 @@ you track changes through git, you can actually roll back to a
 previous version of /etc. This is very different from the way
 Cfengine, Puppet and others work. With those tools, to guarantee
 consistency, you always have to rebuild the full thing from
-scratch. With GNU Guix to roll back is only the switch of a symlink.
+scratch. With GNU Guix to roll back is only the switch of a symlink
+which takes seconds.
 
 A similar system can be used to orchestrate containers as explained
 [[https://guix.gnu.org/blog/2017/running-system-services-in-containers/][here]].
 
 Now this is all very nice if you are running a 100% Guix
-distribution. In my case *all* my machines run Debian with Guix on top
+distribution. In contrast, *all* my machines run Debian with Guix on top
 (though I have pure Guix containers). GNU Guix as a distribution
 certainly has its attractions, but the reality is that I share
-machines with others and they are not quite ready to do a 100%
+machines with others and they are not ready to make a 100%
 shift. The cool thing about Guix is that you *can* shift gradually
 because Guix packages run on any Linux distribution, whether it is Red
 Hat, SuSE or Debian/Ubuntu/Mint. Guix rocks in that way and OpenSuSE
@@ -100,8 +102,7 @@ The only tricky aspect is to tell nginx where to find its
 configuration and (possibly) add that to systemd. Guix does not write
 files outside the store in =/gnu/store=. Nevertheless it can create
 profiles which are paths that symlink into the store. These profiles
-can be anywhere - even =/etc= as the working of operating-system
-proves. So Guix can symlink =/etc/nginx=. And we can setup
+can be anywhere - even =/etc=. So maybe Guix can symlink =/etc/nginx=. And we can setup
 
 #+BEGIN_SRC sh
 guix package -i nginx-myserver -p /etc/nginx
@@ -109,8 +110,13 @@ guix package -i nginx-myserver -p /etc/nginx
 
 Similarly Guix can symlink =/etc/systemd/system= for a systemd
 configuration (even if systemd was installed by Debian though you will
-have to check carefully what is installed!). We can give full
-control to Guix for packages that conform to these rules.
+have to check carefully what is installed!). We can give full control
+to Guix for packages that conform to these rules. Setting a profile
+directly in =/etc= may not be a great idea because not only it will be
+cluttered by generations of ~nginx~, but also the profiles contain
+other dirs, such as =bin=, =lib= and =shared=. Probably better to
+install the profile in, say, =/usr/local/guix-etc= and run a script to
+link up the latest configuration.
 
 Next we want to parametrize so we can target multiple servers in a
 simple way. This should work fine in standard Guix packages too by
@@ -118,11 +124,23 @@ using named packages for each server and using package inheritance
 where applicable. Guix parametrized packages may help too though it is
 currently a [[https://lists.gnu.org/archive/html/guix-devel/2019-05/msg00285.html][proposal]]. Guix manifests can be used to define bundles and
 Guix channels can be used to embed these packages so they can be
-installed by Guix.
+installed by Guix. Now the script becomes the install of a [[https://guix.gnu.org/manual/en/html_node/Invoking-guix-package.html][manifest]]
+followed by updating symlinks that are not generations:
 
-Funny thing, the infrastructure is pretty much there!
+#+BEGIN_SRC bash
+guix package --manifest=myserver -p /usr/local/guix-etc
+for link in /usr/local/guix-etc/etc/* ; do
+  # skip generation link
+  # force link -> /etc/link
+done
+#+END_SRC
 
-* Shepherd
+Funny thing to notice, except for running the final script the
+infrastructure is pretty much there! Another thing to notice is that
+this method is not limited to machine installs, it can also be used to
+configure a HOME directory.
+
+* GNU Shepherd
 
 Rather than using systemd it may be an option to use GNU Shepherd
 which comes with Guix. It is possible to fire up the shepherd next to
@@ -131,6 +149,22 @@ which comes with Guix. It is possible to fire up the shepherd next to
 an option to slowly migrate existing services to our new partial
 deploy system. Shepherd can start and stop services, resolving
 dependencies, and even be a watchdog.
+
+Starting shepherd as a normal user it created a stub file
+=~/.config/shepherd/init.scm= containing
+
+#+BEGIN_SRC scheme
+;; init.scm -- default shepherd configuration file.
+(register-services)
+;; Send shepherd into the background
+(action 'shepherd 'daemonize)
+;; Services to start when shepherd starts:
+(for-each start '())
+#+END_SRC
+
+Based on Guix examples in the =/gnu/services= directory and [[https://guix.gnu.org/manual/en/html_node/Shepherd-Services.html][docs]] I
+wrote a small service that fires up a web service on a non-privileged port
+
 
 With Shepherd running we can even consider supporting system services
 in containers as described [[https://guix.gnu.org/blog/2017/running-system-services-in-containers/][here]].
@@ -152,3 +186,21 @@ which would configure the machine. Compound classes may exist so
 where mylaptop expands to class 'mailclient postfix mutt'. Essentially
 classes are a simple list of symbols that expand and describe the
 machine.
+
+* Conclusion
+
+Where Cfengine makes it a point to talk about 'convergence' of system
+configuration to a 'sane state', GNU Guix takes a different approach
+and talks about a 'functional' paradigm where package dependencie,
+deployment and system configuration are treated as one. A Guix
+installation is a defined output defined by a function and it is
+always transactional, predictable and 'sane' provided the inputs are
+well defined.
+
+Here I am mixing Debian with Guix packages to define a system
+configuration in functional way. It is less rigorous than a pure Guix
+installation because Debian itself is not rigorous, i.e., a Debian
+system does not have a well-defined state. By applying the techniques
+presented here, an existing Debian/Ubuntu/Red hat/SuSE installation
+can be gradually morphed into a Guix one, gaining more control over
+dependencies and configuration with every package handled this way!
