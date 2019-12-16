@@ -5,6 +5,8 @@
  - [[#guix-system-definition][Guix system definition]]
  - [[#guix-deploy][Guix deploy]]
  - [[#guix-partial-deploy][Guix partial deploy]]
+ - [[#creating-a-configuration-package][Creating a configuration package]]
+ - [[#guix-partial-deploy][Guix partial deploy]]
  - [[#gnu-shepherd][GNU Shepherd]]
  - [[#classes][Classes]]
  - [[#conclusion][Conclusion]]
@@ -128,6 +130,7 @@ installed by Guix. Now the script becomes the install of a [[https://guix.gnu.or
 followed by updating symlinks that are not generations:
 
 #+BEGIN_SRC bash
+#!/bin/bash
 guix package --manifest=myserver -p /usr/local/guix-etc
 for link in /usr/local/guix-etc/etc/* ; do
   # skip generation link
@@ -135,10 +138,150 @@ for link in /usr/local/guix-etc/etc/* ; do
 done
 #+END_SRC
 
-Funny thing to notice, except for running the final script the
+Funny thing to note: except for running the final script the
 infrastructure is pretty much there! Another thing to notice is that
 this method is not limited to machine installs, it can also be used to
 configure a HOME directory.
+
+* Creating a configuration package
+
+After installing Guix on a Debian using the Guix binary install (and
+following the [[https://guix.gnu.org/download/][instructions]]) you should have a running Guix daemon with
+group guixbuild and you should have added a key with ~guix archive~.
+
+Next, I create a channel by telling Guix to use my git repo
+
+To easily use the packages from this repo, simply add it to your
+`channels` list in ~/.config/guix/channels.scm as described
+[[https://guix.gnu.org/manual/en/html_node/Channels.html][here]]:
+
+#+BEGIN_SRC scheme
+    (cons*
+      (channel
+        (name 'gn-bioinformatics)
+        (url "https://git.genenetwork.org/pjotrp/guix-bioinformatics.git")
+        (branch "master"))
+      %default-channels)
+#+END_SRC
+
+and run
+
+: guix pull
+
+My package defined as
+
+#+BEGIN_SRC scheme
+; Configure a default version of the nginx web server
+(define-public nginx-config
+  (let ((commit "e2ac61bfa472f23eb8e0c6863395a79c94a3d68a")
+        (revision "1"))
+    (package
+     (name "nginx-gn-config")
+     (version (git-version "0.0.1" revision commit))
+     (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "http://git.genenetwork.org/pjotrp/guix-bioinformatics.git")
+                    (commit commit)))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "1pczs7farkcklvh96q1psjgv86mlwv93c3lzmc1mwp9m299g4qdr"))))
+     (build-system trivial-build-system)
+     (native-inputs `(("unzip" ,unzip)
+                      ("source" ,source)))
+     (propagated-inputs `(("nginx" ,nginx)))
+     (arguments
+      `(#:modules ((guix build utils))
+        #:builder
+        (begin
+          (use-modules (guix build utils))
+          (let ((target (string-append (assoc-ref %outputs "out")
+                                       "/etc/nginx"))
+                (nginx-etc (string-append (assoc-ref %build-inputs "nginx")
+                                            "/share/nginx/conf")))
+            (mkdir-p target)
+            ; copy up,, original nginx configuration /gnu/store/nginx-ver/share/nginx/conf/*
+            ; (copy-recursively nginx-etc target)
+            (copy-file (string-append nginx-etc "/nginx.conf")
+                       (string-append target "/nginx.conf"))
+            #t))))
+     (home-page "http://git.genenetwork.org/pjotrp/guix-bioinformatics")
+     (synopsis "Nginx configuration")
+     (description "None.")
+     (license license:expat))))
+#+END_SRC
+
+should be visible
+
+: guix package -A nginx
+: nginx          1.17.6 out /export/local/wrk/iwrk/opensource/guix/guix-master/gnu/packages/web.scm:211:2
+: nginx-gn-config 0.0.1 out ../guix-bioinformatics/gn/deploy/machines.scm:22:2
+
+which can be installed with using a
+
+#+BEGIN_SRC bash
+guix package -i nginx-gn-config -p ~/opt/myserver
+tree ~/opt/myserver
+/home/wrk/opt/myserver
+├── etc
+│   ├── nginx -> /gnu/store/zl7plvii6979gxxm7dwqynnmxamdygal-nginx-gn-config-0.0.1-1.e2ac61b/etc/nginx
+│   └── profile
+├── manifest
+├── sbin -> /gnu/store/6q44kjf59rgkvn0ip8m0454ybszhjpy0-nginx-1.17.6/sbin
+└── share
+    ├── doc -> /gnu/store/6q44kjf59rgkvn0ip8m0454ybszhjpy0-nginx-1.17.6/share/doc
+    ├── info -> /gnu/store/z3jphxl8isvsgylxsyrnmjjlqd7p9lkx-info-dir/share/info
+    ├── man
+    │   ├── index.db -> /gnu/store/9ym9wi3b4imjlqc2mby813q9dsa43k5x-manual-database/share/man/index.db
+    │   └── man8 -> /gnu/store/6q44kjf59rgkvn0ip8m0454ybszhjpy0-nginx-1.17.6/share/man/man8
+    └── nginx -> /gnu/store/6q44kjf59rgkvn0ip8m0454ybszhjpy0-nginx-1.17.6/share/nginx
+#+END_SRC
+
+and
+
+#+BEGIN_SRC shell
+tree /gnu/store/zl7plvii6979gxxm7dwqynnmxamdygal-nginx-gn-config-0.0.1-1.e2ac61b/etc/nginx
+/gnu/store/zl7plvii6979gxxm7dwqynnmxamdygal-nginx-gn-config-0.0.1-1.e2ac61b/etc/nginx
+├── fastcgi.conf
+├── fastcgi_params
+├── koi-utf
+├── koi-win
+├── mime.types
+├── nginx.conf
+├── scgi_params
+├── uwsgi_params
+└── win-utf
+#+END_SRC
+
+Holds the default configuration which can be started with
+
+#+BEGIN_SRC shell
+~/opt/myserver/sbin/nginx -c ~/opt/myserver/etc/nginx/nginx.conf
+#+END_SRC
+
+or by symlinking the conf file from =/etc=. You get the idea.  In this
+case we can create a wrapper script that would pick up this
+configuration file and there is no need to symlink from =/etc= at all.
+
+To plug in our own nginx.conf hosted in our [[http://git.genenetwork.org/pjotrp/guix-bioinformatics][git repo]] we can replace
+
+: (nginx-etc (string-append (assoc-ref %build-inputs "nginx") "/share/nginx/conf"))
+
+with something like
+
+: (nginx-etc (string-append (assoc-ref %build-inputs "source") "/gn/deploy/myserver/nginx.conf"))
+
+but that won't make use of GNU Guix machine configuration capabilities.
+So we need to plug that in now.
+
+Note that to develop the package it may be useful to use the
+~GUIX_PACKAGE_PATH~ instead of a channel and ~guix pull~ and build
+against local checkout
+
+: env GUIX_PACKAGE_PATH=./guix-bioinformatics guix build nginx-gn-config -K
+
+* TODO Guix partial deploy
 
 * GNU Shepherd
 
