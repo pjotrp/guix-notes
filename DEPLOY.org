@@ -147,8 +147,8 @@ which comes with Guix. It is possible to fire up the shepherd next to
 (or even by) systemd since these are independent control daemons
 (shepherd can even run without root privilege). Having both running is
 an option to slowly migrate existing services to our new partial
-deploy system. Shepherd can start and stop services, resolving
-dependencies, and even be a watchdog.
+deploy system. Shepherd can start and stop services, resolve
+orchestration dependencies, and even be a watchdog.
 
 Starting shepherd as a normal user it created a stub file
 =~/.config/shepherd/init.scm= containing
