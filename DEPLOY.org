@@ -6,6 +6,8 @@
  - [[#guix-deploy][Guix deploy]]
  - [[#guix-partial-deploy][Guix partial deploy]]
  - [[#creating-a-configuration-package][Creating a configuration package]]
+ - [[#provisioning-a-container][Provisioning a container]]
+ - [[#guix-system][Guix system]]
  - [[#guix-partial-deploy][Guix partial deploy]]
  - [[#gnu-shepherd][GNU Shepherd]]
  - [[#classes][Classes]]
@@ -104,7 +106,8 @@ The only tricky aspect is to tell nginx where to find its
 configuration and (possibly) add that to systemd. Guix does not write
 files outside the store in =/gnu/store=. Nevertheless it can create
 profiles which are paths that symlink into the store. These profiles
-can be anywhere - even =/etc=. So maybe Guix can symlink =/etc/nginx=. And we can setup
+can be anywhere - even =/etc=. So maybe Guix can symlink
+=/etc/nginx=. And we can setup
 
 #+BEGIN_SRC sh
 guix package -i nginx-myserver -p /etc/nginx
@@ -123,11 +126,11 @@ link up the latest configuration.
 Next we want to parametrize so we can target multiple servers in a
 simple way. This should work fine in standard Guix packages too by
 using named packages for each server and using package inheritance
-where applicable. Guix parametrized packages may help too though it is
-currently a [[https://lists.gnu.org/archive/html/guix-devel/2019-05/msg00285.html][proposal]]. Guix manifests can be used to define bundles and
-Guix channels can be used to embed these packages so they can be
-installed by Guix. Now the script becomes the install of a [[https://guix.gnu.org/manual/en/html_node/Invoking-guix-package.html][manifest]]
-followed by updating symlinks that are not generations:
+where applicable. Guix parametrized packages may help too, even though
+it is currently a [[https://lists.gnu.org/archive/html/guix-devel/2019-05/msg00285.html][proposal]]. Guix manifests can be used to define
+bundles and Guix channels can be used to embed these packages so they
+can be installed by Guix. Now the script becomes the install of a
+[[https://guix.gnu.org/manual/en/html_node/Invoking-guix-package.html][manifest]] followed by updating symlinks that are not generations:
 
 #+BEGIN_SRC bash
 #!/bin/bash
@@ -281,6 +284,93 @@ against local checkout
 
 : env GUIX_PACKAGE_PATH=./guix-bioinformatics guix build nginx-gn-config -K
 
+In this section we show how you can configure a package by creating
+another package. This may be sufficient for many cases. On a path to a full
+Guix solution it would be interesting if we can use the system configuration
+stuff that comes with GNU Guix.
+
+* Provisioning a container
+
+Guix has a command for creating containers (which is the same for VM,
+a bare machine and even a Docker image) with system [[https://guix.gnu.org/manual/en/html_node/Invoking-guix-system.html#Invoking-guix-system][settings]]:
+
+: guix system container myserver.scm --network
+
+(note that this does not require Docker!). Building the container
+returns a ~script~ which you can run. E.g.
+
+: /gnu/store/v056qnyvaz8rrjbhhk64xmlw302s2vn5-run-container
+
+it says
+
+: populating /etc from /gnu/store/i2cjw7m1wfiil11h5jg6iipdcrmz6wia-etc...
+
+and if you included a shell you can login with something like
+
+: nsenter -a -t 23718 sh
+
+and with network and ssh configured so if you set up an account you
+can do
+
+: ssh -p 2222 pjotr@localhost
+
+Tools are symlinked from the store in
+
+: /run/current-system/profile/bin/
+
+which runs a container in a Linux [[https://en.wikipedia.org/wiki/Linux_namespaces][namespace]], a much lighter weight
+alternative to Docker. You can verify that the container has full
+access to the ~store~, has a special =/etc= and does not expose the
+underlying ~$HOME~ etc. Note: don't run 'guix' in the namespace, only
+in full containers or VM because the store is shared even though ~guix
+gc --verify=repair~ may fix it.
+
+Just for the heck of it I added ruby
+
+#+BEGIN_SRC scheme
+  (packages (append (list
+                     screen ruby)
+                    %base-packages))
+#+END_SRC
+
+: pjotr@komputilo ~$ which ruby
+: /run/current-system/profile/bin/ruby
+
+Interestingly the configuration file =myserver.scm= is the same for a
+container as for a VM or a bare bones machine. GNU Guix strips the
+additional stuff that you need to run one of those. You can move
+between the three targets freely.
+
+Note that, after testing and if you need it, with the same
+=myserver.scm= you can create a Docker container
+
+: guix system docker myserver.scm
+
+* Guix system
+
+How does ~guix system~ work? One of the great features of GNU Guix is
+that it is all Scheme Lisp. This means it is not too hard to digest
+what is going on.
+
+Above
+
+: populating /etc from /gnu/store/i2cjw7m1wfiil11h5jg6iipdcrmz6wia-etc...
+
+is done by =gnu/build/activation.scm=. Essentially the procedure
+~activate-etc~ symlinks from the profile
+
+#+BEGIN_SRC scheme
+  (rm-f "/etc/ssl")
+  (symlink "/run/current-system/profile/etc/ssl" "/etc/ssl")
+#+END_SRC
+
+This is a standard Guix profile and includes ruby in our case.
+
+All the components are here now! We can use a machine definition that
+creates /run/current-system/profile and next maybe subvert it to
+create the right symlinks.
+
+
 * TODO Guix partial deploy
 
 * GNU Shepherd
@@ -308,9 +398,10 @@ Starting shepherd as a normal user it created a stub file
 Based on Guix examples in the =/gnu/services= directory and [[https://guix.gnu.org/manual/en/html_node/Shepherd-Services.html][docs]] I
 wrote a small service that fires up a web service on a non-privileged port
 
+With Shepherd we can even consider supporting system services in
+containers as described [[https://guix.gnu.org/blog/2017/running-system-services-in-containers/][here]].
 
-With Shepherd running we can even consider supporting system services
-in containers as described [[https://guix.gnu.org/blog/2017/running-system-services-in-containers/][here]].
+
 
 * Classes
 
@@ -334,16 +425,19 @@ machine.
 
 Where Cfengine makes it a point to talk about 'convergence' of system
 configuration to a 'sane state', GNU Guix takes a different approach
-and talks about a 'functional' paradigm where package dependencie,
+and talks about a 'functional' paradigm where package dependencies,
 deployment and system configuration are treated as one. A Guix
 installation is a defined output defined by a function and it is
-always transactional, predictable and 'sane' provided the inputs are
-well defined.
+always transactional, predictable and 'sane'. Provided the inputs are
+well defined. There is no concept of mixing state between the provisioning
+system and what is already in =/etc=, at least for the packages that
+Guix manages.
 
 Here I am mixing Debian with Guix packages to define a system
 configuration in functional way. It is less rigorous than a pure Guix
 installation because Debian itself is not rigorous, i.e., a Debian
-system does not have a well-defined state. By applying the techniques
+system does not have a well-defined state (for one, it matters at what
+time you install a piece of software). By applying the techniques
 presented here, an existing Debian/Ubuntu/Red hat/SuSE installation
 can be gradually morphed into a Guix one, gaining more control over
-dependencies and configuration with every package handled this way!
+dependencies and configuration one package at a time!
