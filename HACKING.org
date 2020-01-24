@@ -2,7 +2,7 @@
 
 * Table of Contents                                                     :TOC:
  - [[#introduction][Introduction]]
- - [[#guile-the-language][Guile, the language]]
+ - [[#guile-the-language][Guile: the language]]
    - [[#functions-vs-procedures][Functions vs procedures]]
    - [[#boolean-f-t-notation][Boolean #f, #t notation]]
    - [[#hash-colon--notation][Hash colon (#:) notation]]
@@ -13,9 +13,9 @@
    - [[#inside-functions][Inside functions]]
    - [[#more-about-guilescheme][More about Guile/scheme]]
    - [[#emacs-helpers][Emacs helpers]]
- - [[#guix-the-language][Guix, the language]]
-   - [[#expressions][Expressions]]
+ - [[#guix-the-language][Guix: the language]]
    - [[#bags][Bags]]
+   - [[#expressions][Expressions]]
    - [[#renaming-and-moving-files][Renaming and moving files]]
  - [[#starting-the-daemon][Starting the daemon]]
  - [[#install-guix-from-the-git-repository][Install Guix from the git repository]]
@@ -47,6 +47,7 @@
  - [[#hacking-tips][Hacking tips]]
    - [[#the-guile-write-function][The guile write function]]
    - [[#using--k-keep-build-to-create-a-patch][Using -K (keep build) to create a patch]]
+ - [[#guix-at-the-repl][Guix at the REPL]]
  - [[#hints][Hints]]
    - [[#using-emacs][Using emacs]]
    - [[#filing-a-bug][Filing a bug]]
@@ -89,7 +90,7 @@ network connection: in short, the faster the better. Caching packages
 somewhere may be worth considering too. Finally a fast server may be a
 good thing too because GNU Guix is designed to build packages in parallel.
 
-* Guile, the language
+* Guile: the language
 
 Guile is a Scheme LISP. Here we list some Scheme specific material that is used
 by GNU Guix. There is much information on the web on Scheme. Check out
@@ -317,23 +318,29 @@ favorites are:
 
 More tips [[https://www.gnu.org/software/guile/manual/html_node/Using-Guile-in-Emacs.html][here]].
 
-* Guix, the language
+* Guix: the language
 
 GNU Guix is not a language per se. But as they say, LISP is used to
 create a new language for every purpose (using macros). So here we
 list some of the commonly used macros.
 
+** Bags
+
+Recently GNU Guix introduced bags as an intermediate form between
+packages and derivations. A bag includes all the implicit inputs which
+is useful for processing.
+
 ** Expressions
 
 A good explanation of expressions (a derivation in Nix-speak) and how
 they are implemented can be found on [[https://en.wikisource.org/wiki/Functional_Package_Management_with_Guix/Build_expressions_and_package_descriptions][Wikisource]]. Actually at the low
-level an expression returns a derivation variable or structure.
-
-** Bags
-
-Recently GNU Guix introduced bags as an intermediate form between packages
-and derivations. A bag includes all the implicit inputs which is useful
-for processing.
+level an expression returns a derivation variable or
+structure. s-expressions (sexprs or sexps) are a notation for nested
+list data similar to JSON but fully Lisp which uses it both for data
+and source code. [[https://guix.gnu.org/manual/en/html_node/G_002dExpressions.html#G_002dExpressions][G-expressions]] are Guix expressions which can expand
+paths in the store and act similar to backquote and comma for list
+expansion - but use '#~' and '#$' instead. G-expr can be used to
+generate derivations.
 
 ** Renaming and moving files
 
@@ -362,7 +369,7 @@ bin:
 Do not forget to start the daemon
 
 #+begin_src scheme
-  guix-daemon --build-users-group=guix-build
+  guix-daemon --build-users-group=guixbuild
 #+end_src
 
 The daemon runs ar root, the actual build processes run as unprivileged users.
@@ -1405,7 +1412,6 @@ Another useful hack is to show the environment
       (invoke "./build.sh")))
 #+END_SRC
 
-
 ** Using -K (keep build) to create a patch
 
 Using -K you can keep the build dir after failure (induced in above
@@ -1413,6 +1419,244 @@ paragraph).  You may need to patch the source code to make it to
 work. What I do is use git.  Go into the kept directory and run 'git
 init' and add files you change. That way you can generate a patch file
 that can be added to the guix source tree.
+
+* Guix at the REPL
+
+(thanks to Swedebugia's Xmas 2018 message and Ludovic's 2016 REPL talk
+at FOSDEM)
+
+Run the REPL from guix
+
+: guix repl
+
+and set up an environment
+
+#+begin_src scheme
+(use-modules
+  (guix packages)
+  (guix import utils)
+  (gnu)
+  (gnu packages ruby))
+#+end_src
+
+E.g. (package<TAB><TAB> shows this list of nice procedures availiable:
+
+#+begin_example
+package
+package->cross-derivation
+package->definition
+package->derivation
+package-build-system
+package-cross-build-system-error?
+package-cross-derivation
+package-derivation
+package-description
+package-direct-inputs
+package-direct-sources
+package-error-invalid-input
+package-error-package
+package-error?
+package-field-location
+package-file
+package-full-name
+package-grafts
+package-home-page
+package-input-error?
+package-input-rewriting
+package-inputs
+package-license
+package-location
+package-maintainers
+package-mapping
+package-name
+package-native-inputs
+package-native-search-paths
+package-output
+package-outputs
+package-patched-vulnerabilities
+package-propagated-inputs
+package-properties
+package-search-paths
+package-source
+package-source-derivation
+package-superseded
+package-supported-systems
+package-synopsis
+package-transitive-inputs
+package-transitive-native-inputs
+package-transitive-native-search-paths
+package-transitive-propagated-inputs
+package-transitive-sources
+package-transitive-supported-systems
+package-transitive-target-inputs
+package-upstream-name
+package-version
+package/inherit
+package?
+#+end_example
+
+In addition to this there are the following origin-record-procedures:
+
+E.g. (origin<TAB><TAB> shows this list
+
+#+begin_example
+origin
+origin->derivation
+origin-actual-file-name
+origin-file-name
+origin-method
+origin-modules
+origin-patch-flags
+origin-patch-guile
+origin-patch-inputs
+origin-patches
+origin-sha256
+origin-snippet
+origin-uri
+origin?
+#+end_example
+
+How about getting the url of a specific package?
+
+#+begin_src scheme
+scheme@(guix-user)> (origin-uri (package-source ruby))
+$8 = "http://cache.ruby-lang.org/pub/ruby/2.5/ruby-2.5.3.tar.xz"
+#+end_src
+
+Fetching it?
+
+#+begin_src scheme
+scheme@(guix-user)> (url-fetch (origin-uri (package-source ruby)) "temp")
+scheme@(guix-user) [43]> (url-fetch (origin-uri (package-source ruby)) "temp")
+
+Starting download of temp
+From http://cache.ruby-lang.org/pub/ruby/2.5/ruby-2.5.3.tar.xz...
+ ....3.tar.xz  10.9MiB                133KiB/s 01:24 [##################] 100.0%
+$15 = "temp"
+#+end_src
+
+With fold-packages you can walk through the whole stack of package
+records if you would like and count say the number of packages with
+the prefix "python-":
+
+#+begin_src scheme
+scheme@(guile-user)> (define snakes
+                        (fold-packages
+                             (lambda (package lst)
+                               	(if (string-prefix? "python"
+                                       (package-name package))
+				       (cons package lst)
+			     lst))
+			'()))
+#+end_src
+
+Now we can work on this list. As of writing this we have this many
+items in the list:
+
+#+begin_src scheme
+scheme@(guix-user)> (length snakes)
+$5 = 1732
+#+end_src
+
+or get the URLs
+
+#+begin_src scheme
+scheme@(guile-user)> (define snakes
+                        (fold-packages
+                             (lambda (package lst)
+                               	(if (string-prefix? "python"
+                                       (package-name package))
+				       (cons (origin-url package) lst)
+			     lst))
+			'()))
+#+end_src
+
+This is all well for fetching information from Guix packages. How
+about telling the daemon to build something?  At the REPL, you can use
+the ‘enter-store-monad’ command:
+
+#+begin_src scheme
+scheme@(guix-user) [50]> ,use (guix monad-repl)
+scheme@(guix-user) [50]> ,enter-store-monad
+#+end_src
+
+note the change of prompt here!
+
+#+begin_src scheme
+store-monad@(guix-user) [51]> (package->derivation ruby)
+$22 = #<derivation /gnu/store/cb0aag3qha7znkrv9z12j2smvk3kn8h2-ruby-2.5.3.drv => /gnu/store/wd9fcab8pzc8l8bbw958yxa1hmfh0irk-ruby-2.5.3 7f74e2229b90>
+#+end_src
+
+(define s (open-connection))
+(built-derivations s (package->derivation ruby))
+scheme@(guix-user) [76]>(built-derivations s (package->derivation ruby))
+$25 = #<procedure 7f74e2c76580 at guix/store.scm:1726:28 (store)>
+
+--8<---------------cut here---------------start------------->8---
+scheme@(gnu packages bioinformatics-test)> ,enter-store-monad
+store-monad@(gnu packages bioinformatics-test) [1]>   (git-fetch ref 'sha256
+                  (base32
+                   "0yvkv7pnigvcifas3vcr8sk87xrrb8y9nh9v1yx2p43k0xz1q8vz")
+                  "mypackage")
+$4 = #<derivation /gnu/store/fmpk2sck6ny5dgyx12s539qcadzky24n-mypackage.drv =>
+/gnu/store/k6q69arfmsm116a8hfkqqahm0ddzacjc-mypackage 50b9e10>
+--8<---------------cut here---------------end--------------->8---
+
+Here $4 is a derivation object, and calling ‘built-derivations’ on it
+actually starts the build process (which fails here because of the bogus
+URL):
+
+--8<---------------cut here---------------start------------->8---
+store-monad@(gnu packages bioinformatics-test) [1]> (built-derivations (list
+$4))
+building path(s) `/gnu/store/fid19bds4rak2zn8pzfhrjdcpmqwhjn4-module-import'
+building path(s)
+`/gnu/store/vf1pmac8yz2g0d4ln5ibwg0xaffdrnpq-module-import-compiled'
+building path(s) `/gnu/store/k6q69arfmsm116a8hfkqqahm0ddzacjc-mypackage'
+fatal: repository 'some_source.git' does not exist
+environment variable `PATH' unset
+builder for `/gnu/store/fmpk2sck6ny5dgyx12s539qcadzky24n-mypackage.drv' failed
+to produce output path `/gnu/store/k6q69arfmsm116a8hfkqqahm0ddzacjc-mypackage'
+guix/store.scm:627:0: In procedure build-things:
+guix/store.scm:627:0: Throw to key `srfi-34' with args `(#<condition
+&nix-protocol-error [message: "build of
+`/gnu/store/fmpk2sck6ny5dgyx12s539qcadzky24n-mypackage.drv' failed" status: 1]
+4cc61b0>)'.
+
+Entering a new prompt.  Type `,bt' for a backtrace or `,q' to continue.
+--8<---------------cut here---------------end--------------->8---
+
+Alternately, you can use ‘run-with-store’, as in:
+
+#+begin_src scheme
+(define s (open-connection))
+
+(run-with-store s
+  (git-fetch ref ...))
+#+end_src
+
+where ~s~ is the connection to the Guix daemon (in source code also
+referred to as ~%store~, ~daemon~ and ~store~).
+
+
+scheme@(guix-user) [58]> ,use (guix gexp)
+scheme@(guix-user) [58]> #~(symlink #$ruby #$output)
+$24 = #<gexp (symlink #<gexp-input #<package ruby@2.5.3 gnu/packages/ruby.scm:78 7f74e5311f20>:out> #<gexp-output out>) 7f74e1e80930>
+
+scheme@(guix-user) [76]> s (bag-name bag)
+$29 = #<store-connection 256.99 22d1360>
+$30 = "ruby-2.5.3"
+
+scheme@(guix-user) [81]> s (car (bag-build-inputs bag))
+$45 = #<store-connection 256.99 22d1360>
+$46 = ("source" #<origin "http://cache.ruby-lang.org/pub/ruby/2.5/ruby-2.5.3.tar.xz" dte5anm2r2rv7rqrd3edbujomali6o43gbndyjlygv6tmd6pgbxq () 221fba0>)
+
+
+Guix makes extensive use of [[https://www.gnu.org/software/guile/manual/html_node/SRFI_002d9-Records.html][records]]. You can update a record with
+
+
+
+
 
 * Hints
 
