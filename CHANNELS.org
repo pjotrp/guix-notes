@@ -1,0 +1,40 @@
+* Guix Channels
+
+Guix channels allow for out-of-tree (that is the Guix repo) packages,
+including distribution of non-free software (which we recommend
+against installing, but then reality sometimes is not nice). Note that
+this page is not related to the GNU project (see below).
+
+Check out:
+
+- [[https://gitlab.com/nonguix/nonguix][NonGuix]] is a software repository for the GNU Guix package
+  manager, which packages some software which cannot be included in
+  the official distribution for ethical or policy-related reasons.
+
+For Bioinformatics and HPC
+
+- https://github.com/BIMSBbioinfo Guix package definitions used at
+  Medical Systems Biology, The Berlin Institute for Medical Systems
+  Biology (BIMSB)
+- https://github.com/UMCUGenetics/guix-additions Guix packages used at
+  Univeristy Medical Center Utrecht (UMCU)
+- http://git.genenetwork.org/guix-bioinformatics/guix-bioinformatics/
+  Guix packages used by University of Tennessee Health Science Center
+  (UTHSC) and GeneNetwork.org
+- https://github.com/ekg/guix-genomics Guix packages for the variation
+  graph (VG and vgtools)
+
+These packages can be installed using GNU Guix by adding Guix
+[[Ghttps://www.gnu.org/software/guix/manual/en/html_node/Channels.html][channels]].
+
+If you use non-free software *PLEASE do NOT promote* these
+repositories on any official GNU Guix communication channels, such as
+their mailing lists or IRC channel, even in response to support
+requests! This is to show respect for the Guix project’s strict policy
+against recommending nonfree software, and to avoid any unnecessary
+hostility.
+
+Before using these channel, you should understand the implications of
+using nonfree software. Read [[https://www.gnu.org/philosophy/free-sw.en.html][What is free software?]] for more
+information. Do note that we also have free software on these channels
+which may not have gone upstream for other reasons.

@@ -241,11 +241,8 @@ garbage collected later).
 
 you may want to restart the daemon after a successful upgrade.
 
-Health warning: at this point 'guix pull' is considered a liability
-for two reasons
-
-1. You don't know what you get even if it is considered 'latest'
-2. Guix pull runs over http and is not considered safe
+Guix pull has options to fetch older versions of the tree using a git
+HASH. There is also guix 'timemachine' you can explore.
 
 * Use guix as a normal user
 
@@ -995,6 +992,16 @@ export GIT_SSL_CAINFO="$HOME/.guix-profile/etc/ssl/certs/ca-certificates.crt${GI
 export SSL_CERT_DIR="$HOME/.guix-profile/etc/ssl/certs${SSL_CERT_DIR:+:}$SSL_CERT_DIR"
 #+end_src
 
+If that does not work try emptying the environment first with
+
+
+#+begin_src bash
+env -i /bin/bash --login --noprofile --norc
+export GIT_SSL_CAINFO="$HOME/.guix-profile/etc/ssl/certs/ca-certificates.crt${GIT_SSL_CAINFO:+:}$GIT_SSL_CAINFO"
+export SSL_CERT_DIR="$HOME/.guix-profile/etc/ssl/certs${SSL_CERT_DIR:+:}$SSL_CERT_DIR"
+git pull
+#+end_src
+
 ** guix pull: error: Git error: the SSL certificate is invalid
 
 Solution, see above X.509 certificate error
@@ -1020,7 +1027,7 @@ installing guix in a profile and setting the LOAD PATHS, e.g.:
 
 : guix package -i guix -p ~/opt/guix
 
-#+BEGIN_SRC
+#+BEGIN_SRC bash
 export GUILE_LOAD_PATH=~/opt/guix/share/guile/site/2.2/
 export GUILE_LOAD_COMPILED_PATH=~/opt/guix/share/guile/site/2.2/
 #+END_SRC

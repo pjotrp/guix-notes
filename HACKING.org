@@ -1654,8 +1654,26 @@ $46 = ("source" #<origin "http://cache.ruby-lang.org/pub/ruby/2.5/ruby-2.5.3.tar
 
 Guix makes extensive use of [[https://www.gnu.org/software/guile/manual/html_node/SRFI_002d9-Records.html][records]]. You can update a record with
 
+In guix/derivations.scm
+
+            derivation?
+            derivation-outputs
+            derivation-inputs
+            derivation-sources
+            derivation-system
+            derivation-builder
+            derivation-builder-arguments
+            derivation-builder-environment-vars
+            derivation-file-name
+            derivation-prerequisites
+            derivation-build-plan
 
 
+Update field in derivation
+
+scheme@(guix-user) [104]> ,use (srfi srfi-9 gnu)
+scheme@(guix-user) [104]> (set-field drv (derivation-file-name) "TST")
+$72 = #<derivation TST => /gnu/store/wd9fcab8pzc8l8bbw958yxa1hmfh0irk-ruby-2.5.3 31f1140>
 
 
 * Hints
@@ -1862,6 +1880,9 @@ adding and maintaining packages, it has two largish downsides: (1) it
 is removed from the main package tree and therefore not easily shared
 and integrated and (2) to remain compatible you need to juggle two git
 trees which may go out of synch.
+
+Also take a look at guix 'channels' which acts has more advanced
+options for sharing packages out of tree.
 
 * Create a caching server
 
