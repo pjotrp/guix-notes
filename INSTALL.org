@@ -367,12 +367,6 @@ it means your locale needs to be found. Guix comes with a small locale
 database
 
 #+begin_src sh   :lang bash
-   guix package -i glibc-utf8-locales
-#+end_src sh   :lang bash
-
-and add more locales with local glibc support
-
-#+begin_src sh   :lang bash
    guix package -i glibc-locales
 #+end_src sh   :lang bash
 
@@ -992,15 +986,17 @@ export GIT_SSL_CAINFO="$HOME/.guix-profile/etc/ssl/certs/ca-certificates.crt${GI
 export SSL_CERT_DIR="$HOME/.guix-profile/etc/ssl/certs${SSL_CERT_DIR:+:}$SSL_CERT_DIR"
 #+end_src
 
-If that does not work try emptying the environment first with
-
+If that does not work for git try
 
 #+begin_src bash
-env -i /bin/bash --login --noprofile --norc
-export GIT_SSL_CAINFO="$HOME/.guix-profile/etc/ssl/certs/ca-certificates.crt${GIT_SSL_CAINFO:+:}$GIT_SSL_CAINFO"
-export SSL_CERT_DIR="$HOME/.guix-profile/etc/ssl/certs${SSL_CERT_DIR:+:}$SSL_CERT_DIR"
-git pull
+guix package -i nss-certs git
+export PATH=$HOME/.guix-profile/bin:$PATH
+export GIT_SSL_CAINFO="$HOME/.guix-profile/etc/ssl/certs/ca-certificates.crt"
+export SSL_CERT_DIR="$HOME/.guix-profile/etc/ssl/certs"
+~/.guix-profile/bin/git pull
 #+end_src
+
+to make sure all ducks are in a row.
 
 ** guix pull: error: Git error: the SSL certificate is invalid
 

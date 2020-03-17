@@ -1108,7 +1108,7 @@ being copied into disallowed directories or network access. Just be
 smart about reading the code and patching it. Worst case you'll need
 to build inside a container/VM to find and fix the problems.
 
-: ./pre-inst-env guix environment erlang -C --ad-hoc erlang vim make git glibc-utf8-locales --no-grafts --pure --share=/tmp/guix-build-elixir-1.5.1.drv-12 --network
+: ./pre-inst-env guix environment erlang -C --ad-hoc erlang vim make git glibc-locales --no-grafts --pure --share=/tmp/guix-build-elixir-1.5.1.drv-12 --network
 : export LC_ALL=en_US.UTF-8
 : cd /tmp/guix-build-elixir-1.5.1.drv-12/elixir-1.5.1/
 
