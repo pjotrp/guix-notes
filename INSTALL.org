@@ -998,6 +998,20 @@ export SSL_CERT_DIR="$HOME/.guix-profile/etc/ssl/certs"
 
 to make sure all ducks are in a row.
 
+Certificate search paths are a bit of a mess. I have found the following
+you can set depending on what is used:
+
+| ENV                            |                 |
+|--------------------------------+-----------------|
+| SSL_CERT_FILE and SSL_CERT_DIR | openssl         |
+| ARVADOS_API_HOST_INSECURE      | arvados         |
+| HTTPLIB2_CA_CERTS              | python-httplib2 |
+| GIT_SSL_CAINFO                 | git             |
+| CURL_CA_BUNDLE                 | curl            |
+
+and the list goes on.
+
+
 ** guix pull: error: Git error: the SSL certificate is invalid
 
 Solution, see above X.509 certificate error
