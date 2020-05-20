@@ -1,8 +1,12 @@
 * Racket Scheme
 
-These days I write more and more code in scheme. Guix support for Racket
-scheme and Guile scheme is rather good (unsurprisingly perhaps). For Racket
-simply do
+These days I write more and more code in scheme. Guix support for
+Racket scheme and Guile scheme is rather good (unsurprisingly
+perhaps).
+
+** Installation
+
+For Racket simply do
 
 : guix package -i racket
 
@@ -15,6 +19,16 @@ and load the environment with
 : source ~/opt/racket/profile
 
 Works a treat. All tools should work.
+
+To get the emacs working environment
+
+#+begin_src sh
+guix package -i emacs emacs-magit emacs-rainbow-mode \
+    emacs-racket-mode emacs-geiser \
+    emacs-json-mode emacs-markdown-mode emacs-org \
+    emacs-paredit racket -p ~/opt/racket
+#+end_src
+
 
 ** Link against (C) libraries
 
