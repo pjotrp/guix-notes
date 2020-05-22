@@ -1038,8 +1038,8 @@ installing guix in a profile and setting the LOAD PATHS, e.g.:
 : guix package -i guix -p ~/opt/guix
 
 #+BEGIN_SRC bash
-export GUILE_LOAD_PATH=~/opt/guix/share/guile/site/2.2/
-export GUILE_LOAD_COMPILED_PATH=~/opt/guix/share/guile/site/2.2/
+export GUILE_LOAD_PATH=~/.guix-profile/share/guile/site/2.2/
+export GUILE_LOAD_COMPILED_PATH=~/.guix-profile/share/guile/site/2.2/
 #+END_SRC
 
 ** packages.scm error
