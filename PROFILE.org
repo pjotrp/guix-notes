@@ -1,0 +1,259 @@
+#+TITLE: Guix Profile
+
+* Table of Contents                                                     :TOC:
+ - [[#introduction][Introduction]]
+ - [[#what-is-a-profile][What is a profile?]]
+ - [[#development-testing-staging-production][Development, testing, staging, production!]]
+
+* Introduction
+
+In this document we describe how we use Guix profiles for deployment
+of a complicated webservice (https://genenetwork.org). The idea is
+that a profile describes a snapshot of the service with all its
+dependencies. This allows us to create byte identical profiles over
+time that are not only shared between machines (important for
+deployment) but also between developers. As a bonus we have completely
+reproducible deployment over time (we can still build full
+installations that were deployed 5 years ago). People often ask: why
+not use Docker? The answer is that Docker is a partial
+solution. Docker images are not easily reproducible over time. The
+other problem with Docker is that it is a container infrastructure
+which is quite expensive to run (both time and complexity). Guix
+profiles run on bare metal, though you can opt to use Guix containers
+and even build Docker containers. In other words, more options,
+lighter, faster and we still have the option to orchestrate Docker
+containers.
+
+* What is a profile?
+
+A profile is a tree of symlinks. If we install a piece of software, say
+sambamba:
+
+#+BEGIN_SRC sh
+tux01:~$ ~/opt/guix/bin/guix package -i sambamba -p ~/opt/sambamba
+
+The following package will be installed:
+   sambamba 0.7.1
+
+88.6 MB will be downloaded:
+   /gnu/store/gxsafkxack6czm4yps3cwgp474s69vz5-htslib-for-sambamba-1.3.1-1.2f3c3ea7b
+   /gnu/store/0cn1sd3g67nscyfn4ax71hi8pr46dlha-libconfig-1.7.2
+   /gnu/store/z2gsnhlym1wiz9iwxar51wii9dvajssp-llvm-3.8.1
+   /gnu/store/4sslg1vd2vbbanj4rcs1fhf4q5fjyp8w-ldc-0.17.4
+   /gnu/store/6cq4l5ngihqjvd3ifjlpfcx6nx52591m-llvm-6.0.1
+   /gnu/store/9mmsilz9avdl49i6a6nj5mzfyim8ihv2-tzdata-2019c
+   /gnu/store/snqakx625fgdshkpdw6dsxsv1iribjmk-ldc-1.10.0
+   /gnu/store/5gyxpx946k1ka9i4pm2kzc088x5hvkx0-sambamba-0.7.1
+#+END_SRC
+
+Guix installs sambamba with its dependencies in the profile ~/opt/sambamba.
+Let's see what tree says
+
+#+BEGIN_SRC
+tux01:~$ tree ~/opt/sambamba
+/home/pjotr/opt/sambamba
+├── bin -> /gnu/store/j2ds5b6cm0lf9k5fjnljsdb7scinaaj4-sambamba-0.7.1/bin
+├── etc
+│   └── profile
+├── manifest
+└── share
+    ├── doc -> /gnu/store/j2ds5b6cm0lf9k5fjnljsdb7scinaaj4-sambamba-0.7.1/share/doc
+    ├── info -> /gnu/store/55a8ddzijg3ibwsai6djz4bds10w2981-info-dir/share/info
+    └── man -> /gnu/store/ifdmgg74yhkqlynmiq5198sbc453n729-manual-database/share/man
+#+END_SRC
+
+You can see the profile consists of symlinks pointing into /gnu/store.
+The sambamba binary has built in links:
+
+#+BEGIN_SRC sh
+tux01:~$ ldd ~/opt/sambamba/bin/sambamba
+        linux-vdso.so.1 (0x00007ffd765e9000)
+        libz.so.1 => /gnu/store/qx7p7hiq90mi7r78hcr9cyskccy2j4bg-zlib-1.2.11/lib/libz.so.1 (0x00007fbf2fc59000)
+        libhts.so.1 => /gnu/store/gxsafkxack6czm4yps3cwgp474s69vz5-htslib-for-sambamba-1.3.1-1.2f3c3ea7b/lib/libhts.so.1 (0x00007fbf2fbd0000)
+        liblz4.so.1 => /gnu/store/bp07jwrrhayg7i2xhgn6jxhrb8ha96x9-lz4-1.9.2/lib/liblz4.so.1 (0x00007fbf2fb95000)
+        libpthread.so.0 => /gnu/store/ahqgl4h89xqj695lgqvsaf6zh2nhy4pj-glibc-2.29/lib/libpthread.so.0 (0x00007fbf2fb72000)
+        libm.so.6 => /gnu/store/ahqgl4h89xqj695lgqvsaf6zh2nhy4pj-glibc-2.29/lib/libm.so.6 (0x00007fbf2f919000)
+        librt.so.1 => /gnu/store/ahqgl4h89xqj695lgqvsaf6zh2nhy4pj-glibc-2.29/lib/librt.so.1 (0x00007fbf2fb68000)
+        libdl.so.2 => /gnu/store/ahqgl4h89xqj695lgqvsaf6zh2nhy4pj-glibc-2.29/lib/libdl.so.2 (0x00007fbf2fb63000)
+        libgcc_s.so.1 => /gnu/store/2plcy91lypnbbysb18ymnhaw3zwk8pg1-gcc-7.4.0-lib/lib/libgcc_s.so.1 (0x00007fbf2fb4a000)
+        libc.so.6 => /gnu/store/ahqgl4h89xqj695lgqvsaf6zh2nhy4pj-glibc-2.29/lib/libc.so.6 (0x00007fbf2f75f000)
+        /gnu/store/ahqgl4h89xqj695lgqvsaf6zh2nhy4pj-glibc-2.29/lib/ld-linux-x86-64.so.2 => /lib64/ld-linux-x86-64.so.2 (0x00007fbf2fa59000)
+#+END_SRC
+
+and you can see *all* dependencies are contained in the
+/gnu/store. This amazing facility means that Guix packages are
+independent of the underlying (in this case Debian) distribution. Also
+note that libz was already in the store so it was not reinstalled.
+
+To run sambamba we can now do
+
+#+BEGIN_SRC sh
+tux01:~$ ~/opt/sambamba/bin/sambamba
+
+sambamba 0.7.1
+ by Artem Tarasov and Pjotr Prins (C) 2012-2019
+    LDC 1.10.0 / DMD v2.080.1 / LLVM6.0.1 / bootstrap LDC - the LLVM D compiler (0.17.4)
+#+END_SRC
+
+Not all software is self contained. For example Python needs to find its modules.
+For this Guix provides a profile file which contains the necessary shell settings
+With sambamba it is just a path:
+
+#+BEGIN_SRC sh
+tux01:~$ cat ~/opt/sambamba/etc/profile
+# Source this file to define all the relevant environment variables in Bash
+# for this profile.  You may want to define the 'GUIX_PROFILE' environment
+# variable to point to the "visible" name of the profile, like this:
+#
+#  GUIX_PROFILE=/path/to/profile ; \
+#  source /path/to/profile/etc/profile
+#
+# When GUIX_PROFILE is undefined, the various environment variables refer
+# to this specific profile generation.
+
+export PATH="${GUIX_PROFILE:-/gnu/store/7bdvafgqpm3d8l4k677d3k063qg07miv-profile}/bin${PATH:+:}$PATH"
+#+END_SRC
+
+so, sourcing this file brings sambamba into the environment
+
+#+BEGIN_SRC sh
+tux01:~$ source ~/opt/sambamba/etc/profile
+tux01:~$ sambamba
+
+sambamba 0.7.1
+ by Artem Tarasov and Pjotr Prins (C) 2012-2019
+    LDC 1.10.0 / DMD v2.080.1 / LLVM6.0.1 / bootstrap LDC - the LLVM D compiler (0.17.4)
+#+END_SRC
+
+Profiles allow you to be able to run specific versions too. Say you want
+test an older gcc you could do
+
+#+BEGIN_SRC sh
+tux01:~$ ~/opt/guix/bin/guix package -i gcc-toolchain@6.5.0 -p ~/opt/gcc-6
+tux01:~$ source ~/opt/gcc-6/etc/profile
+tux01:~$ gcc --version
+gcc (GCC) 6.5.0
+  Copyright (C) 2017 Free Software Foundation, Inc.
+  This is free software; see the source for copying conditions.  There is NO
+  warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#+END_SRC
+
+and it becomes trivial to juggle dependencies. Note btw that we are
+installing software as a normal user here! No need for a system
+administrator or root level access because Guix has a build daemon
+that can only access /gnu/store.
+
+* Development, testing, staging, production!
+
+Essentially these are all profiles! Now the question is how
+to deal with versions of profiles. For this we use git.
+
+One profile consists of a combination of (1) a version of core GNU
+Guix and (2) a version of our special packages. The source code of the
+GNU Guix [[https://guix.gnu.org/packages/][package tree]] lives at git [[https://savannah.gnu.org/git/?group=guix][gnu.org]]. Our package source tree
+can be found on our own [[http://git.genenetwork.org/guix-bioinformatics/guix-bioinformatics][git service]]. The latter package tree can be
+combined in two ways: by using Guix [[https://guix.gnu.org/manual/en/html_node/Channels.html][channels]] or by pulling modules in
+using the special GUIX_PACKAGE_PATH environment variable. We are going
+to use the latter here.
+
+To get a fully reproducible GUIX it can be built using a hash value
+that comes from the git tree. This is what happens:
+
+A developer comes in and says I developed a new function and it is
+ready for testing. I used GNU Guix at commit
+8a7784381ac19d0756dc862bf3d8e082406bd958 and guix-bioinformatics at
+b0c38d151324e37448ade758cc48d02d89f94b60.
+
+To update GNU Guix to that commit we can do
+
+#+BEGIN_SRC sh
+tux01:~$ ~/opt/guix/bin/guix pull --commit=8a7784381ac19d0756dc862bf3d8e082406bd958
+#+END_SRC
+
+The new Guix will be installed in
+Next checkout the guix-bioinformatics repo
+
+#+BEGIN_SRC sh
+tux01:~$ git clone http://git.genenetwork.org/guix-bioinformatics/guix-bioinformatics.git
+tux01:~$ cd guix-bioinformatics
+tux01:~$ git checkout -b b0c38d151324e37448ade758cc48d02d89f94b60 b0c38d151324e37448ade758cc48d02d89f94b60
+#+END_SRC
+
+
+Next we install our software using these two repos into a new profile
+
+#+BEGIN_SRC sh
+cd
+env GUIX_PACKAGE_PATH=~/guix-bioinformatics/ ~/.config/guix/current/bin/guix package -A genenetwork
+  guix package: warning: failed to load '(gn services genenetwork)':
+  no code for module (past packages python)
+#+END_SRC
+
+Oh wait, we also use the Guix past [[https://gitlab.inria.fr/guix-hpc/guix-past][channel]] for older packages (such as
+Python2.4). Need to add that too
+
+
+#+BEGIN_SRC sh
+tux01:~$ git clone https://gitlab.inria.fr/guix-hpc/guix-past.git
+tux01:~$ env GUIX_PACKAGE_PATH=~/guix-bioinformatics:~/guix-past/modules/ ~/.config/guix/current/bin/guix package -A genenetwork
+genenetwork1    0.0.0-2.acf65ac out     /home/pjotr/guix-bioinformatics/gn/packages/genenetwork.scm:759:4
+genenetwork2    2.11-guix-1538ffd       out     /home/pjotr/guix-bioinformatics/gn/packages/genenetwork.scm:287:2
+genenetwork2-database-small     1.0     out     /home/pjotr/guix-bioinformatics/gn/packages/genenetwork.scm:569:4
+genenetwork2-files-small        1.0     out     /home/pjotr/guix-bioinformatics/gn/packages/genenetwork.scm:530:4
+genenetwork3    2.10rc5-5bff4f4 out     /home/pjotr/guix-bioinformatics/gn/packages/genenetwork.scm:626:4
+python3-genenetwork2    3.11-guix-84cbf35       out     /home/pjotr/guix-bioinformatics/gn/packages/genenetwork.scm:450:4
+#+END_SRC
+
+That is starting to look good. Let's do the actual installation:
+
+#+BEGIN_SRC sh
+tux01:~$ env GUIX_PACKAGE_PATH=~/guix-bioinformatics:~/guix-past/modules/ ~/.config/guix/current/bin/guix package -i genenetwork2 -p ~/opt/genenetwork2-test --dry-run
+
+The following package would be installed:
+   genenetwork2 2.11-guix-1538ffd
+
+The following derivations would be built:
+   /gnu/store/ks7q232cgz2pp38yss54008py7s9brwb-genenetwork2-2.11-guix-1538ffd.drv
+   /gnu/store/65fg7a5csgwsh2qb77brkr1fwzxf1z59-js-smart-time-ago-0.1.5-1.055c385.drv
+   /gnu/store/6kd6zqqcr338clsgllvif60cng2h9cyb-javascript-smart-time-ago-0.1.5-1.055c385-checkout.drv
+   /gnu/store/l6w0wn31xv8bjxa4rzqf4hyrcfgkcmyx-module-import.drv
+   /gnu/store/npjdpnlpw35h4wah6ck1in3pqhhzc1d4-module-import-compiled.drv
+   /gnu/store/7cya0g156j784jf2gf0fi6xyzm7gfnxj-js-md5-0.7.3.drv
+   /gnu/store/9q9n0gsppv27v0bji2zw11q80id50k6a-javascript-md5-0.7.3-checkout.drv
+   /gnu/store/h1m63df02wc6myvcwyvkbna2z33ms2l1-js-jstat-1.9.1.drv
+   /gnu/store/7har7wm18gwdknqw19i8snyvg843g10p-javascript-jstat-1.9.1-checkout.drv
+   /gnu/store/m5y01bni5nakvw265p5wqymvy4nnsa97-python-twint-2.1.20.drv
+   /gnu/store/qdjnz8ncjzyq9l1h8qnd79jj6ww717sg-rust-qtlreaper-0.1.4.drv
+   /gnu/store/qhd629gkj6yq53gcnnd2v118glakl27y-js-parsley-2.9.1.drv
+   /gnu/store/f5fjawq4xmwacpj7a8dpkldh46h8a35j-javascript-parsley-2.9.1-checkout.drv
+   /gnu/store/qigqv9jwnzw929zrwwajc59a0mvmnpxw-js-underscore-1.9.1.drv
+   /gnu/store/yar112d76r52zzi35xsrbq1nx5la2wh9-javascript-underscore-1.9.1-checkout.drv
+   /gnu/store/r0pcgxgy19jmp0ll8cm1nca5zx4rm2rp-python2-flask-sqlalchemy-2.4.4.drv
+
+#+END_SRC
+
+That looks good. Note we can add our own substitute server where many packages
+have been built by other users.
+
+#+BEGIN_SRC sh
+tux01:~$ env GUIX_PACKAGE_PATH=~/guix-bioinformatics:~/guix-past/modules/ ~/.config/guix/current/bin/guix package -i genenetwork2 -p ~/opt/genenetwork2-test --dry-run     --substitute-urls="http://guix.genenetwork.org https://berlin.guixsd.org https://ci.guix.gnu.org https://mirror.hydra.gnu.org"
+The following package would be installed:
+   genenetwork2 2.11-guix-1538ffd
+substitute: updating substitutes from 'http://guix.genenetwork.org'... 100.0%
+substitute: updating substitutes from 'https://berlin.guixsd.org'... 100.0%
+17 items would be downloaded
+#+END_SRC
+
+Now no more builds! After removing the --dry-run switch it should just install and
+we can run
+
+#+BEGIN_SRC
+tux01:~$ ~/opt/genenetwork2-test/bin/genenetwork2
+#+END_SRC
+
+Which starts off the webserver. Note this profile is pretty massive with loads
+of tools pulled in!
+
+The combination of hash values has `carved our deployment in stone'!
+Note that these versions often go hand-in-hand, so it is good practise
+to store that information somewhere.

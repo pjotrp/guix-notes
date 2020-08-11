@@ -1012,6 +1012,7 @@ you can set depending on what is used:
 
 and the list goes on.
 
+In a pinch you can override checking for certificates. Examples for [[https://stackoverflow.com/questions/11621768/how-can-i-make-git-accept-a-self-signed-certificate][git]].
 
 ** guix pull: error: Git error: the SSL certificate is invalid
 
