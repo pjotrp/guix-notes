@@ -12,6 +12,7 @@
  - [[#docker][Docker]]
    - [[#providing-a-usable-docker-container][Providing a usable Docker container]]
    - [[#building-docker-image-of-conda-with-guix][Building Docker Image of Conda with Guix]]
+ - [[#common-workflow-language-cwl][Common Workflow Language (CWL)]]
 
 * Introduction
 
@@ -157,7 +158,7 @@ want to create /usr/bin pointing to $GUIX_ENVIRONMENT/bin
 Note that /gnu/store is immutable and can therefore be shared with the
 main system. This makes GNU Guix containers really small and fast.
 
-*** Docker
+*** Docker image
 
 With GNU Guix you can create a Docker image without actually installing Docker(!)
 
@@ -172,7 +173,23 @@ env GUIX_PACKAGE_PATH=../guix-bioinformatics/ \
 note we now have the -S switch which can make the /usr/bin symlink
 into the profile.
 
+*** Run Docker
+
 This produced a file which we can be loaded into Docker
+
+Docker is part of Guix too:
+
+#+BEGIN_SRC sh
+guix package -i docker containerd docker-cli -p ~/opt/docker
+source ~/opt/docker/etc/profile
+#+END_SRC
+
+Start the ~dockerd~ as ~root~ and make sure permissions are set
+
+#+BEGIN_SRC sh
+groupadd docker
+usermod -aG docker ${USER}
+#+END_SRC
 
 : docker load --input /gnu/store/0p1ianjqqzbk1rr9rycaqcjdr2s13mcj-docker-pack.tar.gz
 : docker images
@@ -365,3 +382,88 @@ fredmanglis/guix-sambamba bash -c "sambamba view /data/test.bam"
 the `--volume` option enables one to mount a specific directory to the docker
 container that is created, so that the data is available to the running
 commands.
+
+* Common Workflow Language (CWL)
+
+For [[http://covid19.genenetwork.org/][COVID-19 PubSeq]] a tool named [[https://github.com/vgteam/odgi][ODGI]] was required in a CWL [[https://github.com/arvados/bh20-seq-resource/blob/master/workflows/pangenome-generate/odgi_to_rdf.cwl][module]] to
+generate RDF. The quickest way to get a working Docker container was
+by using GNU Guix. ODGI is currently maintained and packaged in an
+external [[https://github.com/ekg/guix-genomics/blob/16b272722013a101067117739f8c4de91390f49a/odgi.scm#L1][guix-genomics]] repo by Erik Garrison. It is simply a matter of
+adding a channel or by using the ~GUIX_PACKAGE_PATH~ after a git clone
+of guix-genomics we build odgi in a [[./PROFILE.org][profile]]
+
+#+BEGIN_SRC sh
+env GUIX_PACKAGE_PATH=~/guix-genomics ~/.config/guix/current/bin/guix package -i odgi -p ~/opt/vgtools
+#+END_SRC
+
+and a quick test shows
+
+#+BEGIN_SRC sh
+tux01:~$ ~/opt/vgtools/bin/odgi
+odgi: dynamic succinct variation graph tool, version #<procedure version ()>
+
+usage: /home/pjotr/opt/vgtools/bin/odgi <command> [options]
+
+main mapping and calling pipeline:
+  -- build         build dynamic succinct variation graph
+  -- stats         describe the graph and its path relationships
+  -- sort          sort a variation graph
+  -- view          projection of graphs into other formats
+  -- kmers         process and dump the kmers of the graph
+  -- unitig        emit the unitigs of the graph
+  -- viz           visualize the graph
+  -- paths         interrogation and manipulation of paths
+  -- prune         prune the graph based on coverage or topological complexity
+  -- unchop        merge unitigs into single nodes
+  -- normalize     compact unitigs and simplify redundant furcations
+  -- subset        extract subsets of the graph as defined by query criteria
+  -- bin           bin path information across the graph
+  -- matrix        graph topology in sparse matrix form
+  -- chop          chop long nodes into short ones while preserving topology
+  -- groom         resolve spurious inverting links
+  -- layout        use SGD to make 2D layouts of the graph
+  -- flatten       project the graph sequence and paths into FASTA and BED
+  -- break         break cycles in the graph
+  -- pathindex     create a path index for a given graph
+  -- panpos        get the pangenome position for a given path and nucleotide position (1-based)
+  -- server        start a HTTP server with a given index file to query a pangenome position
+  -- version       get the git version of odgi
+  -- test          run unit tests
+
+For more commands, type `odgi help`.
+#+END_SRC
+
+Now can try building a Guix container with
+
+#+BEGIN_SRC sh
+env GUIX_PACKAGE_PATH=~/guix-genomics ~/.config/guix/current/bin/guix environment -C --ad-hoc odgi
+odgi
+#+END_SRC
+
+yes, that works too. Great, now we package a Docker image
+
+#+BEGIN_SRC sh
+env GUIX_PACKAGE_PATH=~/guix-genomics ~/.config/guix/current/bin/guix pack -f docker odgi
+#+END_SRC
+
+which created a container in
+~/gnu/store/d68qyyvqchlgq3lzh3qgmlg9k42c9yas-docker-pack.tar.gz~ of
+size 30MB. Tiny!
+
+After installing docker (part of GNU Guix) you can test
+
+#+BEGIN_SRC sh
+docker load --input d68qyyvqchlgq3lzh3qgmlg9k42c9yas-docker-pack.tar.gz
+docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+odgi                latest              5351dc5d4fc8        50 years ago        102MB
+
+docker run 5351dc5d4fc8 odgi
+  odgi: dynamic succinct variation graph tool, version #<procedure version ()>
+  etc.
+#+END_SRC
+
+It works!
+
+Next we make it available for general use. I pushed it to IPFS
+for [[http://ipfs.genenetwork.org/ipfs/Qmb9Zz65qggqNiKkaDYiBw3nW2LabWKxt8GKbgqVuxP1S8/odgi][sharing]].
