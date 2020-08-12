@@ -2,10 +2,22 @@
 
 #+TITLE: GNU Guix containers
 
+
+* Table of Contents                                                     :TOC:
+ - [[#introduction][Introduction]]
+ - [[#running-a-container][Running a container]]
+   - [[#usage][Usage]]
+   - [[#browser][Browser]]
+   - [[#running-windows-tools-in-wine][Running Windows tools in Wine]]
+ - [[#docker][Docker]]
+   - [[#providing-a-usable-docker-container][Providing a usable Docker container]]
+   - [[#building-docker-image-of-conda-with-guix][Building Docker Image of Conda with Guix]]
+
 * Introduction
 
 GNU Guix is an excellent implementation of Linux container managers
 and compares favourably to other container systems, such as Docker.
+
 In addition to the advantages that Guix offers as a deployment system,
 Guix containers share the same software repository as the host, i.e.,
 Guix containers are extremely light-weight! This is possible because
@@ -16,12 +28,14 @@ See also the official GNU Guix [[https://www.gnu.org/software/guix/manual/html_n
 
 * Running a container
 
-Containers can be run as regular users in X, provided the Kernel
-gives permission.
+Containers can be run as regular users, provided the Kernel gives
+permission.
 
 ** Usage
 
-Give the package name(s), here emacs and coreutils (for ls etc.), you want to have in the container:
+Give the package name(s), here emacs and coreutils (for ls etc.), you
+want to have those added to the container (a Guix container is empty
+by default):
 
 #+begin_src sh
     guix environment --container --network --ad-hoc emacs coreutils
@@ -164,7 +178,6 @@ This produced a file which we can be loaded into Docker
 : docker images
 :   REPOSITORY          TAG                                IMAGE ID            CREATED             SIZE
 :   profile             425c1ignnjixxzwdwdr5anywnq9mg50m   121f9cca6c55        47 years ago        1.43 GB
-
 
 Now you should see the image id and you can run
 

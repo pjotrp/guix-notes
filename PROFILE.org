@@ -1,9 +1,15 @@
-#+TITLE: Guix Profile
+#+TITLE: Guix Profiles for controlled Development, Testing, Staging and Production
 
 * Table of Contents                                                     :TOC:
  - [[#introduction][Introduction]]
  - [[#what-is-a-profile][What is a profile?]]
  - [[#development-testing-staging-production][Development, testing, staging, production!]]
+ - [[#software-optimization][Software optimization]]
+ - [[#containers][Containers]]
+   - [[#running-in-a-guix-container][Running in a Guix container]]
+   - [[#development-in-a-guix-container][Development in a Guix container]]
+   - [[#creating-a-docker-container][Creating a Docker container]]
+ - [[#finally][Finally]]
 
 * Introduction
 
@@ -20,9 +26,9 @@ solution. Docker images are not easily reproducible over time. The
 other problem with Docker is that it is a container infrastructure
 which is quite expensive to run (both time and complexity). Guix
 profiles run on bare metal, though you can opt to use Guix containers
-and even build Docker containers. In other words, more options,
-lighter, faster and we still have the option to orchestrate Docker
-containers.
+and even build Docker containers (see below). In other words, more
+options, lighter, faster and we still have the option to orchestrate
+Docker containers.
 
 * What is a profile?
 
@@ -153,7 +159,7 @@ Guix and (2) a version of our special packages. The source code of the
 GNU Guix [[https://guix.gnu.org/packages/][package tree]] lives at git [[https://savannah.gnu.org/git/?group=guix][gnu.org]]. Our package source tree
 can be found on our own [[http://git.genenetwork.org/guix-bioinformatics/guix-bioinformatics][git service]]. The latter package tree can be
 combined in two ways: by using Guix [[https://guix.gnu.org/manual/en/html_node/Channels.html][channels]] or by pulling modules in
-using the special GUIX_PACKAGE_PATH environment variable. We are going
+using the special ~GUIX_PACKAGE_PATH~ environment variable. We are going
 to use the latter here.
 
 To get a fully reproducible GUIX it can be built using a hash value
@@ -161,8 +167,8 @@ that comes from the git tree. This is what happens:
 
 A developer comes in and says I developed a new function and it is
 ready for testing. I used GNU Guix at commit
-8a7784381ac19d0756dc862bf3d8e082406bd958 and guix-bioinformatics at
-b0c38d151324e37448ade758cc48d02d89f94b60.
+~8a7784381ac19d0756dc862bf3d8e082406bd958~ and ~guix-bioinformatics~ at
+~b0c38d151324e37448ade758cc48d02d89f94b60~.
 
 To update GNU Guix to that commit we can do
 
@@ -178,7 +184,6 @@ tux01:~$ git clone http://git.genenetwork.org/guix-bioinformatics/guix-bioinform
 tux01:~$ cd guix-bioinformatics
 tux01:~$ git checkout -b b0c38d151324e37448ade758cc48d02d89f94b60 b0c38d151324e37448ade758cc48d02d89f94b60
 #+END_SRC
-
 
 Next we install our software using these two repos into a new profile
 
@@ -244,16 +249,138 @@ substitute: updating substitutes from 'https://berlin.guixsd.org'... 100.0%
 17 items would be downloaded
 #+END_SRC
 
-Now no more builds! After removing the --dry-run switch it should just install and
+Now no more builds! After removing the ~--dry-run~ switch it should just install and
 we can run
 
 #+BEGIN_SRC
 tux01:~$ ~/opt/genenetwork2-test/bin/genenetwork2
 #+END_SRC
 
-Which starts off the webserver. Note this profile is pretty massive with loads
-of tools pulled in!
+Which starts off the webserver. Note this profile is pretty massive
+with loads of tools pulled in! Because Guix knows about the full
+dependency graph we can visualize it with
 
-The combination of hash values has `carved our deployment in stone'!
-Note that these versions often go hand-in-hand, so it is good practise
-to store that information somewhere.
+#+BEGIN_SRC sh
+tux01:~$ env GUIX_PACKAGE_PATH=~/guix-bioinformatics:~/guix-past/modules/ ~/.config/guix/current/bin/guix graph genenetwork2 |dot -Tpdf > genenetwork2-references.pdf
+#+END_SRC
+
+To see the full graph see [[./images/genenetwork2-references.pdf]]. It is
+huge! And visiting it one can question why some of the dependencies
+are there in the first place.
+
+Back to profiles on a common server we install the profiles in /usr/local/guix,
+so it may look like
+
+#+BEGIN_EXAMPLE
+tux01:~$ ls /usr/local/guix-profiles/ -1 --color=never|sort
+gn2-latest
+gn2-stable
+gn-latest-20181014
+gn-latest-20181119
+gn-latest-20190905
+gn-latest-20200428
+gn-latest-20200513
+gn-latest-20200725
+gn-latest-20200811
+#+END_EXAMPLE
+
+which shows we don't update the full graph that often. The last months
+we see more upticks because of a Python2 -> Python3 migration. We use a
+calender date scheme, but you might as well name the profiles
+
+#+BEGIN_EXAMPLE
+gn-development
+gn-testing
+gn-staging
+gn-production
+#+END_EXAMPLE
+
+and refine it further.
+
+The important take home message is that the combination of hash values
+the developer handed us has /carved our deployment in stone/!  Note
+that these versions often go hand-in-hand, so it is good practice to
+store that information somewhere.
+
+* Software optimization
+
+There exists an idea that GNU Guix only allows for generic
+builds. This is not true. Guix provides channels that allow for
+specific builds. Where Guix can go back to using older software (such
+as provided by [[https://gitlab.inria.fr/guix-hpc/guix-past][Guix past]]) it can also go forward by providing
+different flavours of optimization. The openblas we use for gemma in
+GeneNetwork is hand optimized, see [[http://git.genenetwork.org/guix-bioinformatics/guix-bioinformatics/src/branch/master/gn/packages/gemma.scm][here]].
+
+* Containers
+
+** Running in a Guix container
+
+Because GNU Guix has full control of the dependency graph one can
+create run above installation in a container where no other software
+is visible. I.e., in complete isolation. To start the container
+takes only 10 seconds
+
+#+BEGIN_SRC sh
+tux01:~$ env GUIX_PACKAGE_PATH=~/guix-bioinformatics:~/guix-past/modules/ ~/.config/guix/current/bin/guix environment -C genenetwork2
+#+END_SRC
+
+and gives a full environment to explore dependencies in a different
+way:
+
+#+BEGIN_SRC sh
+pjotr@tux01 ~ [env]$ gemma
+GEMMA 0.98.2 (2020-05-28) by Xiang Zhou and team (C) 2012-2020
+#+END_SRC
+
+We run websites this way in containers to enhance security. We also
+use containers for development:
+
+** Development in a Guix container
+
+When starting a container the current directory is automatically
+mounted so you can compile and test software using the tools in the
+container. We use it, for example, for sambamba and gemma
+development. To develop GEMMA fetch the git repo and
+
+#+BEGIN_SRC sh
+guix environment -C guix --ad-hoc gcc-toolchain gdb gsl openblas zlib bash ld-wrapper perl vim which
+make
+make check
+#+END_SRC
+
+will create the full build environment. To test against against an older gcc we
+can simply do
+
+#+BEGIN_SRC sh
+guix environment -C guix --ad-hoc gcc-toolchain@6.3.0 gdb gsl openblas zlib bash ld-wrapper perl vim which
+make
+make check
+#+END_SRC
+
+Or for any other dependency. E.g., for openblas we even create our own
+optimized versions that are deployed in the GeneNetwork stack.
+
+It is the cats whiskers because no dependencies can bleed in from the
+surrounding Linux distribution. /Full control on reproducible software
+deployment from software cradle to software grave/.
+
+** Creating a Docker container
+
+To create a Docker container is just as trivial.
+
+#+BEGIN_SRC sh
+time env GUIX_PACKAGE_PATH=~/guix-bioinformatics:~/guix-past/modules/ ~/.config/guix/current/bin/guix pack  -f docker genenetwork2
+#+END_SRC
+
+and takes a full 12 seconds to generate a 966 Mb ~tar.gz~ Docker file!
+Try and beat that.
+
+For more information see [[./CONTAINERS.org]].
+
+* Finally
+
+Guix is great for controlled software deployment in development
+environments. It is beyond the scope of this document, but GNU Guix
+also allows for defining full (Cloud) operating systems as
+deterministic software definitions. At UTHSC we are building an HPC
+this way.
