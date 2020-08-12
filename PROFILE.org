@@ -285,8 +285,11 @@ gn-latest-20200811
 #+END_EXAMPLE
 
 which shows we don't update the full graph that often. The last months
-we see more upticks because of a Python2 -> Python3 migration. We use a
-calender date scheme, but you might as well name the profiles
+we see more upticks because of a Python2 -> Python3 migration. Even
+today we can easily roll back to a profile from 2018 without any
+software installation.
+
+We use a calender date scheme, but you might as well name the profiles
 
 #+BEGIN_EXAMPLE
 gn-development
