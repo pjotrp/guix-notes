@@ -385,12 +385,16 @@ commands.
 
 * Common Workflow Language (CWL)
 
-For [[http://covid19.genenetwork.org/][COVID-19 PubSeq]] a tool named [[https://github.com/vgteam/odgi][ODGI]] was required in a CWL [[https://github.com/arvados/bh20-seq-resource/blob/master/workflows/pangenome-generate/odgi_to_rdf.cwl][module]] to
-generate RDF. The quickest way to get a working Docker container was
-by using GNU Guix. ODGI is currently maintained and packaged in an
-external [[https://github.com/ekg/guix-genomics/blob/16b272722013a101067117739f8c4de91390f49a/odgi.scm#L1][guix-genomics]] repo by Erik Garrison. It is simply a matter of
-adding a channel or by using the ~GUIX_PACKAGE_PATH~ after a git clone
-of guix-genomics we build odgi in a [[./PROFILE.org][profile]]
+CWL can use Docker images to pull containers, for example for [[https://github.com/common-workflow-library/bio-cwl-tools/blob/61ffac1862822f08dc20b6f8e2f22634b986b0bc/odgi/odgi_build.cwl][OGDI]]. CWL is
+agnostic to how these containers are sourced.
+
+For [[http://covid19.genenetwork.org/][COVID-19 PubSeq]] [[https://github.com/vgteam/odgi][ODGI]] was required in a CWL [[https://github.com/arvados/bh20-seq-resource/blob/master/workflows/pangenome-generate/odgi_to_rdf.cwl][module]] to [[https://github.com/arvados/bh20-seq-resource/commit/618f956eb03c6a6ad1cc16efc931f55b0dce83e1][build]] a graph
+and generate RDF. The CWL to build the graph is [[ttps://github.com/arvados/bh20-seq-resource/blob/master/workflows/pangenome-generate/odgi-build.cwl][here]]. The quickest way
+to get an up-to-date working Docker container was by using GNU
+Guix. ODGI is currently maintained and packaged in an external
+[[https://github.com/ekg/guix-genomics/blob/16b272722013a101067117739f8c4de91390f49a/odgi.scm#L1][guix-genomics]] repo by Erik Garrison. It is simply a matter of adding a
+channel or by using the ~GUIX_PACKAGE_PATH~ after a git clone of
+guix-genomics we build odgi in a [[./PROFILE.org][profile]]
 
 #+BEGIN_SRC sh
 env GUIX_PACKAGE_PATH=~/guix-genomics ~/.config/guix/current/bin/guix package -i odgi -p ~/opt/vgtools
@@ -463,7 +467,20 @@ docker run 5351dc5d4fc8 odgi
   etc.
 #+END_SRC
 
-It works!
+It works! Only a request came to add bash and coreutils. So I made
+a slightly larger one, also putting all binaries in the /bin path so
+/bin/sh and /bin/odgi work
+
+#+BEGIN_SRC sh
+env GUIX_PACKAGE_PATH=~/guix-genomics ~/.config/guix/current/bin/guix pack -f docker odgi bash coreutils binutils --substitute-urls="http://guix.genenetwork.org https://berlin.guixsd.org https://ci.guix.gnu.org https://mirror.hydra.gnu.org"  -S /bin=bin
+#+END_SRC
+
+It runs, for example
+
+: docker run 0dcb42977ec2 odgi
+: docker run 0dcb42977ec2 sh
+: docker run 0dcb42977ec2 /bin/sh
+: docker run 0dcb42977ec2 /bin/bash -c ls
 
 Next we make it available for general use. I pushed it to IPFS
-for [[http://ipfs.genenetwork.org/ipfs/Qmb9Zz65qggqNiKkaDYiBw3nW2LabWKxt8GKbgqVuxP1S8/odgi][sharing]].
+for [[http://ipfs.genenetwork.org/ipfs/QmZmjG6Yc5tKwMATetZsnqReTxMtQ75RcsqEc3vYVAPLDk/odgi][sharing]].
