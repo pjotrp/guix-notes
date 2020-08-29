@@ -1,8 +1,222 @@
+#+TITLE: Python and GNU Guix
 
+* Table of Contents                                                     :TOC:
+ - [[#introduction][Introduction]]
+ - [[#install-python][Install Python]]
+ - [[#adding-python-modules-in-user-land-with-pip][Adding Python modules in user land with pip]]
+   - [[#isolated-module-installation][Isolated module installation]]
+   - [[#with-virtualenv][With virtualenv]]
+ - [[#gnu-guix-paths][GNU Guix paths]]
+   - [[#pythonpath][PYTHONPATH]]
+ - [[#creating-a-gnu-guix-python-package][Creating a GNU Guix Python package]]
 
-* Creating a Python package definition
+* Introduction
 
-Fortunately the Guix pypi import function made it easy by generating
+We use Python extensively and despite its many ways of installing
+software and modules we have settled on using GNU Guix for development
+and deployment. GNU Guix comes with over 1,300 Python modules! You
+should look at Guix when you want clear isolation of dependencies and
+a reproducible environment for [[file:DEPLOY.org][deploying]] development, testing, staging
+and production, with or without containers.  Adding a pip package to
+Guix is a breeze. Also installing Python modules for testing locally
+is straightforward.
+
+* Install Python
+
+After installing GNU Guix we install Python in our own profile named
+~/opt/python-dev which we'll load with the rapidjson module for
+testing
+
+#+BEGIN_SRC
+guix package -A python # list all Python packages
+mkdir -p ~/opt
+guix package -i python python-rapidjson -p ~/opt/python-dev
+#+END_SRC
+
+Now we can test by adding the profile
+
+#+BEGIN_SRC sh
+GUIX_PROFILE="/home/wrk/opt/python-dev"
+. "$GUIX_PROFILE/etc/profile"
+python3
+Python 3.8.2
+[GCC 7.5.0] on linux
+>>> import rapidjson
+>>> data = {'foo': 100, 'bar': 'baz'}
+>>> rapidjson.dumps(data)
+'{"bar":"baz","foo":100}'
+#+END_SRC
+
+So installing a Python package through Guix is easy.
+
+Walking the profile we see it contains a very recent version of Python
+with the rapidjson module and associated dependencies. The profile
+acts effectively as a symlinked virtualenv. But better, because it can
+be shared with other generations of your setup and even other users on
+the system and it is binary reproducible across systems for [[file:DEPLOY.org][deployment]].
+
+* Adding Python modules in user land with pip
+
+So, when a Python module is part of the deployment stack you best make
+it part of GNU Guix. But sometimes you just want to try something. We
+can use pip! But when you try
+
+: pip3 install rapidjson
+
+it will complain with "Permission denied" because it is trying to install
+in the (immutable) Guix store. Override with
+
+: pip3 install --user rapidjson
+
+To figure out where Python installed the module
+
+#+BEGIN_SRC python
+>>> import sys
+>>> print(sys.path)
+  ['',
+   '/gnu/store/8ixk0ws42lz6jvrrjl12pgrrzxg2j80m-profile/lib/python3.8/site-packages',
+   '/gnu/store/8ixk0ws42lz6jvrrjl12pgrrzxg2j80m-profile/lib/python38.zip',
+   '/gnu/store/8ixk0ws42lz6jvrrjl12pgrrzxg2j80m-profile/lib/python3.8',
+   '/gnu/store/8ixk0ws42lz6jvrrjl12pgrrzxg2j80m-profile/lib/python3.8/lib-dynload',
+   '/home/wrk/.local/lib/python3.8/site-packages']
+#+END_SRC
+
+and, indeed, it contains rapidjson:
+
+#+BEGIN_SRC sh
+ls /home/wrk/.local/lib/python3.8/site-packages
+rapidjson-1.0.0.dist-info
+#+END_SRC
+
+** Isolated module installation
+
+You can also use your own installation path. Pip and other Python
+installation tools install into a lib dir based on the prefix
+(normally /usr, and override just that). So pass in a prefix:
+
+#+BEGIN_SRC sh
+pip3 install --install-option="--prefix=$PREFIX_PATH" package_name
+
+#+END_SRC
+
+To fully guarantee isolation, set the PREFIX_PATH to something that
+contains the HASH value of the installed python. This can be fetched:
+
+#+BEGIN_SRC sh
+PYTHONBIN=$(readlink -f `which python3`)
+PYTHONHASH=$(basename $(dirname $(dirname $PYTHONBIN)))
+echo $PYTHONHASH
+  kmfg2lq2aqgmdrr16hk7nc878aafpqhn-python-3.8.2
+export PREFIX_PATH=$HOME/.python_guix/$PYTHONHASH
+#+END_SRC
+
+Now use this to install a module and make sure PATH and PYTHONPATH are
+updated accordingly
+
+#+BEGIN_SRC sh
+pip3 install --install-option="--prefix=$PREFIX_PATH" package_name
+export PATH=$PREFIX_PATH/bin:$PATH
+export PYTHONPATH=$PREFIX_PATH/lib/python2.8/site-packages:$PYTHONPATH
+#+END_SRC
+
+Using setup you can do something similar with
+
+#+BEGIN_SRC sh
+python3 setup.py install --prefix=$PREFIX_PATH
+#+END_SRC
+
+As such, you no longer need virtualenv with GNU Guix - as isolation is
+part of its job (more below).
+
+** With virtualenv
+
+Still, GNU Guix supports python virtualenv. Install
+
+: guix package -i python-virtualenv
+
+or
+
+: guix package -i python2-virtualenv
+
+Run
+
+#+BEGIN_SRC sh
+virtualenv newdir
+cd newdir
+source bin/activate
+~/newdir/bin/pip3 list
+#+END_SRC
+
+will give access to pip etc.
+
+* GNU Guix paths
+
+The basic idea of GNU Guix is simple. A HASH value (SHA256) is calculated
+over the inputs to a build. This includes the source code of Python, and the
+switches used over configure and make. The software is installed under the
+HASH, for example I have Python 2.7.6 and 2.7.5 on my system sitting under
+
+:  /gnu/store/fy9arp9cn4zxzl69vsqj30p2j31w62al-python-2.7.6:
+:  bin  include  lib  share
+
+:  /gnu/store/yb9z2y7ndzra9r3x7l3020zjpds43yyc-python-2.7.5:
+:  bin  include  lib  share
+
+and, for example, Python3 under
+
+:  /gnu/store/f01fv1v2q2bdqxsrhabryjk3rz866i3h-python-3.3.5::
+:  bin  lib  share
+
+They are cleanly separated. Now if I were to change the configure for
+2.1.3, for example a build without openssl, it would simply become
+another HASH and therefore directory.
+
+It gets even better, the HASH value is also calculated over the
+dependencies. So, if you are running two different glibc's on your
+system (each under its own HASH directory), or openssl's, the python
+interpreter gets build against one of each and calculates a unique
+HASH. So you can theoretically have four concurrent Python 2.1.3
+installations, compiled against any combination of two glibc's and two
+openssl's. The point, again, is that you have full control over the
+dependency graph!
+
+To make a Python visible to a user, GNU Guix uses symlinks. Installing a
+particular Python will symlink a so-called profile in
+~/.guix-profile/bin. To run Python, simply run it as
+
+:  ~/.guix-profile/bin/python --version
+:  Python 2.7.6
+
+The libraries that come with Python are also symlinked via
+~/.guix-profile/lib/python/.  The numbering does not matter too
+much since it points to an immutable (read-only) directory in
+
+:  ~/.guix-profile/lib/python2.7 -> /gnu/store/fy9arp9cn4zxzl69vsqj30p2j31w62al-python-2.7.6/lib/python2.7
+
+This means that you can access Python libraries shipped with a
+particular Python version, but that you can not write new files into
+that directory! The Python installation is carved in stone.
+
+** PYTHONPATH
+
+To make sure Python finds the default guix Python modules that are
+symlinked it needs to be told where to find them
+
+: export PYTHONPATH="$HOME/.guix-profile/lib/python2.7/site-packages"
+
+This statement is part of the file in your profile ~$PROFILE/etc/profile~ that
+can be loaded with
+
+: source $PROFILE/etc/profile
+
+Typically that is enough.
+
+* Creating a GNU Guix Python package
+
+Once you have a module that has to be embedded in deployment, the
+best thing is to make it part of GNU Guix.
+
+Fortunately the Guix pypi ~import~ function made it easy by generating
 package definitions such as for the Python 'prov' package:
 
 : guix import pypi prov
@@ -29,193 +243,6 @@ renders a cut-and-paste JSON style package definition
   (license license:expat))
 #+END_SRC
 
-The difference with JSON is that this is executable Scheme code.  This
-is all you need to add a Python package to GNU Guix. Note that it
-fetches the latest version and even the software license!  Note also
-how high-level the definition is. Not even a download URL to specify.
-
-
--*- mode: markdown; coding: utf-8; -*-
-
-# Python on GNU Guix
-
-# Introduction
-
-The GNU software packaging project is packaging done right. The Python
-packages support Python 2 and 3 and a host of modules installs out
-of the box.
-You should look at Guix when you
-
-1. are serious about software deployment
-2. need to handle multiple versions of Python
-3. want clear isolation of dependencies
-4. want clean separation of gems
-5. want a reproducible environment
-
-GNU Guix allows you to define a software package once with all its
-dependencies. Every time you install the package it gets reproduced
-*exactly* with its exact dependency graph, all the way down to
-glibc. Whether you are a sysadmin who needs to deploy an exact Rails
-stack or you are a developer and need to support user environment, GNU
-Guix is the solution you require. Use cases are
-
-1. test modules using multiple versions of Python
-2. install concurrent rubies with or without linked openssl support
-3. run minimal Python to be exposed to the web
-4. update Python in production and roll-back after a problem
-5. run multiple versions of the same module against one Python
-6. run multiple versions of openssl dependencies
-
-Use your imagination. The point is that you control the *full*
-dependency graph. Always. You can even give users rights to install
-and share software because the underlying system is
-'immutable'. Existing graphs can not be overwritten by others.
-
-GNU Guix is a next generation software package installer with a range
-of features, including sane dependency handling, transactional and
-reproducible installs which can be rolled back. In short, GNU Guix has
-resolved the fundamental problems of software deployment and
-management. GNU Guix also should play well with Docker and VMs.
-
-GNU Guix is getting mature with almost a thousand software
-packages. In this document I explain what the philosophy is of Python
-(pip) software management and how we put it together. Feel free to ask
-questions and contribute ideas. There are multiple possible tactics
-for sane dependency handling that GNU Guix could support.
-
-# GNU Guix installation
-
-See the
-[INSTALL](https://github.com/pjotrp/guix-notes/blob/master/INSTALL.org)
-document in this repository.
-
-Note that if you have Guix installed and running from /guix/store you
-can just transfer the setup to another machine! The only dependency is
-the Linux kernel.
-
-# Python
-
-The basic idea of GNU Guix is simple. A HASH value (SHA256) is calculated
-over the inputs to a build. This includes the source code of Python, and the
-switches used over configure and make. The software is installed under the
-HASH, for example I have Python 2.7.6 and 2.7.5 on my system sitting under
-
-  /gnu/store/fy9arp9cn4zxzl69vsqj30p2j31w62al-python-2.7.6:
-  bin  include  lib  share
-
-  /gnu/store/yb9z2y7ndzra9r3x7l3020zjpds43yyc-python-2.7.5:
-  bin  include  lib  share
-
-and, for example, Python3 under
-
-  /gnu/store/f01fv1v2q2bdqxsrhabryjk3rz866i3h-python-3.3.5::
-  bin  lib  share
-
-They are cleanly separated. Now if I were to change the configure for
-2.1.3, for example a build without openssl, it would simply become
-another HASH and therefore directory.
-
-It gets even better, the HASH value is also calculated over the
-dependencies. So, if you are running two different glibc's on your
-system (each under its own HASH directory), or openssl's, the python
-interpreter gets build against one of each and calculates a unique
-HASH. So you can theoretically have four concurrent Python 2.1.3
-installations, compiled against any combination of two glibc's and two
-openssl's. The point, again, is that you have full control over the dependency
-graph!
-
-To make a Python visible to a user, GNU Guix uses symlinks. Installing a
-particular Python will symlink a so-called profile in
-~/.guix-profile/bin. To run Python, simply run it as
-
-  ~/.guix-profile/bin/python --version
-  Python 2.7.6
-
-The libraries that come with Python are also symlinked via
-~/.guix-profile/lib/python/.  The numbering does not matter too
-much since it points to an immutable (read-only) directory in
-
-  ~/.guix-profile/lib/python2.7 -> /gnu/store/fy9arp9cn4zxzl69vsqj30p2j31w62al-python-2.7.6/lib/python2.7
-
-This means that you can access Python libraries shipped with a
-particular Python version, but that you can not write new files into
-that directory! The Python installation is carved in stone.
-
-# PYTHONPATH
-
-To make sure Python finds the default guix Python modules that are symlinked use
-
-    export PYTHONPATH="$HOME/.guix-profile/lib/python2.7/site-packages"
-
-# Adding Python modules in user land
-
-## With virtualenv
-
-Guix supports python virtualenv. Install
-
-    guix package -i python-virtualenv
-
-or
-
-    guix package -i python2-virtualenv
-
-And running
-
-```sh
-    virtualenv newdir
-    cd newdir
-    source bin/activate
-    ~/newdir/bin/pip list
-```
-
-will give access to pip etc.
-
-## Without virtualenv
-
-Of course you do not need virtualenv with GNU Guix - as isolation is
-part of its job. Pip and other Python installation tools install into
-a lib dir based on the prefix (normally /usr, and with virtualenv you
-override just that). So pass in a prefix:
-
-```sh
-    pip install --install-option="--prefix=$PREFIX_PATH" package_name
-```
-
-To guarantee isolation, set the PREFIX_PATH to something that contains
-the HASH value of the installed python. This can be fetched:
-
-```sh
-    PYTHONBIN=$(readlink -f `which python3`)
-    PYTHONHASH=$(basename $(dirname $(dirname $PYTHONBIN)))
-    echo $PYTHONHASH
-      2brzns9bli52ma7f3g8cb4q92wd72lr4-python-3.4.3
-    export PREFIX_PATH=$HOME/.python_guix/$PYTHONHASH
-```
-
-Now use this to install a module and make sure PATH and PYTHONPATH
-are updated accordingly
-
-```sh
-    pip3 install --install-option="--prefix=$PREFIX_PATH" package_name
-    export PATH=$PREFIX_PATH/bin:$PATH
-    export PYTHONPATH=$PREFIX_PATH/lib/python2.7/site-packages:$PYTHONPATH
-```
-
-Using setup you can do similarly
-
-```sh
-python setup.py install --prefix=$PREFIX_PATH
-```
-
-# TODO Adding system shared modules
-
-System shared modules are GNU Guix packages (unless you start
-explicitly overriding above _PATHs). The advantage of using GNU Guix
-is that the dependency graph is explicit and people can easily share
-installations. A module gets installed with its version under its own
-HASH dir, e.g.
-
-  /gnu/store/HASH-rspec-1.0.0
-
-This means (again) you can support multiple versions of modules. Under GNU Guix gems become
-first-rate citizens in a software stack.
+The import fetches the latest version and even the software license!
+Note also how high-level the definition is. Not even a download URL to
+specify.
