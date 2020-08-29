@@ -1039,14 +1039,33 @@ installing guix in a profile and setting the LOAD PATHS, e.g.:
 
 : guix package -i guix -p ~/opt/guix
 
+Look for
+
+: find ~/opt/guix/ -name gcrypt*
+
+and
+
 #+BEGIN_SRC bash
-export GUILE_LOAD_PATH=~/opt/guix/share/guile/site/2.2/
-export GUILE_LOAD_COMPILED_PATH=~/opt-guix/share/guile/site/2.2/
+export GUILE_LOAD_PATH=~/opt/guix/share/guile/site/3.0
+export GUILE_LOAD_COMPILED_PATH=~/opt/guix/lib/guile/3.0/site-ccache
 #+END_SRC
 
-Note: Guix recently moved to guile3! This means if you are dealing
-with different versions of guile it gets a bit more complicated. My trick
-is to have an older version of guix in ~/opt/guix-old, so
+or after a ~guix pull~
+
+#+BEGIN_SRC bash
+export GUILE_LOAD_PATH=~/.config/guix/current/share/guile/site/3.0
+export GUILE_LOAD_COMPILED_PATH=~/.config/guix/current/lib/guile/3.0/site-ccache
+#+END_SRC
+
+Note: Guix only recently moved to guile3! This means if you are
+dealing with different versions of guile it gets a bit more
+complicated. My trick is to have an older version of guix in
+~/opt/guix-old and something like
+
+#+BEGIN_SRC bash
+export GUILE_LOAD_PATH=~/opt/guix-old/share/guile/site/2.2/
+export GUILE_LOAD_COMPILED_PATH=~/opt/guix-old/share/guile/site/2.2/
+#+END_SRC
 
 ** error: hash-algorithm: unbound variable
 
