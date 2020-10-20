@@ -1,4 +1,10 @@
-* INSTALLING THE OCTOPUS HPC CLUSTER
+#+TITLE: Installing GNU Guix on the Octopus HPC Cluster
+
+* Table of Contents                                                     :TOC:
+ - [[#philosophy][Philosophy]]
+   - [[#getting-the-machines-up-and-running][Getting the machines up and running]]
+
+* Philosophy
 
 Having run GNU Guix on our machines for some years with great results
 we decided to build a new HPC cluster consisting of Dell PowerEdge
@@ -11,12 +17,23 @@ we see fit. The nodes can boot from an on demand image. We'll allow
 for Docker, Singularity and even VMs to run. Researchers will use our
 cluster and we want to give them freedom.
 
+To bootstrap the installation we use remote terminal access (serial
+over LAN by iDRAC) and boot into a system using a Debian10 live USB
+stick. Next we start the network and install Debian10 on the hard
+disks with debootstrap as a base install. We need to get up to speed
+quickly and this is the fastest route. In time we may have GNU Guix
+images which may allow us to skip a Debian install. The design of the
+system will allow for foreign Docker images and VMs which means the
+underlying system can be very lean. A suitable target for GNU Guix.
+
+But first bootstrapping:
+
 ** Getting the machines up and running
 
-We use remote out-of-band access using a serial interface over
-LAN. E.g.
+We use remote out-of-band access using a serial interface over LAN
+connecting with ssh. E.g.
 
-: ssh root@hostname
+: ssh idrac@hostname
 
 First thing is to check serial settings
 
