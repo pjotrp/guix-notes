@@ -23,6 +23,24 @@ After installing Guix you can install and run R with
 
 : guix package -i r r-shiny
 
+* R Paths
+
+Install locally a package
+
+: R CMD INSTALL -l ~/localR source.tar.gz
+
+Add the path to R_LIBS environment variable
+
+: export R_LIBS=~/.localR
+
+and in R
+
+: .libPaths()
+
+or specify with
+
+: library("source", lib.loc="~/localR")
+
 * Importing an existing CRAN module
 
 You can even have GNU Guix export CRAN and Bioconductor packages for

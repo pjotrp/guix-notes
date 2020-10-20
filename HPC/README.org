@@ -1,0 +1,200 @@
+* INSTALLING THE OCTOPUS HPC CLUSTER
+
+Having run GNU Guix on our machines for some years with great results
+we decided to build a new HPC cluster consisting of Dell PowerEdge
+R6515 machines with AMD EPYC 7402P 24-Core Processor on board. Two
+machines (the head nodes) have 1TB RAM and the other 9 machines have
+128GB RAM on board.
+
+Because we own the cluster with admin rights we can deploy software as
+we see fit. The nodes can boot from an on demand image. We'll allow
+for Docker, Singularity and even VMs to run. Researchers will use our
+cluster and we want to give them freedom.
+
+** Getting the machines up and running
+
+We use remote out-of-band access using a serial interface over
+LAN. E.g.
+
+: ssh root@hostname
+
+First thing is to check serial settings
+
+#+begin_example
+racadm>>get iDRAC.Serial
+[Key=iDRAC.Embedded.1#Serial.1]
+BaudRate=57600
+Command=
+Enable=Enabled
+HistorySize=8192
+IdleTimeout=300
+NoAuth=Disabled
+
+set IDRAC.serial.BaudRate 115200
+#+end_example
+
+You could set user and password, but leave that for now.  Connect to
+serial interface (com2 even though we are using ttyS0 throughout)
+
+: racadm>>connect com2
+
+Probably a blank, to leave serial type control-backslash or ~^\~
+and reboot
+
+: racadm>>serveraction powercycle
+: connect com2
+
+Hit ~ESC+!~ and ENTER a few times and wait. What we want to do is select
+a USB boot drive. ~ESC+!~ equals F11 which selects the bootmanager. It
+will pop up in 30s or 2min (on a large RAM machine).
+
+Until we have PXE network and images we are going to manage installs
+via USB mounts. On the boot menu make a note of the service tag:
+
+: Service Tag: C5R6R53           PowerEdge R6515
+
+And select ~One-shot BIOS Boot Menu~. Choose ~USB 2: U3 Cruzer Micro~
+which has a Debian10 live rescue system with serial access
+enabled. You don't see the select menu, but you need to press [ENTER]
+a few times. Login and you see we also have network and you can log in
+via ssh.
+
+: ip a
+
+At this stage we can use debootstrap to start installing the machine.
+
+*** Partition disks
+
+Partition the first drive. You can model it on Octopus01, but
+essentially you are free to do what you want ;). EFI 500Mb, a small
+SWAP space 8GB, and a Linux partition 16GB is about minimal. The rest
+of these drives should be part of the distributed store.
+
+*** Debootstrap
+
+: debootstrap --include=openssh-server buster $dest http://ftp.nl.debian.org/debian/
+
+set dest to ext4 partition:
+
+export dest=/dev/sda2
+
+Make sure the partition is bootable (with fdisk), and
+
+  #+begin_src sh
+  env LANG=C.UTF-8 chroot $dest /bin/bash
+  apt-get install makedev
+  mount none /proc -t proc
+  cd /dev
+  MAKEDEV generic
+  #+end_src
+
+(may take a while)
+
+  : ls -l /dev/tty* # should exist now
+
+Set locales to include en_US.UTF-8
+
+#+begin_src sh
+  apt-get install locales
+  dpkg-reconfigure locales
+  # mount -t proc proc /proc
+  apt-get install vim openssh-server less
+  passwd   # set root password, don't forget!
+#+end_src
+
+edit /etc/fstab
+
+#+begin_src fstab
+  /dev/sda2  /               ext4    errors=remount-ro 0       1
+  proc            /proc           proc    defaults        0       0
+  /dev/sda2 none            swap    sw              0       0
+  # /dev/sda3  /export         ext4    errors=remount-ro 0       1
+#+end_src
+
+Install kernel and headers (missing in target normally!)
+
+#+begin_src sh
+apt-cache search linux-image
+apt-get install linux-image-amd64 linux-source
+apt-get install firmware-linux-free grub2
+#+end_src
+
+Edit ~/etc/default/grub~ to give serial access and symlink and enable
+~getty@tty1.service -> /lib/systemd/system/getty@.service~
+
+Access
+
+: apt-get install vim git-core ssh tmux
+
+Run git in /etc
+
+#+begin_src sh
+cd /etc
+git init
+git add .
+git commit -a -m init
+chmod 0700 .git/
+#+end_src
+
+Check the OS
+
+: cat /etc/os-release
+: PRETTY_NAME="Debian GNU/Linux 10 (buster)"
+
+Run grub in the chroot boot partition. Or install grub or grub-pc
+
+:  apt-get install grub2
+
+Make a note of the existing grub menu entries
+
+In ~/etc/default/grub~:
+
+#+begin_src sh
+GRUB_CMDLINE_LINUX_DEFAULT="console=tty0 console=ttyS1,115200n8"
+GRUB_CMDLINE_LINUX=""
+
+GRUB_TERMINAL=serial
+GRUB_SERIAL_COMMAND="serial --speed=115200 --unit=1 --word=8 --parity=no --stop=1"
+#+end_src
+
+and enable serial in systemd
+
+#+BEGIN_SRC
+systemctl enable serial-getty@ttyS0.service
+systemctl start serial-getty@ttyS0.service
+#+END_SRC
+
+Install grub from chroot with
+
+#+begin_src sh
+fdisk -l
+# mount /dev/?? /mnt/tmp
+mount -t proc none $dest/proc
+mount -o bind /dev $dest/dev
+mount -t sysfs sys $dest/sys
+LANG=C.UTF-8 chroot $dest /bin/bash
+# update-grub2 <- may not be right
+/usr/sbin/grub-install --recheck --no-floppy /dev/sda
+/usr/sbin/grub-install --recheck --no-floppy /dev/sdb
+update-grub2
+# Check grub menu, it may not have been set!
+sync & reboot
+#+end_src
+
+Do check ~/boot/grub/grub.conf~!
+
+Setup /etc/network/interfaces to include lo and eno
+
+#+begin_src sh
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+allow-hotplug eno1
+iface eno1 inet dhcp
+#+end_src
+
+: ifup eno1
+
+Boot into partition.
