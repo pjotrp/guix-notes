@@ -2,6 +2,11 @@
 
 * Table of Contents                                                     :TOC:
  - [[#philosophy][Philosophy]]
+ - [[#basic-layout][Basic layout]]
+   - [[#head-nodes][Head nodes]]
+   - [[#compute-nodes][Compute nodes]]
+   - [[#distributed-storage][Distributed storage]]
+ - [[#bootstrapping][Bootstrapping]]
    - [[#getting-the-machines-up-and-running][Getting the machines up and running]]
 
 * Philosophy
@@ -26,7 +31,30 @@ images which may allow us to skip a Debian install. The design of the
 system will allow for foreign Docker images and VMs which means the
 underlying system can be very lean. A suitable target for GNU Guix.
 
-But first bootstrapping:
+Initially the base system will be a Debian install hosting shared GNU
+Guix software packages. We will migrate to a full GNU Guix setup.
+
+* Basic layout
+
+** Head nodes
+
+We have two head nodes (octopus01 and octopus02) which are pretty
+identical though octopus01 will be the main head node and octopus02 is
+the fallback. These machines are large memory machines and we will
+allow people to run VMs on these - separate from slurm.
+
+** Compute nodes
+
+We have nine compute nodes (octopus03-11). Initially we simply create
+Debian nodes running Slurm. The nodes will get on demand boot of other
+installations including GNU Guix.
+
+** Distributed storage
+
+The machines are connected over 10Gbs and we are opting for a software
+distributed storage system between all machines.
+
+* Bootstrapping
 
 ** Getting the machines up and running
 
