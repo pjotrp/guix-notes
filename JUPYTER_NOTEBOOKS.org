@@ -1,0 +1,115 @@
+#+TITLE: Jupyter notebook teaching environment
+
+* Table of Contents                                                     :TOC:
+ - [[#introduction][Introduction]]
+   - [[#guix-installation][Guix installation]]
+   - [[#backups][Backups]]
+   - [[#4store][4store]]
+
+* Introduction
+
+
+
+** Guix installation
+
+: ~/opt/guix/bin/guix package -i jupyter python-pandas vim screen tree 4store -p /usr/local/guix-profiles/jupyter
+
+LIST="python-mysqlclient python-sql python-sqlalchemy python jupyter python-pandas vim screen tree \
+4store python-pyvcf mc python-ipython sqlite python-elasticsearch python-requests raptor2 python-rdflib"
+
+: env GUIX_PACKAGE_PATH=./guix-bioinformatics/ ~/opt/guix/bin/guix package -p /usr/local/guix-profiles/jupyter -i $LIST
+
+Note: python-elasticsearch needs to match the installed server's major number
+
+: . /usr/local/guix-profiles/jupyter/etc/profile
+
+or
+
+#+begin_src sh
+env -i /bin/bash --login --noprofile --norc
+export GUIX_PROFILE=/usr/local/guix-profiles/jupyter
+export PATH=$GUIX_PROFILE/bin:$PATH
+export JUPYTER_PATH=${GUIX_PROFILE}/share/jupyter
+export PYTHONPATH=${GUIX_PROFILE}/lib/python3.7/site-packages:/home/jupyter/.local/lib/python3.7/site-packages
+export GI_TYPELIB_PATH=${GUIX_PROFILE}/lib/girepository-1.0${GI_TYPELIB_PATH:+:}$GI_TYPELIB_PATH
+export XDG_DATA_DIRS={GUIX_PROFILE}/share${XDG_DATA_DIRS:+:}$XDG_DATA_DIRS
+#+end_src
+
+: jupyter notebook --notebook-dir=/home/jupyter/jupyter --no-browser --ip=192.168.8.9
+
+From outside:
+
+: ssh -L 8888:192.168.8.9:8888 -f -N pjotrp@server
+
+and point your browser to
+http://localhost:8888/
+
+Password: bioinformatics
+
+: firewall-cmd --zone=public --add-port=8888/tcp
+: firewall-cmd --reload
+: firewall-cmd --zone=public --query-port=8888/tcp
+
+** Backups
+
+We are using borg for backups which can be run from
+~/usr/local/guix-profiles/jupyter/bin/borg~
+
+#+begin_src bash
+env BORG_PASSPHRASE=bioinformatics /usr/local/guix-profiles/jupyter/bin/borg create /data/backup/course-jupyter::Course-$(date +%A-%Y%m%d-%H:%M:%S) /home/jupyter/
+#+end_src
+
+** 4store
+
+<!--
+# On the server we install 4store
+# apt-get install avahi-daemon (probably no longer necessary)
+# yum install avahi nss-mdns (idem)
+# yum install raptor2 (part of guix!)
+#   guix package -i 4store avahi
+# avahi-daemon --kill
+# avahi-daemon --reload
+# avahi-daemon --check
+#   export PATH=$HOME/.guix-profile/bin:$PATH
+#   mkdir -p /var/lib/4store
+# See https://github.com/mwjames/SemanticMediaWiki/blob/4store/build/travis/install-services.sh#L67-L115
+
+mkdir /var/log/4store/
+. /usr/local/guix-profiles/jupyter/etc/profile
+
+echo '[4s-boss]
+discovery = sole
+nodes = 127.0.0.1
+[pythoncourse]
+port = 8000
+' > 4store.conf
+
+4s-boss
+ps auxw | grep 4s-bos[s]
+
+4s-admin -c 4store.conf list-nodes
+4s-admin -c 4store.conf list-stores
+
+[pjotrp@pubrec-cls-01 ~]$ 4s-admin -c 4store.conf list-nodes
+node_number hostname      port  status      ip_address
+0           127.0.0.1     6733  ok          127.0.0.1
+[pjotrp@pubrec-cls-01 ~]$ 4s-admin -c 4store.conf list-stores
+store_name   store_status backend_status
+pythoncourse available    1/1 running
+
+Test if boss is listening telnet localhost 6733
+
+export dbname=pythoncourse
+pkill 4s-backend-setup
+pkill 4s-httpd
+pkill 4s-backend
+# 4s-backend-setup $dbname
+# 4s-service start -k demo
+4s-backend $dbname
+4s-httpd -c 4store.conf -D $dbname
+curl http://127.0.0.1:8000
+This is a 4store SPARQL server
+firewall-cmd --zone=public --add-port=8000/tcp
+firewall-cmd --reload
+
+--!>
