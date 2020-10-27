@@ -10,6 +10,7 @@
  - [[#guix-system][Guix system]]
  - [[#guix-partial-deploy-on-debian][Guix partial deploy on Debian]]
  - [[#gnu-shepherd][GNU Shepherd]]
+   - [[#using-shepherd-on-debian][Using Shepherd on Debian]]
  - [[#classes][Classes]]
  - [[#conclusion][Conclusion]]
  - [[#notes][Notes]]
@@ -416,12 +417,12 @@ container on any linux distribution, including Debian.
 
 In this section we want to use Guix system definitions outside Guix
 containers - i.e., for software running on bare metal on top of a
-non-Guix linux distribution, such as Debian. One thing you should
-understand is that GNU Guix builds through a daemon with restricted
-access. This is by design. The guix-daemon can only build, write and
-install software hosted in =/gnu/store=. For containers and VM this is
-not a problem because it actually builds those in the store for you to
-run!
+non-Guix linux distribution, such as Debian, Ubuntu or Fedora. One
+thing you should understand is that GNU Guix builds through a daemon
+with restricted access. This is by design. The guix-daemon can only
+build, write and install software hosted in =/gnu/store=. For
+containers and VM this is not a problem because it actually builds
+those in the store for you to run!
 
 On Debian the guix-daemon can not reach outside the store to, for
 example, /etc. The only thing it can do - as noted earlier - is create
@@ -462,8 +463,31 @@ Starting shepherd as a normal user it created a stub file
 Based on Guix examples in the =/gnu/services= directory and [[https://guix.gnu.org/manual/en/html_node/Shepherd-Services.html][docs]] I
 wrote a small service that fires up a web service on a non-privileged port
 
-With Shepherd we can even consider supporting system services in
+With Shepherd we can consider supporting system services in
 containers as described [[https://guix.gnu.org/blog/2017/running-system-services-in-containers/][here]].
+
+** Using Shepherd on Debian
+
+We run Shepherd in user land to deploy software on bare metal and in
+Guix containers. A shepherd user is created and the shepherd software
+is running from a Guix profile,
+e.g. =/home/shepherd/.guix-profile/bin=.
+
+#+begin_src sh
+shepherd@penguin2:~$ herd status
+Started:
+ + bnw                                                                                                      + covid19-pubseq
+ + genenetwork1                                                                                             + hrdp-project
+ + ipfs                                                                                                     + mcron
+ + power                                                                                                    + ratspub
+ + rn6app
+ + root
+ + singlecell                                                                                              Stopped:
+ - gitea
+ - virtuoso
+One-shot:
+ * test-upgrade
+#+end_src
 
 
 
