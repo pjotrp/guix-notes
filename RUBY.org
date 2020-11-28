@@ -24,9 +24,9 @@
 
 * Introduction
 
-Or life without bundler, rvm etc. Yes, you can still use these tools
-but there really is no longer a *need* because GNU Guix supports native
-Ruby gems!
+GNU Guix, or life without bundler, rvm etc. Yes, you can still use
+these tools but there really is no longer a *need* because GNU Guix
+supports native Ruby gems!
 
 The GNU software packaging project is packaging done right. Ruby
 deployment with rubygems used to be pretty good, years ago, but over
@@ -43,6 +43,16 @@ So when should you look at GNU Guix?  You should look at Guix when you
 3. want clear isolation of *dependencies*
 4. want clean *separation* of gems
 5. want a *reproducible* environment
+
+Just a teaser: run Ruby with its dependencies inside a Guix container
+that is completely isolated from the rest of the system:
+
+#+begin_src sh
+guix environment -C guix --network --ad-hoc ruby ruby-sinatra
+
+#+end_src
+
+
 
 GNU Guix allows you to define a software package once with *all* its
 dependencies. Every time you install the package it gets reproduced

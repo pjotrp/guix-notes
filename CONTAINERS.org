@@ -13,6 +13,7 @@
    - [[#providing-a-usable-docker-container][Providing a usable Docker container]]
    - [[#building-docker-image-of-conda-with-guix][Building Docker Image of Conda with Guix]]
  - [[#common-workflow-language-cwl][Common Workflow Language (CWL)]]
+ - [[#gemma][GEMMA]]
 
 * Introduction
 
@@ -484,3 +485,24 @@ It runs, for example
 
 Next we make it available for general use. I pushed it to IPFS
 for [[http://ipfs.genenetwork.org/ipfs/QmZmjG6Yc5tKwMATetZsnqReTxMtQ75RcsqEc3vYVAPLDk/odgi][sharing]].
+
+* GEMMA
+
+To distribute GEMMA I made static versions of the binary. A container
+can be made instead with
+
+#+BEGIN_SRC sh
+env GUIX_PACKAGE_PATH=~/guix-bioinformatics ~/.config/guix/current/bin/guix pack -f docker gemma-gn2 --substitute-urls="http://guix.genenetwork.org https://berlin.guixsd.org https://ci.guix.gnu.org https://mirror.hydra.gnu.org"  -S /bin=bin
+#+END_SRC
+
+which created a container in of size 51MB. Tiny!
+
+After installing docker (part of GNU Guix) you can test
+
+#+BEGIN_SRC sh
+docker load --input d68qyyvqchlgq3lzh3qgmlg9k42c9yas-docker-pack.tar.gz
+docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+gemma-gn2           latest              ed5bf7499691        50 years ago        189MB
+docker run run ed5bf7499691 gemma
+#+END_SRC
