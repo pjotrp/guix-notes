@@ -489,10 +489,11 @@ for [[http://ipfs.genenetwork.org/ipfs/QmZmjG6Yc5tKwMATetZsnqReTxMtQ75RcsqEc3vYV
 * GEMMA
 
 To distribute GEMMA I made static versions of the binary. A container
-can be made instead with
+can be made instead with, for example
 
 #+BEGIN_SRC sh
-env GUIX_PACKAGE_PATH=~/guix-bioinformatics ~/.config/guix/current/bin/guix pack -f docker gemma-gn2 --substitute-urls="http://guix.genenetwork.org https://berlin.guixsd.org https://ci.guix.gnu.org https://mirror.hydra.gnu.org"  -S /bin=bin
+env GUIX_PACKAGE_PATH=~/guix-bioinformatics ~/.config/guix/current/bin/guix \
+  pack -f docker gemma-gn2 -S /bin=bin
 #+END_SRC
 
 which created a container in of size 51MB. Tiny!
