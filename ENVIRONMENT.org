@@ -1,0 +1,78 @@
+* Guix ENVIRONMENT
+
+Guix environment pulls all dependencies in locally so there
+is no real need to use virtualenv, for example.
+Let's try a new enviroment as a shell:
+
+: user@penguin2:~/cwl$ ~/.config/guix/current/bin/guix environment guix --ad-hoc cwltool python python-magic
+
+Now when you do
+
+: user@penguin2:~/cwl$ which python
+: /usr/bin/python
+: user@penguin2:~/cwl$ which python3
+: /gnu/store/q1wwvb19dg33lh51y03na1bflwpd31aj-profile/bin/python3
+: user@penguin2:~/cwl$ which cwltool
+: /home/user/.guix-profile/bin/cwltool
+
+2 out of 3 are wrong! You can see some confusion.  This is because we
+are mixing shells.  This can be useful, but you have to be aware!
+Try Python
+
+: user@penguin2:~/cwl$ python3
+: Python 3.8.2 (default, Jan  1 1970, 00:00:01)
+: >>> import magic
+
+and that works fine!
+
+When things don't work it is because of the mixing of environments.
+To create a pure environment try
+
+
+: user@penguin2:~/cwl$ ~/.config/guix/current/bin/guix environment guix --pure --ad-hoc cwltool python python-magic
+: user@penguin2:~/cwl$ which python
+: bash: which: command not found
+: set |grep guix
+
+and you can see that your environment is no longer confused, but limited
+to the guix paths (to use which we'll need to include binutils)
+
+#+begin_src sh
+user@penguin2:~/cwl$ set|grep guix
+CMAKE_PREFIX_PATH=/home/user/.guix-profile/
+CPLUS_INCLUDE_PATH=/home/user/.guix-profile/include/c++:/home/user/.guix-profile/include:/gnu/store/q1wwvb19dg33lh51y03na1bflwpd31aj-profile/include/c++:/gnu/store/q1wwvb19dg33lh51y03na1bflwpd31aj-profile/include
+C_INCLUDE_PATH=/home/user/.guix-profile/include:/gnu/store/q1wwvb19dg33lh51y03na1bflwpd31aj-profile/include
+GUIX_LOCPATH=/home/user/.guix-profile/lib/locale:/gnu/store/q1wwvb19dg33lh51y03na1bflwpd31aj-profile/lib/locale
+GUIX_PROFILE=/home/user/.guix-profile
+LIBRARY_PATH=/home/user/.guix-profile/lib:/gnu/store/q1wwvb19dg33lh51y03na1bflwpd31aj-profile/lib
+NODE_PATH=/home/user/.guix-profile/lib/node_modules:/gnu/store/q1wwvb19dg33lh51y03na1bflwpd31aj-profile/lib/node_modules
+PATH=/home/user/.guix-profile/bin:/home/user/.guix-profile/sbin:/home/user/.config/guix/current/bin:/gnu/store/q1wwvb19dg33lh51y03na1bflwpd31aj-profile/bin:/gnu/store/q1wwvb19dg33lh51y03na1bflwpd31aj-profile/sbin
+
+euser@penguin2:~/cwl$ echo $PATH
+/home/user/.guix-profile/bin:/home/user/.guix-profile/sbin:/home/user/.config/guix/current/bin:/gnu/store/q1wwvb19dg33lh51y03na1bflwpd31aj-profile/bin:/gnu/store/q1wwvb19dg33lh51y03na1bflwpd31aj-profile/sbin
+user@penguin2:~/cwl$ echo $GUIX_ENVIRONMENT
+/gnu/store/q1wwvb19dg33lh51y03na1bflwpd31aj-profile
+#+end_src
+
+actually the environment is still a bit confused because it keeps the
+guix-profile in addition to the guix environment!
+
+When you start environment as a container it becomes really clean (that
+is why I do that a lot), i.e., there is no confusion possible:
+
+#+begin_src sh
+user@penguin2:~/cwl$ ~/.config/guix/current/bin/guix environment guix -C --ad-hoc cwltool python python-magic
+user@penguin2 ~/cwl [env]$ python3
+Python 3.8.2 (default, Jan  1 1970, 00:00:01)
+[GCC 7.5.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import magic
+#+end_src
+
+Just works (tm). Try using ~set~ in a container and see.
+
+To have network access in a container use ~--network~ switch.
+Containers can only access directories that are in the container.  To
+access paths that are outside the directory you'll have to mount them
+explicitely. This is also a safety feature when you want to run a
+webservice in a container, for example.

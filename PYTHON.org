@@ -55,6 +55,9 @@ acts effectively as a symlinked virtualenv. But better, because it can
 be shared with other generations of your setup and even other users on
 the system and it is binary reproducible across systems for [[file:DEPLOY.org][deployment]].
 
+See also guix [[./ENVIRONMENT.org][environment]] for a true way of managing packages (without
+virtualenv) and running Python containers.
+
 * Adding Python modules in user land with pip
 
 So, when a Python module is part of the deployment stack you best make

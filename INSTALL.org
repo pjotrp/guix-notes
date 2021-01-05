@@ -22,7 +22,7 @@
    - [[#before-you-try-read-this][Before you try, read this]]
  - [[#fetch-repository-with-git][Fetch repository with git]]
  - [[#a-note-on-bootstrap-from-source][A note on bootstrap from source]]
- - [[#building-gnu-guix-from-source-using-guix---the-bulle-proof-way][Building GNU Guix from source (using Guix) - the bulle proof way]]
+ - [[#building-gnu-guix-from-source-using-guix---the-bullet-proof-way][Building GNU Guix from source (using Guix) - the bullet proof way]]
    - [[#install-the-dependencies-and-build-tools-using-guix][Install the dependencies and build tools using Guix:]]
    - [[#now-build-it][Now build it]]
    - [[#alternative-build-route-using-a-guix-profile][Alternative build route using a Guix profile]]
@@ -538,7 +538,7 @@ For building from source it is particularly important not to *mix*
 Guix and native dependencies. Also make sure you are using the proper
 localstatedir.
 
-* Building GNU Guix from source (using Guix) - the bulle proof way
+* Building GNU Guix from source (using Guix) - the bullet proof way
 
 This is my recommended route for building from source. It is a great
 route because it uses Guix packages isolated from the rest of the
