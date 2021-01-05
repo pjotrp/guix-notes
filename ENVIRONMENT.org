@@ -34,8 +34,9 @@ To create a pure environment try
 : bash: which: command not found
 : set |grep guix
 
-and you can see that your environment is no longer confused, but limited
-to the guix paths (to use which we'll need to include binutils)
+and you can see that your environment is no longer confused, but
+limited to the guix paths (to use which we'll need to include
+binutils)
 
 #+begin_src sh
 user@penguin2:~/cwl$ set|grep guix
@@ -47,7 +48,11 @@ GUIX_PROFILE=/home/user/.guix-profile
 LIBRARY_PATH=/home/user/.guix-profile/lib:/gnu/store/q1wwvb19dg33lh51y03na1bflwpd31aj-profile/lib
 NODE_PATH=/home/user/.guix-profile/lib/node_modules:/gnu/store/q1wwvb19dg33lh51y03na1bflwpd31aj-profile/lib/node_modules
 PATH=/home/user/.guix-profile/bin:/home/user/.guix-profile/sbin:/home/user/.config/guix/current/bin:/gnu/store/q1wwvb19dg33lh51y03na1bflwpd31aj-profile/bin:/gnu/store/q1wwvb19dg33lh51y03na1bflwpd31aj-profile/sbin
+#+end_src
 
+and
+
+#+begin_src sh
 euser@penguin2:~/cwl$ echo $PATH
 /home/user/.guix-profile/bin:/home/user/.guix-profile/sbin:/home/user/.config/guix/current/bin:/gnu/store/q1wwvb19dg33lh51y03na1bflwpd31aj-profile/bin:/gnu/store/q1wwvb19dg33lh51y03na1bflwpd31aj-profile/sbin
 user@penguin2:~/cwl$ echo $GUIX_ENVIRONMENT
@@ -55,7 +60,8 @@ user@penguin2:~/cwl$ echo $GUIX_ENVIRONMENT
 #+end_src
 
 actually the environment is still a bit confused because it keeps the
-guix-profile in addition to the guix environment!
+orginal guix-profile in addition to the new shiny guix environment! This
+may be because of your ~.bashrc~ or ~.profile~ settings.
 
 When you start environment as a container it becomes really clean (that
 is why I do that a lot), i.e., there is no confusion possible:
@@ -75,4 +81,5 @@ To have network access in a container use ~--network~ switch.
 Containers can only access directories that are in the container.  To
 access paths that are outside the directory you'll have to mount them
 explicitely. This is also a safety feature when you want to run a
-webservice in a container, for example.
+webservice in a container, for example. Use the guix environment
+~--expose~ and ~--share~ switches.
