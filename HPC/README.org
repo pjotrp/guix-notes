@@ -8,6 +8,14 @@
    - [[#distributed-storage][Distributed storage]]
  - [[#bootstrapping][Bootstrapping]]
    - [[#getting-the-machines-up-and-running][Getting the machines up and running]]
+ - [[#configuration][Configuring the systems]]
+   - [[#munge][Munge]]
+   - [[#slurm][Slurm]]
+     -[[#troubleshooting][Troubleshooting slurm]]
+   - [[#lizardfs][Lizardfs]]
+     -[[#head-node][Head Node]]
+     -[[#storage-nodes][Storage Nodes]]
+     -[[#lizardfs-client][Lizardfs Client]]
 
 * Philosophy
 
@@ -255,3 +263,354 @@ Now you are ready to reboot the machine and boot into the installed system.
 #+begin_src sh
 sync && reboot
 #:end_src
+
+
+* Configuring the systems
+
+** Munge
+
+Munge is an authentication service, using a shared cryptographic key
+to securely transfer messages between machines in a cluster. Slurm does
+the actual workload management. Both systems need to be setup on all
+the nodes in the cluster.
+
+In order to make sure that the munge and slurm services are configured
+the way we want it is best to do some of the configuration before
+actually installing the packages. The UID and GID of munge and slurm may
+change in other configurations, but they MUST be the same across the
+cluster they run on.
+
+#+begin_src sh
+groupadd -g 900 munge
+useradd -m -c "Munge User" -d /var/lib/munge -u 900 -g munge -s /usr/sbin/nologin munge
+groupadd -g 901 slurm
+useradd -m -c "Slurm" -d /var/lib/slurm -u 901 -g slurm -s /bin/bash slurm
+apt install munge
+#+end_src
+
+Installing munge will also create the shared key used for communication.
+This key needs to be copied to each node in the cluster. Once it is
+there the permissions and ownership needs to be fixed. (You can copy the
+key over first and then run the commands above or you can copy the key
+from the head node to the other nodes and replace their key with the one
+taken from the head node.)
+
+#+begin_src sh
+chmod 0400 /etc/munge/munge.key
+chown munge:munge /etc/munge/munge.key
+#+end_src
+
+There are two simple tests to ensure that munge is setup correctly on
+each node. On each node run:
+
+#+begin_src sh
+munge -n | unmunge
+munge -n | ssh $OTHER_HOST unmunge
+#+end_src
+
+** Slurm
+#
+#+begin_src sh
+groupadd -g 901 slurm
+useradd -m -c "Slurm" -d /var/lib/slurm -u 901 -g slurm -s /bin/bash slurm
+#+end_src
+
+We have opted to not use the accounting built-in to slurm so it's setup
+is not documented here.
+
+#+begin_src sh
+apt install slurmd slurmctld slurm-client
+#+end_src
+
+Configuring slurm takes a couple of tries so the included configuration
+may not be complete. For /etc/slurm-llnl/slurm.conf
+#+begin_src sh
+ClusterName=linux
+ControlMachine=octopus01
+SlurmUser=slurm
+SlurmdLogFile=/var/log/slurmd.log
+SlurmctldLogFile=/var/log/slurmctld.log
+SlurmctldHost=octopus01
+StorageType=accounting_storage/none
+SaveStateLocation=/var/spool/slurmd/ctld
+ReturnToService=1
+DebugFlags=NO_CONF_HASH
+#COMPUTE NODES
+NodeName=octopus[01-02] CPUs=48 Boards=1 SocketsPerBoard=1 CoresPerSocket=24 ThreadsPerCore=2 RealMemory=1027731
+NodeName=octopus[03-11] CPUs=48 Boards=1 SocketsPerBoard=1 CoresPerSocket=24 ThreadsPerCore=2 RealMemory=128595
+PartitionName=debug Nodes=ALL Default=YES MaxTime=INFINITE State=UP
+#+end_src
+
+And for /etc/slurm-llnl/cgroups.conf
+#+begin_src sh
+MaxRAMPercent=95
+#+end_src
+
+Then we start slurmd and slurmctld
+
+  : systemctl enable --now slurmd slurmctld slurmdbd
+
+On each of the compute nodes we only need slurm.conf, so we copy it
+from the head node.
+
+#+begin_src
+apt install slurmd
+cp slurm.conf /etc/slurm-llnl/slurm.conf
+chown root:root /etc/slurm-llnl/slurm.conf
+mkdir -p /var/spool/slurmd/ctld
+chown -R slurm /var/spool/slurmd
+# the next two probably aren't needed
+touch /var/log/slurmd.log
+chown slurm /var/log/slurmd.log
+#+end_src
+
+Now it is time to start slurm
+
+  : systemctl enable --now slurmd
+
+~ on octopus01 we mark the nodes as ready
+
+#+begin_src
+sudo scontrol reconfigure
+sudo scontrol update NodeName=octopus?? State=RESUME
+#+end_src
+
+And then to test that slurm iss working correctly we test it
+
+#+begin_src sh
+srun --ntasks=5 --nodelist=octopus?? --label /bin/hostname
+#+end_src
+
+*** Troubleshooting slurm
+
+There are a couple of things which can go wrong while installing slurm.
+We want to make sure that slurm is started as the root user and then
+permissions are dropped to the slurm user. This allows slurm to run jobs
+as the person who starts the job, not just as slurm.
+
+If a node goes into the 'DRAIN' state, then the fix is to resume it.
+
+#+begin_src sh
+sudo scontrol update NodeName=octopus?? State=RESUME
+#+end_src
+
+** Lizardfs
+
+Lizardfs is a distributed file-system across multiple nodes. It is how
+we have decided to make shared storage generally available on all the nodes.
+
+*** Head Node
+
+As always, we start on the head node
+
+#+begin_src sh
+apt install lizardfs-master lizardfs-metalogger lizardfs-adm
+cp /usr/share/doc/lizardfs-master/examples/mfsmaster.cfg /etc/lizardfs/
+cp /usr/share/doc/lizardfs-master/examples/mfsexports.cfg /etc/lizardfs/
+cp /usr/share/doc/lizardfs-master/examples/mfsgoals.cfg /etc/lizardfs/
+cp /usr/share/doc/lizardfs-metalogger/examples/mfsmetalogger.cfg /etc/lizardfs/
+#+end_src
+
+edit /etc/lizardfs/mfsmaster.cfg
+
+#+begin_src mfsmaster.cfg
+    PERSONALITY = master
+    MASTER_HOST = octopus01
+#+end_src
+
+edit /etc/lizardfs/mfsexports.cfg. We want to make sure that we only
+export the filesystem to the network blocks we want.
+
+#+begin_src mfsexports.cfg
+    172.23.17.0/24      /       rw,alldirs,maproot=0,ignoregid
+    172.23.18.0/24      /       rw,alldirs,maproot=0,ignoregid
+    *                   .       rw
+#+end_src
+
+edit /etc/lizardfs/mfsmetalogger.cfg
+#+begin_src mfsmetalogger.cfg
+    MASTER_HOST = octopus01
+#+end_src
+
+Then it's time to reload the systemd units and start them.
+
+#+begin_src sh
+systemctl daemon-reload
+systemctl enable --now lizardfs-master lizardfs-metalogger
+#+end_src
+
+We can then use the admin tools to check on the storage
+
+#+begin_src sh
+lizardfs-admin info octopus01 9421
+#+end_src
+
+If we choose to create a shadow master, ready to take over if something
+happens to the main node, then all of the configuration is the same
+with the exception of mfsmaster.cfg
+
+#+begin_src mfsmaster.cfg
+    PERSONALITY = shadow
+    MASTER_HOST = octopus01
+#+end_src
+
+If the time comes to change then "shadow" needs to change to "master",
+and all occurrences of octopus01 need to point to the new master.
+
+*** Storage Nodes
+
+On the storage nodes we first format the disks as suggested by the
+lizardfs documentation. Also install the lizardfs-chunkserver package
+so we create the user and group we need for lizardfs.
+https://docs.lizardfs.com/docs/adminguide/basic_configuration.html#for-the-chunkservers
+
+#+begin_src sh
+apt install lizardfs-chunkserver xfsprogs
+#+end_src
+
+use lsblk to make sure /dev/sdb1 isn't in use for anything
+
+  : lsblk
+
+create partition table and create /dev/sdb1 as a Linux file system
+
+#+begin_src sh
+cfdisk /dev/sdb
+mkfs.xfs /dev/sdb1
+mkdir /mnt/sdb1
+mount /mnt/sdb1
+mkdir /mnt/sdb1/lizardfs_vol
+chown -R lizardfs:lizardfs /mnt/sdb1/lizardfs_vol/
+#+end_src
+
+discover UUID of /dev/sdb1
+
+  : lsblk /dev/sdb1 -o +UUID
+
+edit /etc/fstab
+
+#+begin_src fstab
+    UUID=<uuid> /mnt/sdb1 xfs rw,noexec,nodev,noatime,nodiratime,largeio,inode64 0 1
+#+end_src
+#
+edit /etc/lizardfs/mfshdd.cfg
+
+#+begin_src mfshdd.cfg
+    # as recommended by Debian's documentation
+    /mnt/sdb1/lizardfs_vol
+#+end_src
+
+We now need to setup the configuration files for the chunkserver
+
+#+begin_src sh
+gzip -k -d /usr/share/doc/lizardfs-chunkserver/examples/mfschunkserver.cfg.gz
+mv /usr/share/doc/lizardfs-chunkserver/examples/mfschunkserver.cfg /etc/lizardfs/
+cp /usr/share/doc/lizardfs-chunkserver/examples/mfshdd.cfg /etc/lizardfs/
+#+end_src
+
+edit /etc/lizardfs/mfschunkserver.cfg
+
+#+begin_src mfschunkserver.cfg
+    MASTER_HOST = octopus01
+#+end_src
+
+Now that everything is configured we can add it to the storage pool
+
+#+begin_src sh
+systemctl daemon-reload
+systemctl enable --now lizardfs-chunkserver
+#+end_src
+
+If you want to have both SSDs and HDDs on your machine but want
+lizardfs to treat them differently for storage then you have to set
+the LABEL for that chunkserver differently in mfschunkserver.cfg.
+For example, if you were to add HDDs:
+
+partition and format the HDDs using the instructions above
+add to /etc/fstab, mount, chown to lizardfs
+
+#+begin_src sh
+cp /etc/lizardfs/mfschunkserver.cfg /etc/lizardfs/mfschunkserver_hdd.cfg
+cp /etc/lizardfs/mfshdd.cfg /etc/lizardfs/mfshdd_hdd.cfg
+mkdir /var/lib/lizardfs_hdd
+chown -R lizardfs:lizardfs /var/lib/lizardfs_hdd
+#+end src
+
+edit /etc/lizardfs/mfschunkserver_hdd.cfg
+#+begin_src mfshunkserver_hdd.cfg
+    LABEL = HDD
+    DATA_PATH = /var/lib/lizardfs_hdd
+    CSSERV_LISTEN_PORT = 9522
+    HDD_CONF_FILENAME = /etc/lizardfs/mfshdd_hdd.cfg
+#+end_src
+
+edit /etc/lizardfs/mfshdd_hdd.cfg
+#+begin_src mfshdd_hdd.cfg
+    change listed paths to HDD mount points
+#+end_src
+
+Then we need to create a systemd service for the new chunkserver
+
+#+begin_src sh
+cp /lib/systemd/system/lizardfs-chunkserver.service /etc/lizardfs/lizardfs-chunkserver-hdd.service
+#+end_src
+
+edit /etc/lizardfs/lizardfs-chunkserver-hdd.service
+#+begin_src
+    ExecStart=/usr/sbin/mfschunkserver -c /etc/lizardfs/mfschunkserver_hdd.cfg -d start
+#+end_src
+
+Then it's time to start the service
+
+#+begin_src sh
+systemctl daemon-reload
+systemctl enable --now /etc/lizardfs/lizardfs-chunkserver-hdd
+#+end_src
+
+
+*** Lizardfs Client
+
+This is what is required to actually use the storage configured.
+
+#+begin_src sh
+apt install lizardfs-client
+cp /usr/share/doc/lizardfs-client/examples/mfsmount.cfg /etc/lizardfs/
+#+end_src
+
+edit /etc/lizardfs/mfsmount.cfg so we can tell lizardfs what to mount
+#+begin_src mfsmount.cfg
+    # https://docs.lizardfs.com/docs/adminguide/connectclient.html#optional-settings-for-performance-on-nix
+    mfsmaster=octopus01,big_writes,nosuid,nodev,noatime
+    /lizardfs
+#+end_src
+
+and mount lizardfs with the following command:
+
+#+begin_src sh
+mkfs /lizardfs
+sudo mfsmount
+#+end_src
+
+It may be possible to add the lizardfs mount point to your /etc/fstab
+
+#+begin_src fstab
+  /lizardfs     lizardfs    fuse    rw,mfsdelayedinit,mfsmaster=octopus01,big_writes,nosuid,nodev,noatime   0 0
+#+end_src
+
+To change the replication level you need to choose a configuration from
+/etc/lizardfs/mfsgoals.cfg. Some examples:
+
+#+begin_src mfsgoals.cfg
+2 2_copies : _ _
+19 slow : $ec(3,1) { HDD HDD HDD HDD }
+20 fast : $ed(3,1) { SSD SSD SSD SSD }
+#+end_src
+
+To change the replication level
+
+  : lizardfs setgoal 2 /lizardfs -r
+
+And to see the replication level:
+
+  : lizardfs getgoal /lizardfs
+/lizardfs: 2_copies
