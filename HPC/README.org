@@ -115,92 +115,115 @@ essentially you are free to do what you want ;). EFI 500Mb, a small
 SWAP space 8GB, and a Linux partition 16GB is about minimal. The rest
 of these drives should be part of the distributed store.
 
+cfdisk /dev/sda
+delete partitions
+partition 1, 500Mb, EFI (ef)
+partition 2, 8G, swap (82)
+partition 3, 16G, Linux (83)
+mark partition 3 bootable
+write and quit
+
+We need to install dosfstools in order to format the EFI partition.
+
+#+begin_src sh
+apt install dosfstools
+mkfs.fat /dev/sda1
+mkswap /dev/sda2
+mkfs.ext4 /dev/sda3
+#+end_src
+
+Then we can mount the partitions in our custom directory, as we would
+expect them to be mounted once the system is booted.
+
+#+begin_src sh
+mkdir /target
+mount /dev/sda3 /target
+mkdir -p /target/boot/efi
+mount /dev/sda1 /target/boot/efi
+#:end_src
+
 *** Debootstrap
 
-: debootstrap --include=openssh-server buster $dest http://ftp.nl.debian.org/debian/
+: debootstrap --include=openssh-server buster /target http://deb.debian.org/debian/
 
-set dest to ext4 partition:
-
-export dest=/dev/sda2
+(may take a while)
 
 Make sure the partition is bootable (with fdisk), and
 
   #+begin_src sh
-  env LANG=C.UTF-8 chroot $dest /bin/bash
-  apt-get install makedev
-  mount none /proc -t proc
-  cd /dev
-  MAKEDEV generic
+  mount -t proc none /target/proc
+  mount -o bind /dev /target/dev
+  mount -t sysfs sys /target/sys
+  env LANG=C.UTF-8 chroot /target /bin/bash
   #+end_src
 
-(may take a while)
+Set locales to include en_US.UTF-8 and install a coupld of useful
+packages. Etckeeper helps keep /etc in version control so changes
+are easy to see later.
 
-  : ls -l /dev/tty* # should exist now
-
-Set locales to include en_US.UTF-8
-
-#+begin_src sh
-  apt-get install locales
+  #+begin_src sh
+  apt install locales
   dpkg-reconfigure locales
-  # mount -t proc proc /proc
-  apt-get install vim openssh-server less
+  apt install vim less etckeeper screen tmux
   passwd   # set root password, don't forget!
-#+end_src
+  #+end_src
 
 edit /etc/fstab
 
 #+begin_src fstab
-  /dev/sda2  /               ext4    errors=remount-ro 0       1
-  proc            /proc           proc    defaults        0       0
-  /dev/sda2 none            swap    sw              0       0
-  # /dev/sda3  /export         ext4    errors=remount-ro 0       1
+  /dev/sda3       /       ext4    errors=remount-ro       0 1
+  /dev/sda1       /boot/efi   vfat    defaults        0 0
+  /dev/sda2       none    swap    sw      0 0
+
+  # IF YOU TYPO HERE AND NEED TO FIX IT AFTER BOOTING INTO IT:
+  #mount -o remount,rw / --options-source=disable
 #+end_src
+
+Edit the hostname
+
+  : echo "OctopusXX" > /etc/hostname
+
+edit /etc/apt/sources.list and make sure the package lists are up to date
+
+#+begin_src sh
+deb http://deb.debian.org/debian buster main contrib non-free
+deb http://security.debian.org/ buster/updates main contrib non-free
+#+end_src
+
+  : apt update
 
 Install kernel and headers (missing in target normally!)
 
 #+begin_src sh
 apt-cache search linux-image
-apt-get install linux-image-amd64 linux-source
-apt-get install firmware-linux-free grub2
+apt install linux-image-amd64 linux-source
+apt install firmware-linux-free grub2
 #+end_src
 
 Edit ~/etc/default/grub~ to give serial access and symlink and enable
 ~getty@tty1.service -> /lib/systemd/system/getty@.service~
 
-Access
-
-: apt-get install vim git-core ssh tmux
-
-Run git in /etc
-
-#+begin_src sh
-cd /etc
-git init
-git add .
-git commit -a -m init
-chmod 0700 .git/
-#+end_src
+: ln -s /lib/systemd/system/getty\@.service /etc/systemd/system/getty@tty1.service
 
 Check the OS
 
 : cat /etc/os-release
 : PRETTY_NAME="Debian GNU/Linux 10 (buster)"
 
-Run grub in the chroot boot partition. Or install grub or grub-pc
-
-:  apt-get install grub2
-
 Make a note of the existing grub menu entries
 
 In ~/etc/default/grub~:
 
 #+begin_src sh
-GRUB_CMDLINE_LINUX_DEFAULT="console=tty0 console=ttyS1,115200n8"
-GRUB_CMDLINE_LINUX=""
-
-GRUB_TERMINAL=serial
+GRUB_CMDLINE_LINUX_DEFAULT="console=tty1 console=ttyS0,115200n8"
+GRUB_CMDLINE_LINUX="console=tty1 console=ttyS0,115200n8"
 GRUB_SERIAL_COMMAND="serial --speed=115200 --unit=1 --word=8 --parity=no --stop=1"
+GRUB_TERMINAL="console serial"
 #+end_src
+
+And update grub
+
+  : update-grub2
 
 and enable serial in systemd
 
@@ -209,24 +232,12 @@ systemctl enable serial-getty@ttyS0.service
 systemctl start serial-getty@ttyS0.service
 #+END_SRC
 
-Install grub from chroot with
+or run
 
-#+begin_src sh
-fdisk -l
-# mount /dev/?? /mnt/tmp
-mount -t proc none $dest/proc
-mount -o bind /dev $dest/dev
-mount -t sysfs sys $dest/sys
-LANG=C.UTF-8 chroot $dest /bin/bash
-# update-grub2 <- may not be right
-/usr/sbin/grub-install --recheck --no-floppy /dev/sda
-/usr/sbin/grub-install --recheck --no-floppy /dev/sdb
-update-grub2
-# Check grub menu, it may not have been set!
-sync & reboot
-#+end_src
+: ln -s /lib/systemd/system/getty\@.service /etc/systemd/system/getty@tty1.service
 
-Do check ~/boot/grub/grub.conf~!
+Check grub menu in ~/boot/grub/grub.conf~ to make sure the serial
+connection is also set to display the grub console. It may not have been set!
 
 Setup /etc/network/interfaces to include lo and eno
 
@@ -240,6 +251,7 @@ allow-hotplug eno1
 iface eno1 inet dhcp
 #+end_src
 
-: ifup eno1
-
-Boot into partition.
+Now you are ready to reboot the machine and boot into the installed system.
+#+begin_src sh
+sync && reboot
+#:end_src
