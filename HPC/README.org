@@ -375,7 +375,7 @@ sudo scontrol reconfigure
 sudo scontrol update NodeName=octopus?? State=RESUME
 #+end_src
 
-And then to test that slurm iss working correctly we test it
+And then to test that slurm is working correctly we test it
 
 #+begin_src sh
 srun --ntasks=5 --nodelist=octopus?? --label /bin/hostname
@@ -606,11 +606,48 @@ To change the replication level you need to choose a configuration from
 20 fast : $ed(3,1) { SSD SSD SSD SSD }
 #+end_src
 
+It is also possible to query the server for all the available goals
+
+#+begin_src sh
+lizardfs-admin list-goals octopus01 9421
+
+Goal definitions:
+Id      Name    Definition
+1       1_copy  1_copy: $std _
+2       2_copy  2_copy: $std {_ _}
+...
+18      erasure_code_3_1        erasure_code_3_1: $ec(3,1) {_ _ _ _}
+19      slow    slow: $ec(3,1) {HDD HDD HDD HDD}
+20      fast    fast: $std {_ _}
+21      2ssd    2ssd: $std {SSD SSD}
+...
+#+end_src
+
+$std {_ _} means two copies on any two chunkservers, $std {SSD SSD} means
+two copies on any two SSD backed chunkservers and $ec(3,1) {_ _ _ _}
+means it is chunked across 4 chunkservers, where there are 3 data chunks
+and one parity disk, needing a minimum of 3 to retrieve the data. Erasure
+coding does decrease greatly write times but it is a good way to store
+large armounts of data without taking up lots of space. One option is to
+copy unchanging data to a lizardfs array at a faster write speed, 2_copy
+for example, and then to change the goal afterward to slow.
+
 To change the replication level
 
-  : lizardfs setgoal 2 /lizardfs -r
+  : lizardfs setgoal 2_copies /lizardfs -r
 
 And to see the replication level:
 
   : lizardfs getgoal /lizardfs
 /lizardfs: 2_copies
+
+Lizardfs also keeps deleted files, by default for 30 days. If you need to
+recover deleted files (or delete them permanently) then the metadata directory
+can be mounted with:
+
+#+begin_src sh
+mfsmount /path/to/unused/mount -o mfsmeta
+#+end_src
+
+For more information see the lizardfs documentation online
+https://dev.lizardfs.com/docs/adminguide/advanced_configuration.html#trash-directory
