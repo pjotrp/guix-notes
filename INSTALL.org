@@ -45,6 +45,7 @@
    - [[#failed-to-connect-to-daemon][Failed to connect to daemon]]
    - [[#x509-certificate-error][X.509 certificate error]]
    - [[#guix-pull-error-git-error-the-ssl-certificate-is-invalid][guix pull: error: Git error: the SSL certificate is invalid]]
+   - [[#guix-complains-about-locales][Guix complains about locales]]
    - [[#error-build-failed-substituter-substitute-died-unexpectedly][error: build failed: substituter `substitute' died unexpectedly]]
    - [[#error-in-procedure-scm-error-no-code-for-module-gcrypt-hash][ERROR: In procedure scm-error: no code for module (gcrypt hash)]]
    - [[#error-hash-algorithm-unbound-variable][error: hash-algorithm: unbound variable]]
@@ -1017,6 +1018,32 @@ In a pinch you can override checking for certificates. Examples for [[https://st
 ** guix pull: error: Git error: the SSL certificate is invalid
 
 Solution, see above X.509 certificate error
+
+** Guix complains about locales
+
+Particularly on non-Guix distros it is possible to encounter during a build
+
+#+begin_src
+Backtrace:
+           2 (primitive-load "/gnu/store/k0pjy673zfsxl8sqwmqm7nvpsxc?")
+In ice-9/eval.scm:
+    619:8  1 (_ #f)
+In unknown file:
+           0 (setlocale 6 "en_US.utf8")
+
+ERROR: In procedure setlocale:
+In procedure setlocale: Invalid argument
+#+end_src
+
+The fix is to install the daemon with a locale and restart it from there, e.g. on
+Debian
+
+#+begin_src sh
+  ~/opt/guix-latest/bin/guix package -i glibc-utf8-locales guix -p ~/opt/guix-daemon
+  cd ~
+  sudo opt/guix-daemon/bin/guix-daemon  --build-users-group=_guixbuild
+#+end_src
+
 
 ** error: build failed: substituter `substitute' died unexpectedly
 

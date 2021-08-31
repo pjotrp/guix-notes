@@ -83,3 +83,15 @@ access paths that are outside the directory you'll have to mount them
 explicitely. This is also a safety feature when you want to run a
 webservice in a container, for example. Use the guix environment
 ~--expose~ and ~--share~ switches.
+
+
+cwltool --no-container --preserve-environment GUIX_ENVIRONMENT \
+   yamlfa2ttl.cwl --path_fasta ~/bh20-seq-resource/example/sequence.fasta
+
+
+print(os.environ)
+
+'PYTHONPATH': '/gnu/store/9k64w8czk2x3gv6j4f5pr7d5lv2f3zfs-profile/lib/python3.8/site-packages'
+
+
+environ({'GUIX_ENVIRONMENT': '/gnu/store/9k64w8czk2x3gv6j4f5pr7d5lv2f3zfs-profile', 'PATH': '/gnu/store/9k64w8czk2x3gv6j4f5pr7d5lv2f3zfs-profile/bin:/gnu/store/9k64w8czk2x3gv6j4f5pr7d5lv2f3zfs-profile/sbin', 'HOME': '/tmp/wv1g6f1c', 'TMPDIR': '/tmp/k0mqtin5'}
